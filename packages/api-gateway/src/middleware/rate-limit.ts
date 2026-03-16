@@ -33,7 +33,8 @@ export async function rateLimitMiddleware(c: AppContext, next: Next): Promise<Re
   const category = getRateLimitCategory(c.req.path);
   const limit = RATE_LIMITS[category] ?? RATE_LIMITS.default;
   const minute = Math.floor(Date.now() / 60000);
-  const key = `rate:${orgId}:${category}:${minute}`;
+  const userId = c.get('userId') ?? '';
+  const key = `rate:${orgId}:${userId}:${category}:${minute}`;
 
   try {
     const currentStr = await c.env.CACHE.get(key);
@@ -58,6 +59,11 @@ export async function rateLimitMiddleware(c: AppContext, next: Next): Promise<Re
         },
       );
     }
+
+    // Note: KV does not support atomic increment. Under high concurrency,
+    // rate limits may allow slightly more requests than the configured limit.
+    // This is acceptable for our use case; Cloudflare's edge rate limiting
+    // provides the primary defense.
 
     // Increment counter with 60-second TTL
     await c.env.CACHE.put(key, String(current + 1), { expirationTtl: 60 });

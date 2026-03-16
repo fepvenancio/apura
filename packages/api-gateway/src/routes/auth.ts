@@ -37,6 +37,10 @@ auth.post('/signup', async (c) => {
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid slug. Must be 3-50 lowercase alphanumeric characters and hyphens.' } }, 400);
   }
 
+  if (!body.name || body.name.length < 1 || body.name.length > 100) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Name is required (max 100 chars)' } }, 400);
+  }
+
   // Check email uniqueness
   const existingUser = await c.env.DB
     .prepare('SELECT id FROM users WHERE email = ?')
@@ -68,6 +72,10 @@ auth.post('/signup', async (c) => {
 
   // Create org + user in D1 (batch for atomicity)
   const orgName = body.organizationName || (body as any).orgName || 'My Organization';
+  if (orgName.length > 100) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Organization name too long (max 100 chars)' } }, 400);
+  }
+
   await c.env.DB.batch([
     c.env.DB.prepare(
       `INSERT INTO organizations (id, name, slug, plan, primavera_version, agent_api_key, agent_api_key_hash, max_users, max_queries_per_month, queries_this_month, billing_email, country, timezone, created_at, updated_at)

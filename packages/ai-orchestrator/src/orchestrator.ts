@@ -59,7 +59,7 @@ export class QueryOrchestrator {
     }
 
     // 2. Check KV cache for identical query
-    const cacheKey = `query:${request.orgId}:${hashString(sanitized)}`;
+    const cacheKey = `query:${request.orgId}:${await hashString(sanitized)}`;
     const cached = await this.env.CACHE.get(cacheKey, 'json');
     if (cached) {
       return cached as GenerateSqlResponse;
@@ -123,9 +123,11 @@ export class QueryOrchestrator {
 
     // 11. If validation fails, retry once with error feedback
     if (!validation.valid) {
+      // Don't include raw validation errors in retry prompt (could contain injected content)
+      const safeReason = 'The generated SQL was invalid. Please try a different approach.';
       const retryUserPrompt =
         userPrompt +
-        `\n\nIMPORTANT: Your previous SQL was invalid. Validation error: "${validation.reason}". ` +
+        `\n\nIMPORTANT: ${safeReason} ` +
         `Please fix the query and return valid JSON with "sql" and "explanation" keys.`;
 
       const retryResult = await this.claudeClient.generateSql(
@@ -169,15 +171,12 @@ export class QueryOrchestrator {
 }
 
 /**
- * Simple string hash for cache keys.
- * Uses a djb2-style hash that's fast and good enough for deduplication.
+ * SHA-256 based hash for cache keys — collision-resistant replacement for djb2.
  */
-function hashString(str: string): string {
-  let hash = 5381;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) + hash + str.charCodeAt(i)) & 0xffffffff;
-  }
-  return hash.toString(36);
+async function hashString(str: string): Promise<string> {
+  const data = new TextEncoder().encode(str);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**

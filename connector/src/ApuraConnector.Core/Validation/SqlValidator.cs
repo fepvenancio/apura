@@ -21,6 +21,10 @@ public class SqlValidator
             return SqlValidationResult.Reject("Empty query");
         if (sql.Length > 4000)
             return SqlValidationResult.Reject("Query exceeds 4000 character limit");
+        // SECURITY NOTE: Semicolons are rejected even inside string literals.
+        // This is intentional — it prevents batch injection at the cost of
+        // rejecting rare legitimate queries with semicolons in data values.
+        // The TSql.ScriptDom batch check (line 37) is the authoritative control.
         if (sql.Contains(';'))
             return SqlValidationResult.Reject("Semicolons not allowed (no batch queries)");
 

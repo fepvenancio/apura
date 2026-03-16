@@ -45,7 +45,7 @@ public class QueryExecutor
         var validation = _validator.Validate(sql);
         if (!validation.IsValid)
         {
-            _logger.Warning("SQL validation failed: {Reason} | SQL: {Sql}", validation.Reason, sql[..Math.Min(sql.Length, 200)]);
+            _logger.Warning("SQL validation failed: {Reason}", validation.Reason);
             throw new InvalidOperationException($"SQL validation failed: {validation.Reason}");
         }
 

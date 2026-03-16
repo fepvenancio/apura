@@ -1,6 +1,7 @@
 import type { SchemaCategory } from '@apura/shared';
 import { CACHE_TTL_SCHEMA } from '@apura/shared';
 import type { FewShotExample } from '../types';
+import { validateSql } from '../validation/sql-validator';
 
 /**
  * ExampleSelector — selects the most relevant few-shot examples for a query.
@@ -104,7 +105,7 @@ export class ExampleSelector {
         }>();
     }
 
-    const examples: FewShotExample[] = (result.results ?? []).map((r) => ({
+    const rawExamples: FewShotExample[] = (result.results ?? []).map((r) => ({
       category: r.category as SchemaCategory,
       naturalLanguagePt: r.natural_language_pt,
       naturalLanguageEn: r.natural_language_en ?? undefined,
@@ -113,6 +114,12 @@ export class ExampleSelector {
         ? r.tables_used.split(',').map((t) => t.trim())
         : [],
     }));
+
+    // Validate each example's SQL before including in prompt (prevent few-shot poisoning)
+    const examples = rawExamples.filter(ex => {
+      const result = validateSql(ex.sql);
+      return result.valid;
+    });
 
     // Cache for 1 hour
     await this.cache.put(cacheKey, JSON.stringify(examples), {

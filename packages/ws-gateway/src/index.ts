@@ -9,7 +9,7 @@ export default {
 
     // Health check
     if (url.pathname === '/health') {
-      return Response.json({ ok: true, service: 'ws-gateway' });
+      return Response.json({ ok: true });
     }
 
     // Agent WebSocket connection — handle OUTSIDE Hono for proper upgrade

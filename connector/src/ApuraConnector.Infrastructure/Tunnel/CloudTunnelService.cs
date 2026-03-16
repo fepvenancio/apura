@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
@@ -17,6 +18,9 @@ public class CloudTunnelService
     private ClientWebSocket? _ws;
     private readonly DateTime _startTime = DateTime.UtcNow;
     private readonly SemaphoreSlim _sendLock = new(1, 1);
+    private readonly SemaphoreSlim _messageHandlerLimit = new(10); // max 10 concurrent handlers
+    private readonly ConcurrentDictionary<string, CancellationTokenSource> _queryTokens = new();
+    private DateTime _lastHealthPong = DateTime.MinValue;
     private bool _isConnected;
 
     public bool IsConnected => _isConnected;
@@ -105,7 +109,11 @@ public class CloudTunnelService
             if (ms.Length > 0 && result.MessageType == WebSocketMessageType.Text)
             {
                 var json = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
-                _ = Task.Run(() => HandleMessageAsync(json, ct), ct);
+                _ = Task.Run(async () => {
+                    if (!await _messageHandlerLimit.WaitAsync(TimeSpan.FromSeconds(5), ct)) return;
+                    try { await HandleMessageAsync(json, ct); }
+                    finally { _messageHandlerLimit.Release(); }
+                }, ct);
             }
         }
     }
@@ -130,7 +138,12 @@ public class CloudTunnelService
                     break;
 
                 case "query.cancel":
-                    _logger.Information("Query cancel requested (not yet implemented)");
+                    var cancelPayload = MessageSerializer.DeserializePayload<QueryCancelPayload>(envelope.Payload);
+                    if (cancelPayload != null && _queryTokens.TryGetValue(cancelPayload.QueryId, out var cts))
+                    {
+                        cts.Cancel();
+                        _logger.Information("Cancelled query {QueryId}", cancelPayload.QueryId);
+                    }
                     break;
 
                 default:
@@ -155,7 +168,7 @@ public class CloudTunnelService
             return;
         }
 
-        _logger.Information("Executing query (id: {Id}): {Sql}", envelope.Id, payload.Sql[..Math.Min(payload.Sql.Length, 100)]);
+        _logger.Information("Executing query (id: {Id})", envelope.Id);
 
         try
         {
@@ -165,13 +178,22 @@ public class CloudTunnelService
             if (clampedTimeout <= 0) clampedTimeout = _config.DefaultQueryTimeoutSeconds;
             if (clampedMaxRows <= 0) clampedMaxRows = _config.MaxRowsPerQuery;
 
-            var result = await _queryExecutor.ExecuteAsync(
-                payload.Sql,
-                clampedTimeout,
-                clampedMaxRows,
-                ct);
+            var queryCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            _queryTokens[envelope.Id] = queryCts;
+            try
+            {
+                var result = await _queryExecutor.ExecuteAsync(
+                    payload.Sql,
+                    clampedTimeout,
+                    clampedMaxRows,
+                    queryCts.Token);
 
-            await SendMessageAsync(MessageSerializer.CreateQueryResult(envelope.Id, result), ct);
+                await SendMessageAsync(MessageSerializer.CreateQueryResult(envelope.Id, result), ct);
+            }
+            finally
+            {
+                _queryTokens.TryRemove(envelope.Id, out _);
+            }
         }
         catch (InvalidOperationException ex)
         {
@@ -194,13 +216,16 @@ public class CloudTunnelService
 
     private async Task HandleHealthPingAsync(MessageEnvelope envelope, CancellationToken ct)
     {
+        if ((DateTime.UtcNow - _lastHealthPong).TotalSeconds < 5) return; // Throttle health pongs
+        _lastHealthPong = DateTime.UtcNow;
+
         var sqlHealthy = await _sqlConnection.TestConnectionAsync(ct);
         var health = new HealthPongPayload
         {
             UptimeSeconds = (long)(DateTime.UtcNow - _startTime).TotalSeconds,
             SqlServerConnected = sqlHealthy,
             ActiveQueries = _queryExecutor.ActiveQueries,
-            MemoryMb = Environment.WorkingSet / (1024 * 1024),
+            MemoryMb = 0, // Removed for security — don't reveal process memory to cloud
             Version = "0.1.0",
         };
 

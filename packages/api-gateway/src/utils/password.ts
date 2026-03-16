@@ -58,5 +58,17 @@ export async function verifyPassword(password: string, storedHash: string): Prom
     { N, r, p, dkLen: KEY_LENGTH },
   );
 
-  return toHex(derived) === expectedHash;
+  return constantTimeEqual(toHex(derived), expectedHash);
+}
+
+/**
+ * Constant-time string comparison to prevent timing attacks.
+ */
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
 }

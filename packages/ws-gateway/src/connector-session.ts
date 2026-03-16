@@ -8,6 +8,8 @@ interface PendingQuery {
   timeout: ReturnType<typeof setTimeout>;
 }
 
+// Note: Cloudflare Workers WebSocket has a 1MB default message size limit.
+// The connector enforces a 256KB max on its side as well.
 export class ConnectorSession implements DurableObject {
   private state: DurableObjectState;
   private env: Env;
@@ -184,7 +186,8 @@ export class ConnectorSession implements DurableObject {
         }
       }
     } catch (e) {
-      console.error('Error handling WebSocket message:', e);
+      // Don't log the error object — it may contain sensitive data from message content
+      console.error('Error handling WebSocket message');
     }
   }
 
