@@ -1,102 +1,97 @@
-import { Hono } from 'hono';
 import type { Env } from './types';
 import { ConnectorSession } from './connector-session';
 import { validateAgentApiKey } from './auth/agent-auth';
 
-const app = new Hono<{ Bindings: Env }>();
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    try {
+    const url = new URL(request.url);
 
-// ---------------------------------------------------------------------------
-// Agent WebSocket connection endpoint
-// ---------------------------------------------------------------------------
-app.get('/agent/connect', async (c) => {
-  // Extract API key from Authorization header
-  const authHeader = c.req.header('Authorization') ?? '';
-  const apiKey = authHeader.startsWith('Bearer ')
-    ? authHeader.slice(7)
-    : authHeader;
+    // Health check
+    if (url.pathname === '/health') {
+      return Response.json({ ok: true, service: 'ws-gateway' });
+    }
 
-  if (!apiKey) {
-    return c.json({ error: 'Missing Authorization header' }, 401);
-  }
+    // Agent WebSocket connection — handle OUTSIDE Hono for proper upgrade
+    if (url.pathname === '/agent/connect') {
+      const authHeader = request.headers.get('Authorization') ?? '';
+      const apiKey = authHeader.startsWith('Bearer ')
+        ? authHeader.slice(7)
+        : authHeader;
 
-  // Validate the agent API key against D1
-  const { valid, orgId } = await validateAgentApiKey(apiKey, c.env.DB);
-  if (!valid || !orgId) {
-    return c.json({ error: 'Invalid API key' }, 401);
-  }
+      if (!apiKey) {
+        return Response.json({ error: 'Missing Authorization header' }, { status: 401 });
+      }
 
-  // Get DO stub using orgId as the DO name (deterministic ID)
-  const id = c.env.CONNECTOR.idFromName(orgId);
-  const stub = c.env.CONNECTOR.get(id);
+      const { valid, orgId } = await validateAgentApiKey(apiKey, env.DB);
+      if (!valid || !orgId) {
+        return Response.json({ error: 'Invalid API key' }, { status: 401 });
+      }
 
-  // Forward the WebSocket upgrade request to the DO
-  const url = new URL(c.req.url);
-  url.pathname = '/agent/connect';
-  const request = new Request(url.toString(), c.req.raw);
-  return stub.fetch(request);
-});
+      // Get DO stub and forward the WebSocket upgrade request
+      const id = env.CONNECTOR.idFromName(orgId);
+      const stub = env.CONNECTOR.get(id);
 
-// ---------------------------------------------------------------------------
-// Internal: execute query (called by api-gateway via service binding)
-// ---------------------------------------------------------------------------
-app.post('/query/execute', async (c) => {
-  const body = await c.req.json<{
-    orgId: string;
-    queryId: string;
-    sql: string;
-    timeoutMs?: number;
-  }>();
+      // Forward to DO with orgId header — use simple GET with Upgrade header
+      return stub.fetch('http://do/agent/connect', {
+        headers: {
+          'Upgrade': 'websocket',
+          'X-Org-Id': orgId,
+          'X-Connector-Version': request.headers.get('X-Connector-Version') ?? 'unknown',
+        },
+      });
+    }
 
-  const { orgId, queryId, sql, timeoutMs } = body;
+    // Internal: execute query (called by api-gateway via service binding)
+    if (url.pathname === '/query/execute' && request.method === 'POST') {
+      const body = await request.json<{
+        orgId: string;
+        queryId: string;
+        sql: string;
+        timeoutMs?: number;
+      }>();
 
-  if (!orgId || !queryId || !sql) {
-    return c.json({ error: 'Missing required fields: orgId, queryId, sql' }, 400);
-  }
+      if (!body.orgId || !body.queryId || !body.sql) {
+        return Response.json({ error: 'Missing required fields' }, { status: 400 });
+      }
 
-  const id = c.env.CONNECTOR.idFromName(orgId);
-  const stub = c.env.CONNECTOR.get(id);
+      const id = env.CONNECTOR.idFromName(body.orgId);
+      const stub = env.CONNECTOR.get(id);
 
-  return stub.fetch(
-    new Request('http://internal/query/execute', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ queryId, sql, timeoutMs }),
-    })
-  );
-});
+      return stub.fetch(new Request('http://internal/query/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          queryId: body.queryId,
+          sql: body.sql,
+          timeoutMs: body.timeoutMs,
+        }),
+      }));
+    }
 
-// ---------------------------------------------------------------------------
-// Internal: get connector status
-// ---------------------------------------------------------------------------
-app.get('/connector/status/:orgId', async (c) => {
-  const orgId = c.req.param('orgId');
+    // Internal: connector status
+    const statusMatch = url.pathname.match(/^\/connector\/status\/(.+)$/);
+    if (statusMatch && request.method === 'GET') {
+      const orgId = statusMatch[1];
+      const id = env.CONNECTOR.idFromName(orgId);
+      const stub = env.CONNECTOR.get(id);
+      return stub.fetch(new Request('http://internal/status'));
+    }
 
-  const id = c.env.CONNECTOR.idFromName(orgId);
-  const stub = c.env.CONNECTOR.get(id);
+    // Internal: schema sync
+    const syncMatch = url.pathname.match(/^\/schema\/sync\/(.+)$/);
+    if (syncMatch && request.method === 'POST') {
+      const orgId = syncMatch[1];
+      const id = env.CONNECTOR.idFromName(orgId);
+      const stub = env.CONNECTOR.get(id);
+      return stub.fetch(new Request('http://internal/schema/sync', { method: 'POST' }));
+    }
 
-  return stub.fetch(new Request('http://internal/status'));
-});
+    return new Response('Not found', { status: 404 });
+    } catch (err: any) {
+      return Response.json({ error: err.message, stack: err.stack }, { status: 500 });
+    }
+  },
+};
 
-// ---------------------------------------------------------------------------
-// Internal: trigger schema sync
-// ---------------------------------------------------------------------------
-app.post('/schema/sync/:orgId', async (c) => {
-  const orgId = c.req.param('orgId');
-
-  const id = c.env.CONNECTOR.idFromName(orgId);
-  const stub = c.env.CONNECTOR.get(id);
-
-  return stub.fetch(
-    new Request('http://internal/schema/sync', { method: 'POST' })
-  );
-});
-
-// ---------------------------------------------------------------------------
-// Health check
-// ---------------------------------------------------------------------------
-app.get('/health', (c) => {
-  return c.json({ ok: true, service: 'ws-gateway' });
-});
-
-export default app;
 export { ConnectorSession };
