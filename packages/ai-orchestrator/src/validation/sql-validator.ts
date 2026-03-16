@@ -11,7 +11,9 @@
  *   4. Post-parse safety checks (table allowlist, join count, subquery depth)
  */
 
-import { Parser, AST } from 'node-sql-parser';
+import pkg from 'node-sql-parser';
+const { Parser } = pkg;
+type AST = any;
 
 // ─── Public types ────────────────────────────────────────────────────
 
