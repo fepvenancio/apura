@@ -21,7 +21,7 @@ export default function ConnectorPage() {
 
   const maskedKey = agentApiKey
     ? `${agentApiKey.slice(0, 8)}${"*".repeat(24)}${agentApiKey.slice(-4)}`
-    : "\u2014";
+    : "—";
 
   const handleCopyKey = async () => {
     if (!agentApiKey) return;
@@ -39,7 +39,7 @@ export default function ConnectorPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Estado da liga\u00e7\u00e3o</h3>
+              <h3 className="text-sm font-semibold">Estado da ligação</h3>
               <Badge
                 variant={status === "connected" ? "success" : "danger"}
                 dot
@@ -51,7 +51,7 @@ export default function ConnectorPage() {
           <CardContent>
             {lastHeartbeat && (
               <p className="text-sm text-muted">
-                \u00daltimo heartbeat: {formatDate(lastHeartbeat)}
+                Último heartbeat: {formatDate(lastHeartbeat)}
               </p>
             )}
           </CardContent>
@@ -65,7 +65,7 @@ export default function ConnectorPage() {
           <CardContent>
             <div className="flex items-center gap-2">
               <code className="flex-1 rounded-lg bg-[#0d0d0d] border border-card-border px-3 py-2 text-sm font-mono text-foreground">
-                {showKey ? agentApiKey || "\u2014" : maskedKey}
+                {showKey ? agentApiKey || "—" : maskedKey}
               </code>
               <Button
                 variant="secondary"
@@ -96,7 +96,7 @@ export default function ConnectorPage() {
               Descarregar Apura Connector
             </Button>
             <p className="text-xs text-muted mt-2">
-              Windows x64 \u2014 Compat\u00edvel com Windows Server 2016+
+              Windows x64 — Compatível com Windows Server 2016+
             </p>
           </CardContent>
         </Card>
@@ -104,7 +104,7 @@ export default function ConnectorPage() {
         {/* Instructions */}
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-semibold">Instru\u00e7\u00f5es de configura\u00e7\u00e3o</h3>
+            <h3 className="text-sm font-semibold">Instruções de configuração</h3>
           </CardHeader>
           <CardContent>
             <ol className="space-y-4 text-sm text-foreground/80">
@@ -113,7 +113,7 @@ export default function ConnectorPage() {
                   1
                 </span>
                 <span>
-                  Descarregue o <strong>Apura Connector</strong> usando o bot\u00e3o acima.
+                  Descarregue o <strong>Apura Connector</strong> usando o botão acima.
                 </span>
               </li>
               <li className="flex gap-3">
@@ -121,8 +121,8 @@ export default function ConnectorPage() {
                   2
                 </span>
                 <span>
-                  Instale no <strong>Windows Server</strong> onde o SQL Server est\u00e1 a correr.
-                  O instalador cria um servi\u00e7o Windows autom\u00e1tico.
+                  Instale no <strong>Windows Server</strong> onde o SQL Server está a correr.
+                  O instalador cria um serviço Windows automático.
                 </span>
               </li>
               <li className="flex gap-3">
@@ -130,7 +130,7 @@ export default function ConnectorPage() {
                   3
                 </span>
                 <span>
-                  Durante a configura\u00e7\u00e3o, introduza a <strong>chave de API</strong>{" "}
+                  Durante a configuração, introduza a <strong>chave de API</strong>{" "}
                   mostrada acima.
                 </span>
               </li>
@@ -139,8 +139,8 @@ export default function ConnectorPage() {
                   4
                 </span>
                 <span>
-                  Ap\u00f3s instala\u00e7\u00e3o, o conector aparecer\u00e1 como{" "}
-                  <strong>&ldquo;Ligado&rdquo;</strong> nesta p\u00e1gina.
+                  Após instalação, o conector aparecerá como{" "}
+                  <strong>&ldquo;Ligado&rdquo;</strong> nesta página.
                 </span>
               </li>
             </ol>

@@ -8,9 +8,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "apura — Relat\u00f3rios inteligentes para Primavera",
+  title: "apura — Relatórios inteligentes para Primavera",
   description:
-    "Fa\u00e7a perguntas em linguagem natural sobre os seus dados Primavera e obtenha respostas instant\u00e2neas com gr\u00e1ficos e tabelas.",
+    "Faça perguntas em linguagem natural sobre os seus dados Primavera e obtenha respostas instantâneas com gráficos e tabelas.",
   icons: {
     icon: "/icon.svg",
   },

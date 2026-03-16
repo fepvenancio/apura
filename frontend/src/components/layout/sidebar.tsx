@@ -22,10 +22,10 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/home", label: "Dashboard", icon: LayoutDashboard },
   { href: "/query", label: "Consultas", icon: Search },
-  { href: "/history", label: "Hist\u00f3rico", icon: History },
-  { href: "/reports", label: "Relat\u00f3rios", icon: FileBarChart },
+  { href: "/history", label: "Histórico", icon: History },
+  { href: "/reports", label: "Relatórios", icon: FileBarChart },
   { href: "/dashboards", label: "Dashboards", icon: BarChart3 },
   { href: "/schema", label: "Esquema", icon: Database },
   { href: "/schedules", label: "Agendamentos", icon: Clock },
@@ -34,7 +34,7 @@ const navItems = [
 const settingsItems = [
   { href: "/settings/team", label: "Equipa", icon: Users },
   { href: "/settings/connector", label: "Conector", icon: Plug },
-  { href: "/settings/billing", label: "Fatura\u00e7\u00e3o", icon: CreditCard },
+  { href: "/settings/billing", label: "Faturação", icon: CreditCard },
   { href: "/settings/profile", label: "Perfil", icon: User },
 ];
 
@@ -101,7 +101,7 @@ export function Sidebar() {
           <div className="mt-6">
             {!collapsed && (
               <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted">
-                Defini\u00e7\u00f5es
+                Definições
               </p>
             )}
             <div className="space-y-0.5">

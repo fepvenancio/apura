@@ -44,10 +44,10 @@ export default function DashboardPage() {
               <p className="text-[11px] uppercase tracking-wide text-muted">Consultas</p>
               <div className="flex items-baseline gap-1.5 mt-1">
                 <span className="text-xl font-semibold tabular-nums">
-                  {usage?.queriesUsed ?? "\u2014"}
+                  {usage?.queriesUsed ?? "—"}
                 </span>
                 <span className="text-xs text-muted">
-                  / {usage?.queriesLimit ?? "\u2014"}
+                  / {usage?.queriesLimit ?? "—"}
                 </span>
               </div>
               {usage && (
@@ -90,7 +90,7 @@ export default function DashboardPage() {
             <CardContent className="py-3 px-4">
               <p className="text-[11px] uppercase tracking-wide text-muted">Plano</p>
               <p className="text-xl font-semibold capitalize mt-1">
-                {usage?.plan ?? "\u2014"}
+                {usage?.plan ?? "—"}
               </p>
             </CardContent>
           </Card>
@@ -99,7 +99,7 @@ export default function DashboardPage() {
         {/* Quick query */}
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-semibold">Consulta r\u00e1pida</h3>
+            <h3 className="text-sm font-semibold">Consulta rápida</h3>
           </CardHeader>
           <CardContent>
             <QueryInput />

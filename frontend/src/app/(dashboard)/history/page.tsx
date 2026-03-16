@@ -21,13 +21,13 @@ export default function HistoryPage() {
 
   return (
     <div>
-      <Topbar title="Hist\u00f3rico" />
+      <Topbar title="Histórico" />
 
       <div className="p-6">
         <Card>
           {history.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted">
-              <p className="text-sm">Ainda n\u00e3o fez nenhuma consulta.</p>
+              <p className="text-sm">Ainda não fez nenhuma consulta.</p>
               <Link href="/query" className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors">
                 Fazer primeira consulta
               </Link>

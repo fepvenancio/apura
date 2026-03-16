@@ -145,7 +145,7 @@ export function ResultChart({ result }: ResultChartProps) {
   if (!option) {
     return (
       <div className="flex items-center justify-center py-12 text-muted">
-        <p className="text-sm">Dados insuficientes para gerar gr\u00e1fico</p>
+        <p className="text-sm">Dados insuficientes para gerar gráfico</p>
       </div>
     );
   }
@@ -154,7 +154,7 @@ export function ResultChart({ result }: ResultChartProps) {
     { type: "bar", icon: BarChart3, label: "Barras" },
     { type: "line", icon: LineChartIcon, label: "Linha" },
     { type: "pie", icon: PieChartIcon, label: "Circular" },
-    { type: "area", icon: AreaChart, label: "\u00c1rea" },
+    { type: "area", icon: AreaChart, label: "Área" },
   ];
 
   return (

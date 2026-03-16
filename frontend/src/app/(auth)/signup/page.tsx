@@ -32,7 +32,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signup({ name, email, password, orgName, slug });
-      router.push("/");
+      router.push("/home");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Erro ao criar conta."
@@ -64,7 +64,7 @@ export default function SignupPage() {
           <Input
             label="Nome"
             type="text"
-            placeholder="Jo\u00e3o Silva"
+            placeholder="João Silva"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -83,16 +83,16 @@ export default function SignupPage() {
           <Input
             label="Palavra-passe"
             type="password"
-            placeholder="M\u00ednimo 8 caracteres"
+            placeholder="Mínimo 8 caracteres"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="new-password"
-            description="M\u00ednimo 8 caracteres"
+            description="Mínimo 8 caracteres"
           />
 
           <Input
-            label="Organiza\u00e7\u00e3o"
+            label="Organização"
             type="text"
             placeholder="Empresa Lda."
             value={orgName}
@@ -125,7 +125,7 @@ export default function SignupPage() {
       </div>
 
       <p className="text-center text-[13px] text-muted mt-5">
-        J\u00e1 tem conta?{" "}
+        Já tem conta?{" "}
         <Link
           href="/login"
           className="text-foreground hover:text-primary transition-colors"

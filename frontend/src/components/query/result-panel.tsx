@@ -18,9 +18,9 @@ type TabId = "tabela" | "grafico" | "sql" | "explicacao";
 
 const tabs: { id: TabId; label: string }[] = [
   { id: "tabela", label: "Tabela" },
-  { id: "grafico", label: "Gr\u00e1fico" },
+  { id: "grafico", label: "Gráfico" },
   { id: "sql", label: "SQL" },
-  { id: "explicacao", label: "Explica\u00e7\u00e3o" },
+  { id: "explicacao", label: "Explicação" },
 ];
 
 export function ResultPanel({ result }: ResultPanelProps) {
@@ -77,7 +77,7 @@ export function ResultPanel({ result }: ResultPanelProps) {
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm">
             <Save className="h-3.5 w-3.5" />
-            Guardar como Relat\u00f3rio
+            Guardar como Relatório
           </Button>
           <Button variant="ghost" size="sm" onClick={handleExportCSV}>
             <Download className="h-3.5 w-3.5" />
@@ -100,7 +100,7 @@ export function ResultPanel({ result }: ResultPanelProps) {
         {activeTab === "explicacao" && (
           <div className="prose prose-invert max-w-none">
             <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
-              {result.explanation || "Sem explica\u00e7\u00e3o dispon\u00edvel."}
+              {result.explanation || "Sem explicação disponível."}
             </p>
           </div>
         )}

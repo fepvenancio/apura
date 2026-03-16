@@ -21,7 +21,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      router.push("/");
+      router.push("/home");
     } catch (err) {
       setError(
         err instanceof Error
@@ -40,7 +40,7 @@ export default function LoginPage() {
           apura<span className="text-primary">.</span>
         </div>
         <p className="text-[13px] text-muted mt-1.5">
-          Inicie sess\u00e3o na sua conta
+          Inicie sessão na sua conta
         </p>
       </div>
 
@@ -84,7 +84,7 @@ export default function LoginPage() {
       </div>
 
       <p className="text-center text-[13px] text-muted mt-5">
-        N\u00e3o tem conta?{" "}
+        Não tem conta?{" "}
         <Link
           href="/signup"
           className="text-foreground hover:text-primary transition-colors"

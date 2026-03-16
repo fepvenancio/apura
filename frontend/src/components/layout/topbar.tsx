@@ -90,7 +90,7 @@ export function Topbar({ title, queriesUsed, queriesLimit }: TopbarProps) {
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted hover:bg-[#1a1a1a] hover:text-foreground transition-colors cursor-pointer"
               >
                 <Settings className="h-4 w-4" />
-                Defini\u00e7\u00f5es
+                Definições
               </button>
               <div className="my-1 border-t border-card-border" />
               <button

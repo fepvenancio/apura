@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 
 const suggestions = [
-  "Vendas este m\u00eas",
+  "Vendas este mês",
   "Top 10 clientes",
-  "Stock abaixo do m\u00ednimo",
-  "Funcion\u00e1rios por departamento",
+  "Stock abaixo do mínimo",
+  "Funcionários por departamento",
 ];
 
 interface QueryInputProps {
@@ -62,7 +62,7 @@ export function QueryInput({ autoFocus = false }: QueryInputProps) {
           value={currentQuery}
           onChange={(e) => setCurrentQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Fa\u00e7a uma pergunta sobre os seus dados..."
+          placeholder="Faça uma pergunta sobre os seus dados..."
           disabled={isExecuting}
           rows={2}
           className="w-full resize-none rounded-lg bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted/60 focus:outline-none disabled:opacity-50"

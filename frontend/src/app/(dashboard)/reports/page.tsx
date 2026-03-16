@@ -32,7 +32,7 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <Topbar title="Relat\u00f3rios" />
+      <Topbar title="Relatórios" />
 
       <div className="p-6">
         {loading ? (
@@ -43,9 +43,9 @@ export default function ReportsPage() {
           <Card>
             <div className="flex flex-col items-center justify-center py-16 text-muted">
               <FileBarChart className="h-12 w-12 mb-3 opacity-30" />
-              <p className="text-sm">Ainda n\u00e3o guardou nenhum relat\u00f3rio.</p>
+              <p className="text-sm">Ainda não guardou nenhum relatório.</p>
               <p className="text-xs mt-1">
-                Execute uma consulta e clique em &ldquo;Guardar como Relat\u00f3rio&rdquo;.
+                Execute uma consulta e clique em &ldquo;Guardar como Relatório&rdquo;.
               </p>
             </div>
           </Card>
@@ -69,7 +69,7 @@ export default function ReportsPage() {
 
                   {report.lastRunAt && (
                     <p className="text-xs text-muted mb-4">
-                      \u00daltima execu\u00e7\u00e3o:{" "}
+                      Última execução:{" "}
                       {formatRelativeDate(report.lastRunAt)}
                     </p>
                   )}
