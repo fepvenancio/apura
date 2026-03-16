@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -36,63 +35,63 @@ export default function LoginPage() {
 
   return (
     <div>
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-primary mb-2">Apura</h1>
-        <p className="text-sm text-muted">
-          Relat\u00f3rios inteligentes para Primavera
+      <div className="mb-10 text-center">
+        <div className="text-2xl font-semibold tracking-tight text-foreground">
+          apura<span className="text-primary">.</span>
+        </div>
+        <p className="text-[13px] text-muted mt-1.5">
+          Inicie sess\u00e3o na sua conta
         </p>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
-                {error}
-              </div>
-            )}
+      <div className="rounded-lg border border-card-border bg-card p-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-md bg-danger/10 border border-danger/20 px-3 py-2.5 text-[13px] text-danger">
+              {error}
+            </div>
+          )}
 
-            <Input
-              label="Email"
-              type="email"
-              placeholder="nome@empresa.pt"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
+          <Input
+            label="Email"
+            type="email"
+            placeholder="nome@empresa.pt"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
 
-            <Input
-              label="Palavra-passe"
-              type="password"
-              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
+          <Input
+            label="Palavra-passe"
+            type="password"
+            placeholder="A sua palavra-passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
 
-            <Button
-              type="submit"
-              isLoading={loading}
-              className="w-full"
-              size="lg"
-            >
-              Entrar
-            </Button>
+          <Button
+            type="submit"
+            isLoading={loading}
+            className="w-full"
+            size="md"
+          >
+            Entrar
+          </Button>
+        </form>
+      </div>
 
-            <p className="text-center text-sm text-muted">
-              N\u00e3o tem conta?{" "}
-              <Link
-                href="/signup"
-                className="text-primary hover:text-primary-hover transition-colors"
-              >
-                Criar conta
-              </Link>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
+      <p className="text-center text-[13px] text-muted mt-5">
+        N\u00e3o tem conta?{" "}
+        <Link
+          href="/signup"
+          className="text-foreground hover:text-primary transition-colors"
+        >
+          Criar conta
+        </Link>
+      </p>
     </div>
   );
 }

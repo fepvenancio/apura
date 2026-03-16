@@ -8,9 +8,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Apura \u2014 Relat\u00f3rios inteligentes para Primavera",
+  title: "apura — Relat\u00f3rios inteligentes para Primavera",
   description:
     "Fa\u00e7a perguntas em linguagem natural sobre os seus dados Primavera e obtenha respostas instant\u00e2neas com gr\u00e1ficos e tabelas.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
