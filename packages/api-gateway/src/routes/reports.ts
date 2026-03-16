@@ -166,18 +166,15 @@ reports.post('/:id/run', requireRole('owner', 'admin', 'analyst'), quotaMiddlewa
   });
 
   try {
-    const connectorId = c.env.CONNECTOR.idFromName(orgId);
-    const connectorStub = c.env.CONNECTOR.get(connectorId);
-
-    const connectorResponse = await connectorStub.fetch(
-      new Request('https://connector/execute', {
+    const connectorResponse = await c.env.WS_GATEWAY.fetch(
+      new Request('http://internal/query/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          orgId,
           queryId: newQueryId,
           sql: originalQuery.generated_sql,
-          maxRows: MAX_ROWS_DEFAULT,
-          timeoutSeconds: QUERY_TIMEOUT_DEFAULT,
+          timeoutMs: QUERY_TIMEOUT_DEFAULT * 1000,
         }),
       }),
     );

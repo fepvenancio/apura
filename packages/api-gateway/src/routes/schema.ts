@@ -131,11 +131,8 @@ schema.post('/sync', requireRole('owner', 'admin'), async (c) => {
   const orgId = c.get('orgId');
 
   try {
-    const connectorId = c.env.CONNECTOR.idFromName(orgId);
-    const connectorStub = c.env.CONNECTOR.get(connectorId);
-
-    const response = await connectorStub.fetch(
-      new Request('https://connector/schema-discover', { method: 'POST' }),
+    const response = await c.env.WS_GATEWAY.fetch(
+      new Request(`http://internal/schema/sync/${orgId}`, { method: 'POST' }),
     );
 
     if (!response.ok) {

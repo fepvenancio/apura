@@ -85,22 +85,21 @@ queries.post('/', quotaMiddleware, async (c) => {
       status: 'validating',
     });
 
-    // 4. Get Durable Object stub for the org's connector
-    const connectorId = c.env.CONNECTOR.idFromName(orgId);
-    const connectorStub = c.env.CONNECTOR.get(connectorId);
+    // 4. Send SQL to connector via WS gateway service binding
 
-    // 5. Send SQL to connector via DO (status: executing)
+    // 5. Execute (status: executing)
     await orgDb.updateQuery(queryId, { status: 'executing' });
 
-    const connectorResponse = await connectorStub.fetch(
-      new Request('https://connector/execute', {
+    const connectorResponse = await c.env.WS_GATEWAY.fetch(
+      new Request('http://internal/query/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          orgId,
           queryId,
           sql: aiResult.sql,
           maxRows,
-          timeoutSeconds,
+          timeoutMs: timeoutSeconds * 1000,
         }),
       }),
     );
@@ -235,18 +234,15 @@ queries.post('/:id/rerun', quotaMiddleware, async (c) => {
   });
 
   try {
-    const connectorId = c.env.CONNECTOR.idFromName(orgId);
-    const connectorStub = c.env.CONNECTOR.get(connectorId);
-
-    const connectorResponse = await connectorStub.fetch(
-      new Request('https://connector/execute', {
+    const connectorResponse = await c.env.WS_GATEWAY.fetch(
+      new Request('http://internal/query/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          orgId,
           queryId: newQueryId,
           sql: originalQuery.generated_sql,
-          maxRows: MAX_ROWS_DEFAULT,
-          timeoutSeconds: QUERY_TIMEOUT_DEFAULT,
+          timeoutMs: QUERY_TIMEOUT_DEFAULT * 1000,
         }),
       }),
     );

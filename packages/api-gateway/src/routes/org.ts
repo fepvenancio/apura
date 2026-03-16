@@ -115,11 +115,8 @@ org.get('/connector-status', async (c) => {
   const orgId = c.get('orgId');
 
   try {
-    const connectorId = c.env.CONNECTOR.idFromName(orgId);
-    const connectorStub = c.env.CONNECTOR.get(connectorId);
-
-    const response = await connectorStub.fetch(
-      new Request('https://connector/status', { method: 'GET' }),
+    const response = await c.env.WS_GATEWAY.fetch(
+      new Request(`http://internal/connector/status/${orgId}`, { method: 'GET' }),
     );
 
     if (!response.ok) {

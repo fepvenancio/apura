@@ -1,10 +1,11 @@
 name = "apura-api"
+account_id = "616231e4ffa88bb203ec4cbedeab4a8e"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
 routes = [
-  { pattern = "api.apura.xyz/*", zone_name = "apura.xyz" }
+  { pattern = "api.apura.xyz", custom_domain = true }
 ]
 
 [[d1_databases]]
@@ -16,11 +17,10 @@ database_id = "48a7c67d-223e-4ee1-8c87-9a9b3231def0"
 binding = "CACHE"
 id = "290e5fb7d86847b6823b79be9b6d2cb4"
 
-[durable_objects]
-bindings = [
-  { name = "CONNECTOR", class_name = "ConnectorSession" }
-]
-
 [[services]]
 binding = "AI_ORCHESTRATOR"
 service = "apura-ai"
+
+[[services]]
+binding = "WS_GATEWAY"
+service = "apura-ws"

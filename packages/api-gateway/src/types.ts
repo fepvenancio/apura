@@ -3,8 +3,8 @@ import type { UserRole } from '@apura/shared';
 export interface Env {
   DB: D1Database;
   CACHE: KVNamespace;
-  CONNECTOR: DurableObjectNamespace;
   AI_ORCHESTRATOR: Fetcher;
+  WS_GATEWAY: Fetcher;
   JWT_SECRET: string;
   STRIPE_WEBHOOK_SECRET?: string;
 }
