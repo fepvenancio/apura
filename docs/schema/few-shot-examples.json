@@ -1,0 +1,272 @@
+[
+  {
+    "id": "vendas_001",
+    "category": "vendas",
+    "naturalLanguagePt": "Qual o total de vendas por cliente este ano?",
+    "naturalLanguageEn": "Total sales by customer this year?",
+    "sql": "SELECT cd.Entidade AS Cliente, cd.Nome AS NomeCliente, SUM(cd.TotalMerc) AS TotalVendas FROM CabecDoc cd WITH (NOLOCK) JOIN CabecDocStatus cds WITH (NOLOCK) ON cds.IdCabecDoc = cd.Id WHERE cd.TipoDoc IN ('FA','VD') AND cds.Anulado = 0 AND YEAR(cd.Data) = YEAR(GETDATE()) GROUP BY cd.Entidade, cd.Nome ORDER BY TotalVendas DESC",
+    "tablesUsed": ["CabecDoc", "CabecDocStatus"],
+    "explanation": "Aggregates total merchandise value from sales invoices (FA) and cash sales (VD) grouped by customer, excluding voided documents, filtered to the current year."
+  },
+  {
+    "id": "vendas_002",
+    "category": "vendas",
+    "naturalLanguagePt": "Qual a tendência mensal de vendas nos últimos 12 meses?",
+    "naturalLanguageEn": "Monthly sales trend for the last 12 months?",
+    "sql": "SELECT YEAR(cd.Data) AS Ano, MONTH(cd.Data) AS Mes, COUNT(*) AS NumDocumentos, SUM(cd.TotalMerc) AS TotalVendas FROM CabecDoc cd WITH (NOLOCK) JOIN CabecDocStatus cds WITH (NOLOCK) ON cds.IdCabecDoc = cd.Id WHERE cd.TipoDoc IN ('FA','VD') AND cds.Anulado = 0 AND cd.Data >= DATEADD(MONTH, -12, GETDATE()) GROUP BY YEAR(cd.Data), MONTH(cd.Data) ORDER BY Ano, Mes",
+    "tablesUsed": ["CabecDoc", "CabecDocStatus"],
+    "explanation": "Groups sales invoices by year and month for the last 12 months, showing document count and total value per month."
+  },
+  {
+    "id": "vendas_003",
+    "category": "vendas",
+    "naturalLanguagePt": "Quais os 10 produtos mais vendidos por receita?",
+    "naturalLanguageEn": "Top 10 products by revenue?",
+    "sql": "SELECT TOP 10 ld.Artigo AS CodArtigo, ld.Descricao AS Produto, SUM(ld.Quantidade) AS QtdVendida, SUM(ld.Quantidade * ld.PrecoLiquido) AS TotalReceita FROM LinhasDoc ld WITH (NOLOCK) JOIN CabecDoc cd WITH (NOLOCK) ON cd.Id = ld.IdCabecDoc JOIN CabecDocStatus cds WITH (NOLOCK) ON cds.IdCabecDoc = cd.Id WHERE cd.TipoDoc IN ('FA','VD') AND cds.Anulado = 0 GROUP BY ld.Artigo, ld.Descricao ORDER BY TotalReceita DESC",
+    "tablesUsed": ["LinhasDoc", "CabecDoc", "CabecDocStatus"],
+    "explanation": "Joins document lines to headers and status, computing total revenue (quantity x net price) per product from non-voided sales invoices."
+  },
+  {
+    "id": "vendas_004",
+    "category": "vendas",
+    "naturalLanguagePt": "Qual o total de vendas por vendedor este ano?",
+    "naturalLanguageEn": "Sales by salesperson this year?",
+    "sql": "SELECT ld.Vendedor AS CodVendedor, COUNT(DISTINCT cd.Id) AS NumDocumentos, SUM(ld.Quantidade * ld.PrecoLiquido) AS TotalVendas FROM LinhasDoc ld WITH (NOLOCK) JOIN CabecDoc cd WITH (NOLOCK) ON cd.Id = ld.IdCabecDoc JOIN CabecDocStatus cds WITH (NOLOCK) ON cds.IdCabecDoc = cd.Id WHERE cd.TipoDoc IN ('FA','VD') AND cds.Anulado = 0 AND YEAR(cd.Data) = YEAR(GETDATE()) GROUP BY ld.Vendedor ORDER BY TotalVendas DESC",
+    "tablesUsed": ["LinhasDoc", "CabecDoc", "CabecDocStatus"],
+    "explanation": "Aggregates sales revenue by salesperson code from invoice lines, counting distinct documents and total value for the current year."
+  },
+  {
+    "id": "vendas_005",
+    "category": "vendas",
+    "naturalLanguagePt": "Qual o total de vendas por tipo de documento este ano?",
+    "naturalLanguageEn": "Sales by document type this year?",
+    "sql": "SELECT cd.TipoDoc AS TipoDocumento, COUNT(*) AS NumDocumentos, SUM(cd.TotalMerc) AS TotalMercadoria FROM CabecDoc cd WITH (NOLOCK) JOIN CabecDocStatus cds WITH (NOLOCK) ON cds.IdCabecDoc = cd.Id WHERE cds.Anulado = 0 AND YEAR(cd.Data) = YEAR(GETDATE()) GROUP BY cd.TipoDoc ORDER BY TotalMercadoria DESC",
+    "tablesUsed": ["CabecDoc", "CabecDocStatus"],
+    "explanation": "Groups all non-voided sales documents by type (FA, VD, NC, etc.) showing count and total merchandise for the current year."
+  },
+  {
+    "id": "vendas_006",
+    "category": "vendas",
+    "naturalLanguagePt": "Qual o valor médio de factura por mês nos últimos 12 meses?",
+    "naturalLanguageEn": "Average invoice value by month for the last 12 months?",
+    "sql": "SELECT YEAR(cd.Data) AS Ano, MONTH(cd.Data) AS Mes, COUNT(*) AS NumFacturas, AVG(cd.TotalMerc) AS MediaValorFactura FROM CabecDoc cd WITH (NOLOCK) JOIN CabecDocStatus cds WITH (NOLOCK) ON cds.IdCabecDoc = cd.Id WHERE cd.TipoDoc IN ('FA','VD') AND cds.Anulado = 0 AND cd.Data >= DATEADD(MONTH, -12, GETDATE()) GROUP BY YEAR(cd.Data), MONTH(cd.Data) ORDER BY Ano, Mes",
+    "tablesUsed": ["CabecDoc", "CabecDocStatus"],
+    "explanation": "Calculates the average invoice value per month using AVG on TotalMerc, filtering to sales invoices from the last 12 months."
+  },
+  {
+    "id": "vendas_007",
+    "category": "vendas",
+    "naturalLanguagePt": "Lista de clientes com a sua dívida total?",
+    "naturalLanguageEn": "Customer list with total debt?",
+    "sql": "SELECT TOP 1000 c.Cliente, c.Nome, c.TotalDeb AS DividaTotal, c.LimiteCred AS LimiteCredito FROM Clientes c WITH (NOLOCK) WHERE c.ClienteAnulado = 0 ORDER BY c.TotalDeb DESC",
+    "tablesUsed": ["Clientes"],
+    "explanation": "Lists active customers ordered by their total debt balance (TotalDeb), including their credit limit for comparison."
+  },
+  {
+    "id": "vendas_008",
+    "category": "vendas",
+    "naturalLanguagePt": "Qual o total de vendas por zona/região este ano?",
+    "naturalLanguageEn": "Sales by zone/region this year?",
+    "sql": "SELECT cd.Zona AS Zona, COUNT(*) AS NumDocumentos, SUM(cd.TotalMerc) AS TotalVendas FROM CabecDoc cd WITH (NOLOCK) JOIN CabecDocStatus cds WITH (NOLOCK) ON cds.IdCabecDoc = cd.Id WHERE cd.TipoDoc IN ('FA','VD') AND cds.Anulado = 0 AND YEAR(cd.Data) = YEAR(GETDATE()) GROUP BY cd.Zona ORDER BY TotalVendas DESC",
+    "tablesUsed": ["CabecDoc", "CabecDocStatus"],
+    "explanation": "Groups sales invoices by the Zona field on CabecDoc, which represents the sales zone/region, for the current year."
+  },
+  {
+    "id": "compras_001",
+    "category": "compras",
+    "naturalLanguagePt": "Qual o total de compras por fornecedor este ano?",
+    "naturalLanguageEn": "Total purchases by supplier this year?",
+    "sql": "SELECT cc.Entidade AS Fornecedor, cc.Nome AS NomeFornecedor, SUM(cc.TotalMerc) AS TotalCompras FROM CabecCompras cc WITH (NOLOCK) JOIN CabecComprasStatus ccs WITH (NOLOCK) ON ccs.IdCabecCompras = cc.Id WHERE cc.TipoDoc = 'VFA' AND ccs.Anulado = 0 AND YEAR(cc.DataDoc) = YEAR(GETDATE()) GROUP BY cc.Entidade, cc.Nome ORDER BY TotalCompras DESC",
+    "tablesUsed": ["CabecCompras", "CabecComprasStatus"],
+    "explanation": "Aggregates purchase invoices (VFA) by supplier, excluding voided documents, filtered to the current year."
+  },
+  {
+    "id": "compras_002",
+    "category": "compras",
+    "naturalLanguagePt": "Qual a tendência mensal de compras nos últimos 12 meses?",
+    "naturalLanguageEn": "Monthly purchase trend for the last 12 months?",
+    "sql": "SELECT YEAR(cc.DataDoc) AS Ano, MONTH(cc.DataDoc) AS Mes, COUNT(*) AS NumDocumentos, SUM(cc.TotalMerc) AS TotalCompras FROM CabecCompras cc WITH (NOLOCK) JOIN CabecComprasStatus ccs WITH (NOLOCK) ON ccs.IdCabecCompras = cc.Id WHERE cc.TipoDoc = 'VFA' AND ccs.Anulado = 0 AND cc.DataDoc >= DATEADD(MONTH, -12, GETDATE()) GROUP BY YEAR(cc.DataDoc), MONTH(cc.DataDoc) ORDER BY Ano, Mes",
+    "tablesUsed": ["CabecCompras", "CabecComprasStatus"],
+    "explanation": "Groups purchase invoices by year and month for the last 12 months, showing document count and total value per month."
+  },
+  {
+    "id": "compras_003",
+    "category": "compras",
+    "naturalLanguagePt": "Quais os 10 produtos mais comprados por valor?",
+    "naturalLanguageEn": "Top 10 products purchased by value?",
+    "sql": "SELECT TOP 10 lc.Artigo AS CodArtigo, lc.Descricao AS Produto, SUM(lc.Quantidade) AS QtdComprada, SUM(lc.Quantidade * lc.PrecoLiquido) AS TotalValor FROM LinhasCompras lc WITH (NOLOCK) JOIN CabecCompras cc WITH (NOLOCK) ON cc.Id = lc.IdCabecCompras JOIN CabecComprasStatus ccs WITH (NOLOCK) ON ccs.IdCabecCompras = cc.Id WHERE cc.TipoDoc = 'VFA' AND ccs.Anulado = 0 GROUP BY lc.Artigo, lc.Descricao ORDER BY TotalValor DESC",
+    "tablesUsed": ["LinhasCompras", "CabecCompras", "CabecComprasStatus"],
+    "explanation": "Joins purchase lines to headers and status, computing total value per product from non-voided supplier invoices."
+  },
+  {
+    "id": "compras_004",
+    "category": "compras",
+    "naturalLanguagePt": "Comparação entre encomendas e facturas de compra este ano?",
+    "naturalLanguageEn": "Purchase orders vs invoices comparison this year?",
+    "sql": "SELECT cc.TipoDoc AS TipoDocumento, COUNT(*) AS NumDocumentos, SUM(cc.TotalMerc) AS TotalMercadoria FROM CabecCompras cc WITH (NOLOCK) JOIN CabecComprasStatus ccs WITH (NOLOCK) ON ccs.IdCabecCompras = cc.Id WHERE ccs.Anulado = 0 AND YEAR(cc.DataDoc) = YEAR(GETDATE()) GROUP BY cc.TipoDoc ORDER BY TotalMercadoria DESC",
+    "tablesUsed": ["CabecCompras", "CabecComprasStatus"],
+    "explanation": "Groups all non-voided purchase documents by type (VFA, ECF, VNC, etc.) for the current year, allowing comparison between orders and invoices."
+  },
+  {
+    "id": "compras_005",
+    "category": "compras",
+    "naturalLanguagePt": "Ranking de fornecedores por total em dívida?",
+    "naturalLanguageEn": "Supplier ranking by total debt?",
+    "sql": "SELECT TOP 1000 f.Fornecedor, f.Nome AS NomeFornecedor, f.TotalDeb AS DividaTotal FROM Fornecedores f WITH (NOLOCK) WHERE f.FornecedorAnulado = 0 ORDER BY f.TotalDeb DESC",
+    "tablesUsed": ["Fornecedores"],
+    "explanation": "Lists active suppliers ordered by their total debt balance, showing the amount owed to each supplier."
+  },
+  {
+    "id": "financeiro_001",
+    "category": "financeiro",
+    "naturalLanguagePt": "Balancete de todas as contas com totais de débito e crédito este ano?",
+    "naturalLanguageEn": "Trial balance for all accounts with debit and credit totals this year?",
+    "sql": "SELECT mv.Conta, SUM(CASE WHEN mv.Natureza = 'D' THEN mv.Valor ELSE 0 END) AS TotalDebito, SUM(CASE WHEN mv.Natureza = 'C' THEN mv.Valor ELSE 0 END) AS TotalCredito, SUM(CASE WHEN mv.Natureza = 'D' THEN mv.Valor ELSE 0 END) - SUM(CASE WHEN mv.Natureza = 'C' THEN mv.Valor ELSE 0 END) AS Saldo FROM Movimentos mv WITH (NOLOCK) WHERE mv.Ano = YEAR(GETDATE()) GROUP BY mv.Conta ORDER BY mv.Conta",
+    "tablesUsed": ["Movimentos"],
+    "explanation": "Produces a trial balance by summing debits (Natureza='D') and credits (Natureza='C') per account for the current fiscal year using the Movimentos table."
+  },
+  {
+    "id": "financeiro_002",
+    "category": "financeiro",
+    "naturalLanguagePt": "Receitas versus despesas mensais este ano?",
+    "naturalLanguageEn": "Revenue vs expenses monthly this year?",
+    "sql": "SELECT mv.Mes, SUM(CASE WHEN mv.Conta LIKE '7%' AND mv.Natureza = 'C' THEN mv.Valor WHEN mv.Conta LIKE '7%' AND mv.Natureza = 'D' THEN -mv.Valor ELSE 0 END) AS Receitas, SUM(CASE WHEN mv.Conta LIKE '6%' AND mv.Natureza = 'D' THEN mv.Valor WHEN mv.Conta LIKE '6%' AND mv.Natureza = 'C' THEN -mv.Valor ELSE 0 END) AS Despesas FROM Movimentos mv WITH (NOLOCK) WHERE mv.Ano = YEAR(GETDATE()) GROUP BY mv.Mes ORDER BY mv.Mes",
+    "tablesUsed": ["Movimentos"],
+    "explanation": "Compares revenue (accounts starting with 7, net credit) against expenses (accounts starting with 6, net debit) by month for the current year."
+  },
+  {
+    "id": "financeiro_003",
+    "category": "financeiro",
+    "naturalLanguagePt": "Movimentos de uma conta específica (ex: contas bancárias 12%) este ano?",
+    "naturalLanguageEn": "Movements for a specific account (e.g. bank accounts 12%) this year?",
+    "sql": "SELECT TOP 1000 mv.Conta, mv.Descricao AS DescricaoMovimento, mv.Natureza, mv.Valor, mv.Mes, mv.Dia, mv.Diario, mv.NumDoc FROM Movimentos mv WITH (NOLOCK) WHERE mv.Conta LIKE '12%' AND mv.Ano = YEAR(GETDATE()) ORDER BY mv.Mes DESC, mv.Dia DESC",
+    "tablesUsed": ["Movimentos"],
+    "explanation": "Lists individual accounting movements for bank accounts (starting with 12) in the current year, ordered by most recent first."
+  },
+  {
+    "id": "financeiro_004",
+    "category": "financeiro",
+    "naturalLanguagePt": "Lançamentos contabilísticos do mês corrente?",
+    "naturalLanguageEn": "Journal entries for the current month?",
+    "sql": "SELECT TOP 1000 cm.Diario, cm.NumDoc, cm.Descricao, cm.Dia, cm.Mes, cm.Ano FROM CabecMovCBL cm WITH (NOLOCK) WHERE cm.Ano = YEAR(GETDATE()) AND cm.Mes = MONTH(GETDATE()) ORDER BY cm.NumDoc DESC",
+    "tablesUsed": ["CabecMovCBL"],
+    "explanation": "Lists journal entry headers for the current month and year from the accounting module, ordered by document number descending."
+  },
+  {
+    "id": "financeiro_005",
+    "category": "financeiro",
+    "naturalLanguagePt": "Top 10 contas com maior volume de movimentos este ano?",
+    "naturalLanguageEn": "Top 10 accounts by movement volume this year?",
+    "sql": "SELECT TOP 10 mv.Conta, COUNT(*) AS NumMovimentos, SUM(mv.Valor) AS TotalMovimento FROM Movimentos mv WITH (NOLOCK) WHERE mv.Ano = YEAR(GETDATE()) GROUP BY mv.Conta ORDER BY NumMovimentos DESC",
+    "tablesUsed": ["Movimentos"],
+    "explanation": "Identifies the 10 accounts with the most individual movements in the current year, useful for spotting the most active accounts."
+  },
+  {
+    "id": "rh_001",
+    "category": "rh",
+    "naturalLanguagePt": "Funcionários activos por departamento com salário base?",
+    "naturalLanguageEn": "Active employees by department with base salary?",
+    "sql": "SELECT TOP 1000 f.Codigo AS CodFuncionario, f.Nome, f.Categoria, cat.Descricao AS DescricaoCategoria, f.Vencimento AS SalarioBase, d.Descricao AS Departamento FROM Funcionarios f WITH (NOLOCK) JOIN Situacoes s WITH (NOLOCK) ON s.Situacao = f.Situacao AND s.Tipo = 0 LEFT JOIN Categorias cat WITH (NOLOCK) ON cat.Categoria = f.Categoria OUTER APPLY (SELECT TOP 1 fc2.CCusto FROM FuncCCusto fc2 WITH (NOLOCK) WHERE fc2.Funcionario = f.Codigo AND fc2.Principal = 1 ORDER BY fc2.Ano DESC) fc LEFT JOIN Departamentos d WITH (NOLOCK) ON d.Departamento = fc.CCusto ORDER BY d.Descricao, f.Nome",
+    "tablesUsed": ["Funcionarios", "Situacoes", "Categorias", "FuncCCusto", "Departamentos"],
+    "explanation": "Lists active employees (Situacoes.Tipo=0) with their job category, base salary, and department. Uses OUTER APPLY to get the most recent cost center assignment."
+  },
+  {
+    "id": "rh_002",
+    "category": "rh",
+    "naturalLanguagePt": "Custo total de salários por mês este ano?",
+    "naturalLanguageEn": "Total payroll cost by month this year?",
+    "sql": "SELECT mf.Ano, mf.NumPeriodoProcessado AS Mes, COUNT(DISTINCT mf.Funcionario) AS NumFuncionarios, SUM(mf.TotalDeRemuneracoes) AS TotalRemuneracoes, SUM(mf.TotalDeDescontos) AS TotalDescontos, SUM(mf.TotalLiquido) AS TotalLiquido FROM MovimentosFuncionarios mf WITH (NOLOCK) WHERE mf.Ano = YEAR(GETDATE()) AND mf.TipoVenc = 1 GROUP BY mf.Ano, mf.NumPeriodoProcessado ORDER BY mf.Ano, mf.NumPeriodoProcessado",
+    "tablesUsed": ["MovimentosFuncionarios"],
+    "explanation": "Aggregates payroll data by month from MovimentosFuncionarios, filtering to regular salary processing (TipoVenc=1), showing gross pay, deductions, and net pay."
+  },
+  {
+    "id": "rh_003",
+    "category": "rh",
+    "naturalLanguagePt": "Salário médio por categoria profissional?",
+    "naturalLanguageEn": "Average salary by job category?",
+    "sql": "SELECT c.Categoria, c.Descricao AS DescricaoCategoria, COUNT(f.Codigo) AS NumFuncionarios, AVG(f.Vencimento) AS MediaSalario FROM Funcionarios f WITH (NOLOCK) JOIN Situacoes s WITH (NOLOCK) ON s.Situacao = f.Situacao AND s.Tipo = 0 JOIN Categorias c WITH (NOLOCK) ON c.Categoria = f.Categoria GROUP BY c.Categoria, c.Descricao ORDER BY MediaSalario DESC",
+    "tablesUsed": ["Funcionarios", "Situacoes", "Categorias"],
+    "explanation": "Calculates the average base salary by job category for active employees only (Situacoes.Tipo=0), ordered by highest average salary."
+  },
+  {
+    "id": "rh_004",
+    "category": "rh",
+    "naturalLanguagePt": "Resumo de faltas dos funcionários este ano?",
+    "naturalLanguageEn": "Employee absences summary this year?",
+    "sql": "SELECT TOP 1000 cf.Funcionario AS CodFuncionario, f.Nome, cf.Falta AS TipoFalta, fa.Descricao AS DescricaoFalta, cf.Data, cf.Tempo AS Duracao FROM CadastroFaltas cf WITH (NOLOCK) JOIN Funcionarios f WITH (NOLOCK) ON f.Codigo = cf.Funcionario JOIN Faltas fa WITH (NOLOCK) ON fa.Falta = cf.Falta WHERE YEAR(cf.Data) = YEAR(GETDATE()) ORDER BY cf.Data DESC",
+    "tablesUsed": ["CadastroFaltas", "Funcionarios", "Faltas"],
+    "explanation": "Lists employee absences for the current year by joining the absence register (CadastroFaltas) with employee and absence type reference tables."
+  },
+  {
+    "id": "rh_005",
+    "category": "rh",
+    "naturalLanguagePt": "Quantos funcionários estão activos e inactivos?",
+    "naturalLanguageEn": "Active vs inactive employees count?",
+    "sql": "SELECT s.Situacao AS CodSituacao, s.Descricao AS DescricaoSituacao, CASE WHEN s.Tipo = 0 THEN 'Activo' ELSE 'Inactivo' END AS Estado, COUNT(f.Codigo) AS NumFuncionarios FROM Funcionarios f WITH (NOLOCK) JOIN Situacoes s WITH (NOLOCK) ON s.Situacao = f.Situacao GROUP BY s.Situacao, s.Descricao, s.Tipo ORDER BY NumFuncionarios DESC",
+    "tablesUsed": ["Funcionarios", "Situacoes"],
+    "explanation": "Groups employees by their situation status using the Situacoes reference table, where Tipo=0 means active and Tipo=2 means inactive/terminated."
+  },
+  {
+    "id": "stocks_001",
+    "category": "stocks",
+    "naturalLanguagePt": "Stock actual por família de produto?",
+    "naturalLanguageEn": "Current stock by product family?",
+    "sql": "SELECT art.Familia, COUNT(*) AS NumArtigos, SUM(art.STKActual) AS StockTotal, SUM(art.STKActual * art.PCMedio) AS ValorStock FROM Artigo art WITH (NOLOCK) WHERE art.MovStock = 'S' GROUP BY art.Familia ORDER BY ValorStock DESC",
+    "tablesUsed": ["Artigo"],
+    "explanation": "Aggregates current stock quantities and values by product family for stock-managed items (MovStock='S'), using average cost (PCMedio) for valuation."
+  },
+  {
+    "id": "stocks_002",
+    "category": "stocks",
+    "naturalLanguagePt": "Produtos abaixo do stock mínimo?",
+    "naturalLanguageEn": "Products below minimum stock?",
+    "sql": "SELECT TOP 1000 art.Artigo AS CodArtigo, art.Descricao, art.STKActual AS StockActual, art.STKMinimo AS StockMinimo, art.Familia FROM Artigo art WITH (NOLOCK) WHERE art.MovStock = 'S' AND art.STKActual < art.STKMinimo AND art.STKMinimo > 0 ORDER BY (art.STKActual - art.STKMinimo) ASC",
+    "tablesUsed": ["Artigo"],
+    "explanation": "Identifies products where current stock is below the defined minimum, ordered by the most critical shortage first."
+  },
+  {
+    "id": "stocks_003",
+    "category": "stocks",
+    "naturalLanguagePt": "Tabela de preços de venda dos artigos?",
+    "naturalLanguageEn": "Product selling price list?",
+    "sql": "SELECT TOP 1000 art.Artigo AS CodArtigo, art.Descricao, am.PVP1 AS Preco1, am.PVP2 AS Preco2, am.PVP3 AS Preco3, am.Moeda FROM Artigo art WITH (NOLOCK) JOIN ArtigoMoeda am WITH (NOLOCK) ON am.Artigo = art.Artigo WHERE am.PVP1 > 0 ORDER BY art.Descricao",
+    "tablesUsed": ["Artigo", "ArtigoMoeda"],
+    "explanation": "Lists products with their selling prices from the ArtigoMoeda table, which stores up to 6 price levels per currency. Filters to items with a defined PVP1."
+  },
+  {
+    "id": "stocks_004",
+    "category": "stocks",
+    "naturalLanguagePt": "Resumo do valor total de stock por família?",
+    "naturalLanguageEn": "Stock value summary by family?",
+    "sql": "SELECT art.Familia, COUNT(*) AS NumArtigos, SUM(art.STKActual) AS QuantidadeTotal, SUM(art.STKActual * art.PCMedio) AS ValorTotalStock, AVG(art.PCMedio) AS CustoMedioPonderado FROM Artigo art WITH (NOLOCK) WHERE art.MovStock = 'S' AND art.STKActual > 0 GROUP BY art.Familia ORDER BY ValorTotalStock DESC",
+    "tablesUsed": ["Artigo"],
+    "explanation": "Summarizes stock value by product family, only for items with positive stock, using average cost for valuation and including weighted average cost per family."
+  },
+  {
+    "id": "tesouraria_001",
+    "category": "tesouraria",
+    "naturalLanguagePt": "Saldos das contas bancárias?",
+    "naturalLanguageEn": "Bank account balances?",
+    "sql": "SELECT mb.Conta, cb.DescBanco AS Banco, cb.Moeda, SUM(CASE WHEN mb.TipoMov = 'D' THEN mb.Valor ELSE 0 END) AS TotalDebitos, SUM(CASE WHEN mb.TipoMov = 'C' THEN mb.Valor ELSE 0 END) AS TotalCreditos, SUM(CASE WHEN mb.TipoMov = 'D' THEN mb.Valor ELSE -mb.Valor END) AS Saldo FROM MovimentosBancos mb WITH (NOLOCK) LEFT JOIN ContasBancarias cb WITH (NOLOCK) ON cb.Conta = mb.Conta GROUP BY mb.Conta, cb.DescBanco, cb.Moeda ORDER BY Saldo DESC",
+    "tablesUsed": ["MovimentosBancos", "ContasBancarias"],
+    "explanation": "Calculates bank account balances by summing debits and credits from MovimentosBancos, joined to ContasBancarias for the bank description and currency."
+  },
+  {
+    "id": "tesouraria_002",
+    "category": "tesouraria",
+    "naturalLanguagePt": "Recebimentos deste mês?",
+    "naturalLanguageEn": "Payments received this month?",
+    "sql": "SELECT TOP 1000 ct.TipoDoc, ct.NumDoc, ct.Data, ct.Entidade, ct.TipoEntidade, ct.TotalCredito AS ValorRecebido, ct.Observacoes FROM CabecTesouraria ct WITH (NOLOCK) WHERE ct.TotalCredito > 0 AND YEAR(ct.Data) = YEAR(GETDATE()) AND MONTH(ct.Data) = MONTH(GETDATE()) ORDER BY ct.Data DESC",
+    "tablesUsed": ["CabecTesouraria"],
+    "explanation": "Lists treasury documents with credit values (receipts) for the current month, showing the entity, amount received, and observations."
+  },
+  {
+    "id": "tesouraria_003",
+    "category": "tesouraria",
+    "naturalLanguagePt": "Total de valores pendentes a receber por cliente?",
+    "naturalLanguageEn": "Outstanding receivables total by customer?",
+    "sql": "SELECT p.Entidade AS Cliente, SUM(p.ValorPendente) AS TotalPendente, COUNT(*) AS NumDocumentos FROM Pendentes p WITH (NOLOCK) WHERE p.TipoEntidade = 'C' AND p.ValorPendente > 0 GROUP BY p.Entidade ORDER BY TotalPendente DESC",
+    "tablesUsed": ["Pendentes"],
+    "explanation": "Aggregates outstanding receivable amounts from the Pendentes table, filtering to customer entities (TipoEntidade='C') with positive pending values."
+  }
+]

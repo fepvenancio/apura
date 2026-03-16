@@ -1,0 +1,122 @@
+[
+  {
+    "id": "default_vendas_mensais",
+    "name": "Vendas Mensais",
+    "description": "Evolução mensal das vendas nos últimos 12 meses",
+    "naturalLanguage": "Total de vendas por mês nos últimos 12 meses",
+    "category": "vendas",
+    "sql": "SELECT TOP 1000 FORMAT(cd.Data, 'yyyy-MM') AS Mes, COUNT(*) AS NumDocumentos, SUM(cd.TotalDocumento) AS TotalVendas, AVG(cd.TotalDocumento) AS MediaPorDocumento FROM CabecDoc cd WITH (NOLOCK) INNER JOIN CabecDocStatus cds WITH (NOLOCK) ON cds.IdCabecDoc = cd.Id WHERE cd.TipoDoc IN ('FA', 'VD') AND cds.Anulado = 0 AND cd.Data >= DATEADD(MONTH, -12, GETDATE()) GROUP BY FORMAT(cd.Data, 'yyyy-MM') ORDER BY Mes ASC",
+    "chartConfig": {
+      "type": "line",
+      "xAxis": { "field": "Mes", "label": "Mês" },
+      "yAxis": { "field": "TotalVendas", "label": "Total Vendas (€)" },
+      "colors": ["#3B82F6"]
+    },
+    "layoutConfig": {
+      "columns": [
+        { "field": "Mes", "label": "Mês", "width": 120 },
+        { "field": "NumDocumentos", "label": "Nº Documentos", "width": 130, "format": "number", "align": "center" },
+        { "field": "TotalVendas", "label": "Total Vendas", "width": 150, "format": "currency", "align": "right" },
+        { "field": "MediaPorDocumento", "label": "Média/Documento", "width": 150, "format": "currency", "align": "right" }
+      ],
+      "showTotals": true,
+      "pageSize": 12
+    }
+  },
+  {
+    "id": "default_top_clientes",
+    "name": "Top 20 Clientes",
+    "description": "Os 20 clientes com maior volume de faturação este ano",
+    "naturalLanguage": "Top 20 clientes por faturação este ano",
+    "category": "vendas",
+    "sql": "SELECT TOP 20 cd.Entidade AS CodigoCliente, cd.Nome AS Cliente, COUNT(*) AS NumDocumentos, SUM(cd.TotalDocumento) AS TotalFaturado FROM CabecDoc cd WITH (NOLOCK) INNER JOIN CabecDocStatus cds WITH (NOLOCK) ON cds.IdCabecDoc = cd.Id WHERE cd.TipoDoc IN ('FA', 'VD') AND cds.Anulado = 0 AND YEAR(cd.Data) = YEAR(GETDATE()) GROUP BY cd.Entidade, cd.Nome ORDER BY TotalFaturado DESC",
+    "chartConfig": {
+      "type": "bar",
+      "xAxis": { "field": "Cliente", "label": "Cliente" },
+      "yAxis": { "field": "TotalFaturado", "label": "Total Faturado (€)" },
+      "sort": "desc",
+      "limit": 20,
+      "colors": ["#10B981"]
+    },
+    "layoutConfig": {
+      "columns": [
+        { "field": "CodigoCliente", "label": "Código", "width": 100 },
+        { "field": "Cliente", "label": "Cliente", "width": 250 },
+        { "field": "NumDocumentos", "label": "Nº Docs", "width": 100, "format": "number", "align": "center" },
+        { "field": "TotalFaturado", "label": "Total Faturado", "width": 150, "format": "currency", "align": "right" }
+      ],
+      "showTotals": true,
+      "pageSize": 20
+    }
+  },
+  {
+    "id": "default_saldos_pendentes",
+    "name": "Saldos Pendentes",
+    "description": "Aging de contas a receber por escalão de antiguidade",
+    "naturalLanguage": "Saldos pendentes de clientes agrupados por antiguidade (0-30, 30-60, 60-90, 90+ dias)",
+    "category": "contas_correntes",
+    "sql": "SELECT TOP 1000 CASE WHEN DATEDIFF(DAY, p.DataVenc, GETDATE()) <= 30 THEN '0-30 dias' WHEN DATEDIFF(DAY, p.DataVenc, GETDATE()) <= 60 THEN '30-60 dias' WHEN DATEDIFF(DAY, p.DataVenc, GETDATE()) <= 90 THEN '60-90 dias' ELSE '90+ dias' END AS Escalao, COUNT(*) AS NumDocumentos, SUM(p.ValorPendente) AS TotalPendente FROM Pendentes p WITH (NOLOCK) WHERE p.TipoEntidade = 'C' AND p.ValorPendente > 0 GROUP BY CASE WHEN DATEDIFF(DAY, p.DataVenc, GETDATE()) <= 30 THEN '0-30 dias' WHEN DATEDIFF(DAY, p.DataVenc, GETDATE()) <= 60 THEN '30-60 dias' WHEN DATEDIFF(DAY, p.DataVenc, GETDATE()) <= 90 THEN '60-90 dias' ELSE '90+ dias' END ORDER BY MIN(DATEDIFF(DAY, p.DataVenc, GETDATE())) ASC",
+    "chartConfig": {
+      "type": "bar",
+      "xAxis": { "field": "Escalao", "label": "Antiguidade" },
+      "yAxis": { "field": "TotalPendente", "label": "Total Pendente (€)" },
+      "colors": ["#22C55E", "#EAB308", "#F97316", "#EF4444"]
+    },
+    "layoutConfig": {
+      "columns": [
+        { "field": "Escalao", "label": "Escalão", "width": 150 },
+        { "field": "NumDocumentos", "label": "Nº Documentos", "width": 130, "format": "number", "align": "center" },
+        { "field": "TotalPendente", "label": "Total Pendente", "width": 150, "format": "currency", "align": "right" }
+      ],
+      "showTotals": true,
+      "pageSize": 10
+    }
+  },
+  {
+    "id": "default_receitas_despesas",
+    "name": "Receitas vs Despesas",
+    "description": "Comparação mensal entre receitas e despesas (demonstração de resultados simplificada)",
+    "naturalLanguage": "Receitas vs despesas por mês no ano corrente",
+    "category": "financeiro",
+    "sql": "SELECT TOP 12 ac.Moeda, N AS Mes, SUM(CASE WHEN ac.Conta LIKE '7%' THEN CASE WHEN N = 1 THEN ac.Mes01CR - ac.Mes01DB WHEN N = 2 THEN ac.Mes02CR - ac.Mes02DB WHEN N = 3 THEN ac.Mes03CR - ac.Mes03DB WHEN N = 4 THEN ac.Mes04CR - ac.Mes04DB WHEN N = 5 THEN ac.Mes05CR - ac.Mes05DB WHEN N = 6 THEN ac.Mes06CR - ac.Mes06DB WHEN N = 7 THEN ac.Mes07CR - ac.Mes07DB WHEN N = 8 THEN ac.Mes08CR - ac.Mes08DB WHEN N = 9 THEN ac.Mes09CR - ac.Mes09DB WHEN N = 10 THEN ac.Mes10CR - ac.Mes10DB WHEN N = 11 THEN ac.Mes11CR - ac.Mes11DB WHEN N = 12 THEN ac.Mes12CR - ac.Mes12DB END ELSE 0 END) AS Receitas, SUM(CASE WHEN ac.Conta LIKE '6%' THEN CASE WHEN N = 1 THEN ac.Mes01DB - ac.Mes01CR WHEN N = 2 THEN ac.Mes02DB - ac.Mes02CR WHEN N = 3 THEN ac.Mes03DB - ac.Mes03CR WHEN N = 4 THEN ac.Mes04DB - ac.Mes04CR WHEN N = 5 THEN ac.Mes05DB - ac.Mes05CR WHEN N = 6 THEN ac.Mes06DB - ac.Mes06CR WHEN N = 7 THEN ac.Mes07DB - ac.Mes07CR WHEN N = 8 THEN ac.Mes08DB - ac.Mes08CR WHEN N = 9 THEN ac.Mes09DB - ac.Mes09CR WHEN N = 10 THEN ac.Mes10DB - ac.Mes10CR WHEN N = 11 THEN ac.Mes11DB - ac.Mes11CR WHEN N = 12 THEN ac.Mes12DB - ac.Mes12CR END ELSE 0 END) AS Despesas FROM AcumuladosContas ac WITH (NOLOCK) CROSS JOIN (SELECT 1 AS N UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12) Meses WHERE ac.Ano = YEAR(GETDATE()) AND (ac.Conta LIKE '6%' OR ac.Conta LIKE '7%') AND ac.TipoLancamento = 'N' GROUP BY ac.Moeda, N HAVING SUM(CASE WHEN ac.Conta LIKE '7%' THEN CASE WHEN N = 1 THEN ac.Mes01CR - ac.Mes01DB WHEN N = 2 THEN ac.Mes02CR - ac.Mes02DB WHEN N = 3 THEN ac.Mes03CR - ac.Mes03DB WHEN N = 4 THEN ac.Mes04CR - ac.Mes04DB WHEN N = 5 THEN ac.Mes05CR - ac.Mes05DB WHEN N = 6 THEN ac.Mes06CR - ac.Mes06DB WHEN N = 7 THEN ac.Mes07CR - ac.Mes07DB WHEN N = 8 THEN ac.Mes08CR - ac.Mes08DB WHEN N = 9 THEN ac.Mes09CR - ac.Mes09DB WHEN N = 10 THEN ac.Mes10CR - ac.Mes10DB WHEN N = 11 THEN ac.Mes11CR - ac.Mes11DB WHEN N = 12 THEN ac.Mes12CR - ac.Mes12DB END ELSE 0 END) <> 0 OR SUM(CASE WHEN ac.Conta LIKE '6%' THEN CASE WHEN N = 1 THEN ac.Mes01DB - ac.Mes01CR WHEN N = 2 THEN ac.Mes02DB - ac.Mes02CR WHEN N = 3 THEN ac.Mes03DB - ac.Mes03CR WHEN N = 4 THEN ac.Mes04DB - ac.Mes04CR WHEN N = 5 THEN ac.Mes05DB - ac.Mes05CR WHEN N = 6 THEN ac.Mes06DB - ac.Mes06CR WHEN N = 7 THEN ac.Mes07DB - ac.Mes07CR WHEN N = 8 THEN ac.Mes08DB - ac.Mes08CR WHEN N = 9 THEN ac.Mes09DB - ac.Mes09CR WHEN N = 10 THEN ac.Mes10DB - ac.Mes10CR WHEN N = 11 THEN ac.Mes11DB - ac.Mes11CR WHEN N = 12 THEN ac.Mes12DB - ac.Mes12CR END ELSE 0 END) <> 0 ORDER BY Mes",
+    "chartConfig": {
+      "type": "bar",
+      "xAxis": { "field": "Mes", "label": "Mês" },
+      "yAxis": { "field": "Receitas", "label": "Valor (€)" },
+      "colors": ["#10B981", "#EF4444"]
+    },
+    "layoutConfig": {
+      "columns": [
+        { "field": "Mes", "label": "Mês", "width": 80, "align": "center" },
+        { "field": "Receitas", "label": "Receitas", "width": 150, "format": "currency", "align": "right" },
+        { "field": "Despesas", "label": "Despesas", "width": 150, "format": "currency", "align": "right" }
+      ],
+      "showTotals": true,
+      "pageSize": 12
+    }
+  },
+  {
+    "id": "default_quadro_pessoal",
+    "name": "Quadro de Pessoal",
+    "description": "Funcionários activos por departamento com custo salarial total",
+    "naturalLanguage": "Número de funcionários e custo salarial total por departamento",
+    "category": "rh",
+    "sql": "SELECT TOP 1000 d.Descricao AS Departamento, COUNT(*) AS NumFuncionarios, SUM(f.VencimentoMensal) AS CustoMensal, AVG(f.VencimentoMensal) AS MediaSalarial, MIN(f.DataAdmissao) AS AdmissaoMaisAntiga, MAX(f.DataAdmissao) AS AdmissaoMaisRecente FROM Funcionarios f WITH (NOLOCK) LEFT JOIN Departamentos d WITH (NOLOCK) ON d.Departamento = f.CodDepartamento WHERE f.DataDemissao IS NULL OR f.DataDemissao > GETDATE() GROUP BY d.Descricao ORDER BY NumFuncionarios DESC",
+    "chartConfig": {
+      "type": "bar",
+      "xAxis": { "field": "Departamento", "label": "Departamento" },
+      "yAxis": { "field": "NumFuncionarios", "label": "Nº Funcionários" },
+      "colors": ["#8B5CF6"]
+    },
+    "layoutConfig": {
+      "columns": [
+        { "field": "Departamento", "label": "Departamento", "width": 200 },
+        { "field": "NumFuncionarios", "label": "Nº Funcionários", "width": 130, "format": "number", "align": "center" },
+        { "field": "CustoMensal", "label": "Custo Mensal", "width": 150, "format": "currency", "align": "right" },
+        { "field": "MediaSalarial", "label": "Média Salarial", "width": 150, "format": "currency", "align": "right" }
+      ],
+      "showTotals": true,
+      "pageSize": 20
+    }
+  }
+]

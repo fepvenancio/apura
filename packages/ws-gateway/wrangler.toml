@@ -1,0 +1,26 @@
+name = "apura-ws"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+routes = [
+  { pattern = "ws.apura.xyz/*", zone_name = "apura.xyz" }
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "apura-main"
+database_id = "placeholder"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "placeholder"
+
+[durable_objects]
+bindings = [
+  { name = "CONNECTOR", class_name = "ConnectorSession" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ConnectorSession"]

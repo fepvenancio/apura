@@ -1,0 +1,192 @@
+import type { Env, GenerateSqlRequest, GenerateSqlResponse } from './types';
+import { sanitizeNaturalLanguage, MAX_NATURAL_LANGUAGE_LENGTH } from '@apura/shared';
+import { SchemaLoader } from './schema/schema-loader';
+import { ExampleSelector } from './schema/example-selector';
+import { classifyQuery } from './schema/query-classifier';
+import { buildSystemPrompt, buildUserPrompt } from './prompt/prompt-builder';
+import { ClaudeClient } from './ai/claude-client';
+import { validateSql } from './validation/sql-validator';
+import { sanitizeSql } from './validation/sql-sanitizer';
+
+/** Maximum number of schema tables to include in prompt context. */
+const MAX_CONTEXT_TABLES = 20;
+
+/** Maximum number of few-shot examples to include in prompt. */
+const MAX_EXAMPLES = 5;
+
+/** Cache TTL for query results (15 minutes). */
+const QUERY_CACHE_TTL = 900;
+
+/**
+ * QueryOrchestrator — the main orchestration pipeline.
+ *
+ * Flow:
+ *   1. Sanitize input
+ *   2. Check KV cache for identical query
+ *   3. Classify query into schema categories
+ *   4. Load relevant schema tables
+ *   5. Select few-shot examples
+ *   6. Build prompt
+ *   7. Call Claude API
+ *   8. Sanitize SQL response
+ *   9. Validate SQL (AST parser)
+ *  10. If validation fails, retry with error feedback
+ *  11. Cache and return result
+ */
+export class QueryOrchestrator {
+  private schemaLoader: SchemaLoader;
+  private exampleSelector: ExampleSelector;
+  private claudeClient: ClaudeClient;
+
+  constructor(private env: Env) {
+    this.schemaLoader = new SchemaLoader(env.DB, env.CACHE);
+    this.exampleSelector = new ExampleSelector(env.DB, env.CACHE);
+    this.claudeClient = new ClaudeClient(env.CLAUDE_API_KEY);
+  }
+
+  async processQuery(request: GenerateSqlRequest): Promise<GenerateSqlResponse> {
+    // 1. Sanitize input
+    const sanitized = sanitizeNaturalLanguage(request.naturalLanguage);
+    if (!sanitized || sanitized.length === 0) {
+      throw new OrchestratorError('Query is empty after sanitization', 400);
+    }
+    if (sanitized.length > MAX_NATURAL_LANGUAGE_LENGTH) {
+      throw new OrchestratorError(
+        `Query exceeds maximum length of ${MAX_NATURAL_LANGUAGE_LENGTH} characters`,
+        400,
+      );
+    }
+
+    // 2. Check KV cache for identical query
+    const cacheKey = `query:${request.orgId}:${hashString(sanitized)}`;
+    const cached = await this.env.CACHE.get(cacheKey, 'json');
+    if (cached) {
+      return cached as GenerateSqlResponse;
+    }
+
+    // 3. Classify query into categories
+    const categories = classifyQuery(sanitized);
+
+    // 4. Load relevant schema tables (max 15-20 tables)
+    let tables = (
+      await Promise.all(
+        categories.map((cat) =>
+          this.schemaLoader.getTablesForCategory(request.orgId, cat),
+        ),
+      )
+    ).flat();
+
+    // Deduplicate by table name
+    const seen = new Set<string>();
+    tables = tables.filter((t) => {
+      if (seen.has(t.tableName)) return false;
+      seen.add(t.tableName);
+      return true;
+    });
+
+    // Limit context size
+    if (tables.length > MAX_CONTEXT_TABLES) {
+      tables = tables.slice(0, MAX_CONTEXT_TABLES);
+    }
+
+    // 5. Select few-shot examples
+    const examples = await this.exampleSelector.selectExamples(
+      sanitized,
+      categories,
+      request.orgId,
+      MAX_EXAMPLES,
+    );
+
+    // 6. Build prompt
+    const systemPrompt = buildSystemPrompt();
+    const userPrompt = buildUserPrompt(sanitized, tables, examples);
+
+    // 7. Resolve model
+    const modelKey =
+      request.model === 'haiku' ? 'AI_MODEL_BUDGET' : 'AI_MODEL_DEFAULT';
+    const model = this.env[modelKey];
+
+    // 8. Call Claude API
+    const aiResult = await this.claudeClient.generateSql(
+      systemPrompt,
+      userPrompt,
+      model,
+    );
+
+    // 9. Sanitize SQL response
+    let sql = sanitizeSql(aiResult.sql);
+
+    // 10. Validate SQL (AST parser)
+    let validation = validateSql(sql);
+
+    // 11. If validation fails, retry once with error feedback
+    if (!validation.valid) {
+      const retryUserPrompt =
+        userPrompt +
+        `\n\nIMPORTANT: Your previous SQL was invalid. Validation error: "${validation.reason}". ` +
+        `Please fix the query and return valid JSON with "sql" and "explanation" keys.`;
+
+      const retryResult = await this.claudeClient.generateSql(
+        systemPrompt,
+        retryUserPrompt,
+        model,
+      );
+
+      sql = sanitizeSql(retryResult.sql);
+      validation = validateSql(sql);
+
+      if (!validation.valid) {
+        throw new OrchestratorError(
+          `Generated SQL failed validation after retry: ${validation.reason}`,
+          422,
+        );
+      }
+
+      // Use retry token counts
+      aiResult.tokensUsed.input += retryResult.tokensUsed.input;
+      aiResult.tokensUsed.output += retryResult.tokensUsed.output;
+      aiResult.explanation = retryResult.explanation;
+    }
+
+    // 12. Build response
+    const response: GenerateSqlResponse = {
+      sql,
+      explanation: aiResult.explanation,
+      tablesUsed: validation.tablesReferenced ?? [],
+      model,
+      tokensUsed: aiResult.tokensUsed,
+    };
+
+    // 13. Cache the result
+    await this.env.CACHE.put(cacheKey, JSON.stringify(response), {
+      expirationTtl: QUERY_CACHE_TTL,
+    });
+
+    return response;
+  }
+}
+
+/**
+ * Simple string hash for cache keys.
+ * Uses a djb2-style hash that's fast and good enough for deduplication.
+ */
+function hashString(str: string): string {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash + str.charCodeAt(i)) & 0xffffffff;
+  }
+  return hash.toString(36);
+}
+
+/**
+ * Custom error class with HTTP status code for the orchestrator.
+ */
+export class OrchestratorError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number,
+  ) {
+    super(message);
+    this.name = 'OrchestratorError';
+  }
+}

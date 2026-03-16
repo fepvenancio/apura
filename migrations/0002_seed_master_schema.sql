@@ -1,0 +1,1 @@
+-- Will be populated from docs/schema/master-schema.json via seed script

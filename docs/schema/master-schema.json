@@ -1,0 +1,1008 @@
+{
+  "version": "V10",
+  "lastUpdated": "2026-03-16",
+  "modules": {
+    "vendas": {
+      "name": "Sales",
+      "namePt": "Vendas",
+      "tables": {
+        "CabecDoc": {
+          "description": "Sales document headers",
+          "descriptionPt": "Cabecalhos de documentos de venda",
+          "keyColumns": ["Id", "TipoDoc", "Serie", "NumDoc", "Entidade", "Data", "TotalDocumento"],
+          "columns": {
+            "Id": {"type": "uniqueidentifier", "key": true, "description": "Primary key", "descriptionPt": "Chave primaria"},
+            "TipoDoc": {"type": "nvarchar", "key": true, "description": "Document type code", "descriptionPt": "Tipo de documento"},
+            "Serie": {"type": "nvarchar", "key": true, "description": "Document series", "descriptionPt": "Serie do documento"},
+            "NumDoc": {"type": "int", "key": true, "description": "Document number", "descriptionPt": "Numero do documento"},
+            "Documento": {"type": "nvarchar", "key": true, "description": "Full document reference", "descriptionPt": "Referencia completa do documento"},
+            "Entidade": {"type": "nvarchar", "key": true, "description": "Customer/entity code", "descriptionPt": "Codigo do cliente/entidade"},
+            "TipoEntidade": {"type": "nvarchar", "description": "Entity type (C=Customer, F=Supplier, etc.)", "descriptionPt": "Tipo de entidade"},
+            "Nome": {"type": "nvarchar", "description": "Customer name on document", "descriptionPt": "Nome do cliente no documento"},
+            "NumContribuinte": {"type": "nvarchar", "description": "Tax identification number", "descriptionPt": "Numero de contribuinte"},
+            "Data": {"type": "datetime", "key": true, "description": "Document date", "descriptionPt": "Data do documento"},
+            "DataVencimento": {"type": "datetime", "description": "Due date", "descriptionPt": "Data de vencimento"},
+            "Filial": {"type": "nvarchar", "description": "Branch code", "descriptionPt": "Filial"},
+            "Moeda": {"type": "nvarchar", "description": "Currency code", "descriptionPt": "Codigo da moeda"},
+            "Cambio": {"type": "float", "description": "Exchange rate", "descriptionPt": "Taxa de cambio"},
+            "CondPag": {"type": "nvarchar", "description": "Payment condition code", "descriptionPt": "Condicao de pagamento"},
+            "ModoPag": {"type": "nvarchar", "description": "Payment method", "descriptionPt": "Modo de pagamento"},
+            "ModoExp": {"type": "nvarchar", "description": "Shipping method", "descriptionPt": "Modo de expedicao"},
+            "TotalMerc": {"type": "float", "key": true, "description": "Total merchandise value", "descriptionPt": "Total de mercadoria"},
+            "TotalIva": {"type": "float", "description": "Total VAT amount", "descriptionPt": "Total de IVA"},
+            "TotalDesc": {"type": "float", "description": "Total discount amount", "descriptionPt": "Total de descontos"},
+            "TotalDocumento": {"type": "float", "key": true, "description": "Grand total of document", "descriptionPt": "Total do documento"},
+            "TotalRetencao": {"type": "float", "description": "Total withholding tax", "descriptionPt": "Total de retencao"},
+            "DescPag": {"type": "real", "description": "Payment discount percentage", "descriptionPt": "Desconto de pagamento"},
+            "Zona": {"type": "nvarchar", "description": "Sales zone", "descriptionPt": "Zona de venda"},
+            "Observacoes": {"type": "ntext", "description": "Observations/notes", "descriptionPt": "Observacoes"},
+            "Requisicao": {"type": "nvarchar", "description": "Requisition reference", "descriptionPt": "Referencia de requisicao"},
+            "Diario": {"type": "nvarchar", "description": "Accounting journal code", "descriptionPt": "Codigo do diario contabilistico"},
+            "NumDiario": {"type": "int", "description": "Journal entry number", "descriptionPt": "Numero do diario"},
+            "Utilizador": {"type": "nvarchar", "description": "User who created document", "descriptionPt": "Utilizador que criou o documento"},
+            "Responsavel": {"type": "nvarchar", "description": "Responsible person", "descriptionPt": "Responsavel"},
+            "IdCabecTesouraria": {"type": "uniqueidentifier", "description": "FK to treasury header", "descriptionPt": "FK para cabecalho de tesouraria"},
+            "IdCabecMovCbl": {"type": "uniqueidentifier", "description": "FK to accounting movement header", "descriptionPt": "FK para cabecalho de movimento contabilistico"}
+          },
+          "commonJoins": [
+            "LinhasDoc ON LinhasDoc.IdCabecDoc = CabecDoc.Id",
+            "CabecDocStatus ON CabecDocStatus.IdCabecDoc = CabecDoc.Id",
+            "Clientes ON Clientes.Cliente = CabecDoc.Entidade",
+            "DocumentosVenda ON DocumentosVenda.Documento = CabecDoc.TipoDoc"
+          ]
+        },
+        "LinhasDoc": {
+          "description": "Sales document lines/items",
+          "descriptionPt": "Linhas de documentos de venda",
+          "keyColumns": ["Id", "IdCabecDoc", "NumLinha", "Artigo", "Quantidade", "PrecUnit", "TotalIliquido"],
+          "columns": {
+            "Id": {"type": "uniqueidentifier", "key": true, "description": "Primary key", "descriptionPt": "Chave primaria"},
+            "IdCabecDoc": {"type": "uniqueidentifier", "key": true, "description": "FK to CabecDoc header", "descriptionPt": "FK para cabecalho do documento"},
+            "NumLinha": {"type": "smallint", "key": true, "description": "Line number", "descriptionPt": "Numero da linha"},
+            "Artigo": {"type": "nvarchar", "key": true, "description": "Product/article code", "descriptionPt": "Codigo do artigo"},
+            "Descricao": {"type": "nvarchar", "description": "Line description", "descriptionPt": "Descricao da linha"},
+            "Quantidade": {"type": "float", "key": true, "description": "Quantity", "descriptionPt": "Quantidade"},
+            "Unidade": {"type": "nvarchar", "description": "Unit of measure", "descriptionPt": "Unidade de medida"},
+            "PrecUnit": {"type": "float", "key": true, "description": "Unit price", "descriptionPt": "Preco unitario"},
+            "PrecoLiquido": {"type": "float", "description": "Net price after discounts", "descriptionPt": "Preco liquido apos descontos"},
+            "Desconto1": {"type": "real", "description": "Discount 1 percentage", "descriptionPt": "Desconto 1 percentagem"},
+            "Desconto2": {"type": "real", "description": "Discount 2 percentage", "descriptionPt": "Desconto 2 percentagem"},
+            "Desconto3": {"type": "real", "description": "Discount 3 percentage", "descriptionPt": "Desconto 3 percentagem"},
+            "DescontoComercial": {"type": "float", "description": "Trade discount value", "descriptionPt": "Desconto comercial"},
+            "CodIva": {"type": "nvarchar", "description": "VAT code", "descriptionPt": "Codigo de IVA"},
+            "TaxaIva": {"type": "real", "description": "VAT rate", "descriptionPt": "Taxa de IVA"},
+            "TotalIva": {"type": "float", "description": "Total VAT for line", "descriptionPt": "Total de IVA da linha"},
+            "TotalIliquido": {"type": "float", "key": true, "description": "Net total for line", "descriptionPt": "Total iliquido da linha"},
+            "TipoLinha": {"type": "nvarchar", "description": "Line type", "descriptionPt": "Tipo de linha"},
+            "Armazem": {"type": "nvarchar", "description": "Warehouse code", "descriptionPt": "Codigo do armazem"},
+            "Vendedor": {"type": "nvarchar", "description": "Salesperson code", "descriptionPt": "Codigo do vendedor"},
+            "Lote": {"type": "nvarchar", "description": "Batch/lot number", "descriptionPt": "Numero de lote"},
+            "Data": {"type": "datetime", "description": "Line date", "descriptionPt": "Data da linha"},
+            "DataEntrega": {"type": "datetime", "description": "Delivery date", "descriptionPt": "Data de entrega"},
+            "Comissao": {"type": "float", "description": "Commission percentage", "descriptionPt": "Percentagem de comissao"},
+            "PCM": {"type": "float", "description": "Average cost price", "descriptionPt": "Preco de custo medio"},
+            "Margem": {"type": "float", "description": "Margin value", "descriptionPt": "Valor da margem"},
+            "PercentagemMargem": {"type": "float", "description": "Margin percentage", "descriptionPt": "Percentagem da margem"},
+            "MovSTK": {"type": "nvarchar", "description": "Stock movement type", "descriptionPt": "Tipo de movimento de stock"},
+            "Seccao": {"type": "nvarchar", "description": "Section code", "descriptionPt": "Codigo da seccao"},
+            "Devolucao": {"type": "bit", "description": "Is return/credit note line", "descriptionPt": "Indica se e linha de devolucao"}
+          },
+          "commonJoins": [
+            "CabecDoc ON CabecDoc.Id = LinhasDoc.IdCabecDoc",
+            "Artigo ON Artigo.Artigo = LinhasDoc.Artigo"
+          ]
+        },
+        "CabecDocStatus": {
+          "description": "Sales document status flags",
+          "descriptionPt": "Estado dos documentos de venda",
+          "keyColumns": ["IdCabecDoc", "Estado", "Anulado", "Fechado"],
+          "columns": {
+            "IdCabecDoc": {"type": "uniqueidentifier", "key": true, "description": "FK to CabecDoc header", "descriptionPt": "FK para cabecalho do documento"},
+            "Estado": {"type": "nvarchar", "key": true, "description": "Document state", "descriptionPt": "Estado do documento"},
+            "Anulado": {"type": "bit", "key": true, "description": "Voided flag", "descriptionPt": "Indica se esta anulado"},
+            "Fechado": {"type": "bit", "key": true, "description": "Closed flag", "descriptionPt": "Indica se esta fechado"},
+            "DocImp": {"type": "bit", "description": "Printed flag", "descriptionPt": "Indica se foi impresso"},
+            "MovContab": {"type": "smallint", "description": "Accounting posting status", "descriptionPt": "Estado da contabilizacao"},
+            "MotivoAnulacao": {"type": "nvarchar", "description": "Void reason", "descriptionPt": "Motivo de anulacao"},
+            "DataAnulacao": {"type": "datetime", "description": "Void date", "descriptionPt": "Data de anulacao"},
+            "UtilizadorAnulacao": {"type": "nvarchar", "description": "User who voided", "descriptionPt": "Utilizador que anulou"},
+            "DataImp": {"type": "datetime", "description": "Print date", "descriptionPt": "Data de impressao"},
+            "ATDocCodeID": {"type": "nvarchar", "description": "Tax authority document code", "descriptionPt": "Codigo do documento na AT"},
+            "ATTrataTrans": {"type": "smallint", "description": "AT transport processing status", "descriptionPt": "Estado de processamento de transporte AT"}
+          },
+          "commonJoins": [
+            "CabecDoc ON CabecDoc.Id = CabecDocStatus.IdCabecDoc"
+          ]
+        },
+        "Clientes": {
+          "description": "Customer master data",
+          "descriptionPt": "Dados mestre de clientes",
+          "keyColumns": ["Cliente", "Nome", "NumContrib", "Pais", "CondPag", "ModoPag"],
+          "columns": {
+            "Cliente": {"type": "nvarchar", "key": true, "description": "Customer code (PK)", "descriptionPt": "Codigo do cliente (PK)"},
+            "Nome": {"type": "nvarchar", "key": true, "description": "Customer name", "descriptionPt": "Nome do cliente"},
+            "NumContrib": {"type": "nvarchar", "key": true, "description": "Tax identification number (NIF)", "descriptionPt": "Numero de contribuinte (NIF)"},
+            "Fac_Mor": {"type": "nvarchar", "description": "Billing address", "descriptionPt": "Morada de faturacao"},
+            "Fac_Local": {"type": "nvarchar", "description": "Billing city", "descriptionPt": "Localidade de faturacao"},
+            "Fac_Cp": {"type": "nvarchar", "description": "Billing postal code", "descriptionPt": "Codigo postal de faturacao"},
+            "Fac_Tel": {"type": "nvarchar", "description": "Billing phone", "descriptionPt": "Telefone de faturacao"},
+            "Pais": {"type": "nvarchar", "key": true, "description": "Country code", "descriptionPt": "Codigo do pais"},
+            "Zona": {"type": "nvarchar", "description": "Sales zone", "descriptionPt": "Zona de venda"},
+            "Vendedor": {"type": "nvarchar", "description": "Default salesperson", "descriptionPt": "Vendedor por defeito"},
+            "CondPag": {"type": "nvarchar", "key": true, "description": "Default payment condition", "descriptionPt": "Condicao de pagamento por defeito"},
+            "ModoPag": {"type": "nvarchar", "key": true, "description": "Default payment method", "descriptionPt": "Modo de pagamento por defeito"},
+            "ModoExp": {"type": "nvarchar", "description": "Default shipping method", "descriptionPt": "Modo de expedicao por defeito"},
+            "Moeda": {"type": "nvarchar", "description": "Default currency", "descriptionPt": "Moeda por defeito"},
+            "Desconto": {"type": "real", "description": "Default discount percentage", "descriptionPt": "Desconto por defeito"},
+            "TipoPrec": {"type": "nvarchar", "description": "Price list type (PVP1-PVP6)", "descriptionPt": "Tipo de preco"},
+            "TipoCred": {"type": "nvarchar", "description": "Credit type", "descriptionPt": "Tipo de credito"},
+            "LimiteCred": {"type": "float", "description": "Credit limit", "descriptionPt": "Limite de credito"},
+            "TotalDeb": {"type": "float", "description": "Total debit balance", "descriptionPt": "Total em debito"},
+            "TipoCli": {"type": "nvarchar", "description": "Customer type", "descriptionPt": "Tipo de cliente"},
+            "DataCriacao": {"type": "datetime", "description": "Creation date", "descriptionPt": "Data de criacao"},
+            "ClienteAnulado": {"type": "bit", "description": "Inactive/voided flag", "descriptionPt": "Indica se esta anulado"},
+            "EnderecoWeb": {"type": "nvarchar", "description": "Website URL", "descriptionPt": "Endereco web"},
+            "EfectuaRetencao": {"type": "bit", "description": "Subject to withholding tax", "descriptionPt": "Sujeito a retencao"},
+            "TipoTerceiro": {"type": "nvarchar", "description": "Third-party type", "descriptionPt": "Tipo de terceiro"}
+          },
+          "commonJoins": [
+            "CabecDoc ON CabecDoc.Entidade = Clientes.Cliente AND CabecDoc.TipoEntidade = 'C'",
+            "Pendentes ON Pendentes.Entidade = Clientes.Cliente AND Pendentes.TipoEntidade = 'C'"
+          ]
+        },
+        "DocumentosVenda": {
+          "description": "Sales document type configuration",
+          "descriptionPt": "Configuracao de tipos de documento de venda",
+          "keyColumns": ["Documento", "Descricao", "TipoDocumento"],
+          "columns": {
+            "Documento": {"type": "nvarchar", "key": true, "description": "Document type code (PK)", "descriptionPt": "Codigo do tipo de documento (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Document type description", "descriptionPt": "Descricao do tipo de documento"},
+            "TipoDocumento": {"type": "tinyint", "key": true, "description": "Document type category", "descriptionPt": "Categoria do tipo de documento"},
+            "Estado": {"type": "nvarchar", "description": "Default state", "descriptionPt": "Estado por defeito"},
+            "LigaStocks": {"type": "bit", "description": "Affects stock", "descriptionPt": "Afeta stocks"},
+            "LigaCC": {"type": "bit", "description": "Affects current accounts", "descriptionPt": "Afeta contas correntes"},
+            "LigaContab": {"type": "bit", "description": "Affects accounting", "descriptionPt": "Afeta contabilidade"},
+            "PagarReceber": {"type": "nvarchar", "description": "Pay/Receive type (P/R)", "descriptionPt": "Tipo pagar/receber"},
+            "TipoDocCC": {"type": "nvarchar", "description": "Current account doc type", "descriptionPt": "Tipo de documento em contas correntes"},
+            "LigacaoTesouraria": {"type": "bit", "description": "Links to treasury", "descriptionPt": "Liga a tesouraria"},
+            "DocumentoFactura": {"type": "bit", "description": "Is invoice type", "descriptionPt": "E tipo fatura"},
+            "GeraAssinatura": {"type": "bit", "description": "Generates digital signature", "descriptionPt": "Gera assinatura digital"},
+            "SAFTTipoDocumento": {"type": "varchar", "description": "SAF-T document type code", "descriptionPt": "Codigo de tipo de documento SAF-T"},
+            "BensCirculacao": {"type": "bit", "description": "Goods in transit document", "descriptionPt": "Documento de bens em circulacao"},
+            "CalculaComissoes": {"type": "bit", "description": "Calculates commissions", "descriptionPt": "Calcula comissoes"},
+            "Diario": {"type": "nvarchar", "description": "Default accounting journal", "descriptionPt": "Diario contabilistico por defeito"}
+          },
+          "commonJoins": [
+            "CabecDoc ON CabecDoc.TipoDoc = DocumentosVenda.Documento"
+          ]
+        },
+        "Vendedores": {
+          "description": "Salesperson master data",
+          "descriptionPt": "Dados mestre de vendedores",
+          "keyColumns": ["Vendedor", "Nome", "Comissao"],
+          "columns": {
+            "Vendedor": {"type": "nvarchar", "key": true, "description": "Salesperson code (PK)", "descriptionPt": "Codigo do vendedor (PK)"},
+            "Nome": {"type": "nvarchar", "key": true, "description": "Salesperson name", "descriptionPt": "Nome do vendedor"},
+            "Comissao": {"type": "real", "key": true, "description": "Default commission rate", "descriptionPt": "Taxa de comissao por defeito"},
+            "ComissaoLiquidacao": {"type": "float", "description": "Settlement commission", "descriptionPt": "Comissao de liquidacao"},
+            "Morada": {"type": "nvarchar", "description": "Address", "descriptionPt": "Morada"},
+            "Localidade": {"type": "nvarchar", "description": "City", "descriptionPt": "Localidade"},
+            "Telefone": {"type": "nvarchar", "description": "Phone", "descriptionPt": "Telefone"},
+            "EMail": {"type": "nvarchar", "description": "Email address", "descriptionPt": "Endereco de email"},
+            "Telemovel": {"type": "nvarchar", "description": "Mobile phone", "descriptionPt": "Telemovel"},
+            "TipoEntidade": {"type": "nvarchar", "description": "Associated entity type", "descriptionPt": "Tipo de entidade associada"},
+            "Entidade": {"type": "nvarchar", "description": "Associated entity code", "descriptionPt": "Codigo da entidade associada"},
+            "Moeda": {"type": "nvarchar", "description": "Currency", "descriptionPt": "Moeda"}
+          },
+          "commonJoins": [
+            "LinhasDoc ON LinhasDoc.Vendedor = Vendedores.Vendedor",
+            "Clientes ON Clientes.Vendedor = Vendedores.Vendedor"
+          ]
+        }
+      }
+    },
+    "compras": {
+      "name": "Purchases",
+      "namePt": "Compras",
+      "tables": {
+        "CabecCompras": {
+          "description": "Purchase document headers",
+          "descriptionPt": "Cabecalhos de documentos de compra",
+          "keyColumns": ["Id", "TipoDoc", "Serie", "NumDoc", "Entidade", "DataDoc", "TotalDocumento"],
+          "columns": {
+            "Id": {"type": "uniqueidentifier", "key": true, "description": "Primary key", "descriptionPt": "Chave primaria"},
+            "TipoDoc": {"type": "nvarchar", "key": true, "description": "Document type code", "descriptionPt": "Tipo de documento"},
+            "Serie": {"type": "nvarchar", "key": true, "description": "Document series", "descriptionPt": "Serie do documento"},
+            "NumDoc": {"type": "int", "key": true, "description": "Document number", "descriptionPt": "Numero do documento"},
+            "Documento": {"type": "nvarchar", "key": true, "description": "Full document reference", "descriptionPt": "Referencia completa do documento"},
+            "Entidade": {"type": "nvarchar", "key": true, "description": "Supplier code", "descriptionPt": "Codigo do fornecedor"},
+            "TipoEntidade": {"type": "nvarchar", "description": "Entity type", "descriptionPt": "Tipo de entidade"},
+            "Nome": {"type": "nvarchar", "description": "Supplier name on document", "descriptionPt": "Nome do fornecedor no documento"},
+            "NumContribuinte": {"type": "nvarchar", "description": "Tax identification number", "descriptionPt": "Numero de contribuinte"},
+            "DataDoc": {"type": "datetime", "key": true, "description": "Document date", "descriptionPt": "Data do documento"},
+            "DataVencimento": {"type": "datetime", "description": "Due date", "descriptionPt": "Data de vencimento"},
+            "NumDocExterno": {"type": "nvarchar", "description": "External document number (supplier invoice)", "descriptionPt": "Numero do documento externo"},
+            "Filial": {"type": "nvarchar", "description": "Branch code", "descriptionPt": "Filial"},
+            "Moeda": {"type": "nvarchar", "description": "Currency code", "descriptionPt": "Codigo da moeda"},
+            "Cambio": {"type": "float", "description": "Exchange rate", "descriptionPt": "Taxa de cambio"},
+            "CondPag": {"type": "nvarchar", "description": "Payment condition", "descriptionPt": "Condicao de pagamento"},
+            "ModoPag": {"type": "nvarchar", "description": "Payment method", "descriptionPt": "Modo de pagamento"},
+            "TotalMerc": {"type": "float", "key": true, "description": "Total merchandise", "descriptionPt": "Total de mercadoria"},
+            "TotalIva": {"type": "float", "description": "Total VAT", "descriptionPt": "Total de IVA"},
+            "TotalDesc": {"type": "float", "description": "Total discounts", "descriptionPt": "Total de descontos"},
+            "TotalDocumento": {"type": "float", "key": true, "description": "Grand total", "descriptionPt": "Total do documento"},
+            "TotalRetencao": {"type": "float", "description": "Total withholding tax", "descriptionPt": "Total de retencao"},
+            "TotalDespesasAdicionais": {"type": "float", "description": "Total additional expenses", "descriptionPt": "Total de despesas adicionais"},
+            "Diario": {"type": "nvarchar", "description": "Accounting journal", "descriptionPt": "Diario contabilistico"},
+            "NumDiario": {"type": "int", "description": "Journal entry number", "descriptionPt": "Numero do diario"},
+            "Observacoes": {"type": "ntext", "description": "Observations", "descriptionPt": "Observacoes"},
+            "Utilizador": {"type": "nvarchar", "description": "User who created", "descriptionPt": "Utilizador que criou"},
+            "Responsavel": {"type": "nvarchar", "description": "Responsible person", "descriptionPt": "Responsavel"},
+            "IdCabecTesouraria": {"type": "uniqueidentifier", "description": "FK to treasury header", "descriptionPt": "FK para cabecalho de tesouraria"},
+            "IdCabecMovCbl": {"type": "uniqueidentifier", "description": "FK to accounting header", "descriptionPt": "FK para cabecalho contabilistico"}
+          },
+          "commonJoins": [
+            "LinhasCompras ON LinhasCompras.IdCabecCompras = CabecCompras.Id",
+            "Fornecedores ON Fornecedores.Fornecedor = CabecCompras.Entidade",
+            "DocumentosCompra ON DocumentosCompra.Documento = CabecCompras.TipoDoc"
+          ]
+        },
+        "LinhasCompras": {
+          "description": "Purchase document lines/items",
+          "descriptionPt": "Linhas de documentos de compra",
+          "keyColumns": ["Id", "IdCabecCompras", "NumLinha", "Artigo", "Quantidade", "PrecUnit", "TotalIliquido"],
+          "columns": {
+            "Id": {"type": "uniqueidentifier", "key": true, "description": "Primary key", "descriptionPt": "Chave primaria"},
+            "IdCabecCompras": {"type": "uniqueidentifier", "key": true, "description": "FK to CabecCompras header", "descriptionPt": "FK para cabecalho de compra"},
+            "NumLinha": {"type": "smallint", "key": true, "description": "Line number", "descriptionPt": "Numero da linha"},
+            "Artigo": {"type": "nvarchar", "key": true, "description": "Product/article code", "descriptionPt": "Codigo do artigo"},
+            "Descricao": {"type": "nvarchar", "description": "Line description", "descriptionPt": "Descricao da linha"},
+            "Quantidade": {"type": "float", "key": true, "description": "Quantity", "descriptionPt": "Quantidade"},
+            "Unidade": {"type": "nvarchar", "description": "Unit of measure", "descriptionPt": "Unidade de medida"},
+            "PrecUnit": {"type": "float", "key": true, "description": "Unit price", "descriptionPt": "Preco unitario"},
+            "PrecoLiquido": {"type": "float", "description": "Net price after discounts", "descriptionPt": "Preco liquido"},
+            "Desconto1": {"type": "real", "description": "Discount 1 percentage", "descriptionPt": "Desconto 1"},
+            "Desconto2": {"type": "real", "description": "Discount 2 percentage", "descriptionPt": "Desconto 2"},
+            "Desconto3": {"type": "real", "description": "Discount 3 percentage", "descriptionPt": "Desconto 3"},
+            "DescontoComercial": {"type": "float", "description": "Trade discount", "descriptionPt": "Desconto comercial"},
+            "CodIva": {"type": "nvarchar", "description": "VAT code", "descriptionPt": "Codigo de IVA"},
+            "TaxaIva": {"type": "real", "description": "VAT rate", "descriptionPt": "Taxa de IVA"},
+            "TotalIva": {"type": "float", "description": "Total VAT for line", "descriptionPt": "Total de IVA da linha"},
+            "TotalIliquido": {"type": "float", "key": true, "description": "Net total for line", "descriptionPt": "Total iliquido da linha"},
+            "TipoLinha": {"type": "nvarchar", "description": "Line type", "descriptionPt": "Tipo de linha"},
+            "Armazem": {"type": "nvarchar", "description": "Warehouse code", "descriptionPt": "Codigo do armazem"},
+            "Lote": {"type": "nvarchar", "description": "Batch/lot number", "descriptionPt": "Numero de lote"},
+            "DataDoc": {"type": "datetime", "description": "Line date", "descriptionPt": "Data da linha"},
+            "DataEntrega": {"type": "datetime", "description": "Delivery date", "descriptionPt": "Data de entrega"},
+            "NumDocExterno": {"type": "nvarchar", "description": "External doc reference", "descriptionPt": "Referencia externa"},
+            "CustoAdicionalManual": {"type": "float", "description": "Manual additional cost", "descriptionPt": "Custo adicional manual"},
+            "CustoAdicionalRateio": {"type": "float", "description": "Prorated additional cost", "descriptionPt": "Custo adicional rateio"},
+            "MovSTK": {"type": "nvarchar", "description": "Stock movement type", "descriptionPt": "Tipo de movimento de stock"},
+            "PrecoCusto": {"type": "float", "description": "Cost price", "descriptionPt": "Preco de custo"}
+          },
+          "commonJoins": [
+            "CabecCompras ON CabecCompras.Id = LinhasCompras.IdCabecCompras",
+            "Artigo ON Artigo.Artigo = LinhasCompras.Artigo"
+          ]
+        },
+        "Fornecedores": {
+          "description": "Supplier master data",
+          "descriptionPt": "Dados mestre de fornecedores",
+          "keyColumns": ["Fornecedor", "Nome", "NumContrib", "Pais", "CondPag"],
+          "columns": {
+            "Fornecedor": {"type": "nvarchar", "key": true, "description": "Supplier code (PK)", "descriptionPt": "Codigo do fornecedor (PK)"},
+            "Nome": {"type": "nvarchar", "key": true, "description": "Supplier name", "descriptionPt": "Nome do fornecedor"},
+            "NumContrib": {"type": "nvarchar", "key": true, "description": "Tax identification number (NIF)", "descriptionPt": "Numero de contribuinte (NIF)"},
+            "Morada": {"type": "nvarchar", "description": "Address", "descriptionPt": "Morada"},
+            "Local": {"type": "nvarchar", "description": "City", "descriptionPt": "Localidade"},
+            "Cp": {"type": "nvarchar", "description": "Postal code", "descriptionPt": "Codigo postal"},
+            "Tel": {"type": "nvarchar", "description": "Phone", "descriptionPt": "Telefone"},
+            "Pais": {"type": "nvarchar", "key": true, "description": "Country code", "descriptionPt": "Codigo do pais"},
+            "TipoFor": {"type": "nvarchar", "description": "Supplier type", "descriptionPt": "Tipo de fornecedor"},
+            "CondPag": {"type": "nvarchar", "key": true, "description": "Default payment condition", "descriptionPt": "Condicao de pagamento"},
+            "ModoPag": {"type": "nvarchar", "description": "Default payment method", "descriptionPt": "Modo de pagamento"},
+            "Moeda": {"type": "nvarchar", "description": "Default currency", "descriptionPt": "Moeda por defeito"},
+            "Desconto": {"type": "real", "description": "Default discount", "descriptionPt": "Desconto por defeito"},
+            "LimiteCred": {"type": "float", "description": "Credit limit", "descriptionPt": "Limite de credito"},
+            "TotalDeb": {"type": "float", "description": "Total debit balance", "descriptionPt": "Total em debito"},
+            "DataCriacao": {"type": "datetime", "description": "Creation date", "descriptionPt": "Data de criacao"},
+            "FornecedorAnulado": {"type": "bit", "description": "Inactive/voided flag", "descriptionPt": "Indica se esta anulado"},
+            "EfectuaRetencao": {"type": "bit", "description": "Subject to withholding tax", "descriptionPt": "Sujeito a retencao"},
+            "TipoTerceiro": {"type": "nvarchar", "description": "Third-party type", "descriptionPt": "Tipo de terceiro"},
+            "TipoRendimento": {"type": "nvarchar", "description": "Income type for tax", "descriptionPt": "Tipo de rendimento"}
+          },
+          "commonJoins": [
+            "CabecCompras ON CabecCompras.Entidade = Fornecedores.Fornecedor",
+            "Pendentes ON Pendentes.Entidade = Fornecedores.Fornecedor AND Pendentes.TipoEntidade = 'F'"
+          ]
+        },
+        "DocumentosCompra": {
+          "description": "Purchase document type configuration",
+          "descriptionPt": "Configuracao de tipos de documento de compra",
+          "keyColumns": ["Documento", "Descricao", "TipoDocumento"],
+          "columns": {
+            "Documento": {"type": "nvarchar", "key": true, "description": "Document type code (PK)", "descriptionPt": "Codigo do tipo de documento (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Description", "descriptionPt": "Descricao"},
+            "TipoDocumento": {"type": "tinyint", "key": true, "description": "Document type category", "descriptionPt": "Categoria do tipo de documento"},
+            "Estado": {"type": "nvarchar", "description": "Default state", "descriptionPt": "Estado por defeito"},
+            "LigaStocks": {"type": "bit", "description": "Affects stock", "descriptionPt": "Afeta stocks"},
+            "LigaCC": {"type": "bit", "description": "Affects current accounts", "descriptionPt": "Afeta contas correntes"},
+            "LigaContab": {"type": "bit", "description": "Affects accounting", "descriptionPt": "Afeta contabilidade"},
+            "PagarReceber": {"type": "nvarchar", "description": "Pay/Receive (P/R)", "descriptionPt": "Tipo pagar/receber"},
+            "TipoDocCC": {"type": "nvarchar", "description": "Current account doc type", "descriptionPt": "Tipo de documento em contas correntes"},
+            "LigacaoTesouraria": {"type": "bit", "description": "Links to treasury", "descriptionPt": "Liga a tesouraria"},
+            "SAFTTipoDocumento": {"type": "varchar", "description": "SAF-T document type code", "descriptionPt": "Codigo SAF-T"},
+            "Diario": {"type": "nvarchar", "description": "Default accounting journal", "descriptionPt": "Diario contabilistico por defeito"},
+            "DocEncomenda": {"type": "bit", "description": "Is purchase order type", "descriptionPt": "E tipo encomenda"}
+          },
+          "commonJoins": [
+            "CabecCompras ON CabecCompras.TipoDoc = DocumentosCompra.Documento"
+          ]
+        }
+      }
+    },
+    "financeiro": {
+      "name": "Accounting",
+      "namePt": "Financeiro/Contabilidade",
+      "tables": {
+        "Movimentos": {
+          "description": "General ledger journal entry lines",
+          "descriptionPt": "Linhas de movimentos contabilisticos",
+          "keyColumns": ["Id", "Conta", "Valor", "Natureza", "Diario", "NumDiario", "Documento", "NumDoc"],
+          "columns": {
+            "Id": {"type": "uniqueidentifier", "key": true, "description": "Primary key", "descriptionPt": "Chave primaria"},
+            "IdCabec": {"type": "uniqueidentifier", "key": true, "description": "FK to CabecMovCBL header", "descriptionPt": "FK para cabecalho do movimento"},
+            "Conta": {"type": "nvarchar", "key": true, "description": "Account code", "descriptionPt": "Codigo da conta"},
+            "Valor": {"type": "money", "key": true, "description": "Movement value (base currency)", "descriptionPt": "Valor do movimento (moeda base)"},
+            "ValorAlt": {"type": "money", "description": "Value in alternative currency", "descriptionPt": "Valor em moeda alternativa"},
+            "Natureza": {"type": "nvarchar", "key": true, "description": "Nature: D=Debit, C=Credit", "descriptionPt": "Natureza: D=Debito, C=Credito"},
+            "Diario": {"type": "nvarchar", "key": true, "description": "Journal code", "descriptionPt": "Codigo do diario"},
+            "NumDiario": {"type": "int", "key": true, "description": "Journal entry number", "descriptionPt": "Numero do diario"},
+            "Documento": {"type": "nvarchar", "key": true, "description": "Document type", "descriptionPt": "Tipo de documento"},
+            "NumDoc": {"type": "int", "key": true, "description": "Document number", "descriptionPt": "Numero do documento"},
+            "Descricao": {"type": "nvarchar", "description": "Movement description", "descriptionPt": "Descricao do movimento"},
+            "Mes": {"type": "smallint", "description": "Month (1-15, 13-15 for closing)", "descriptionPt": "Mes (1-15, 13-15 para fechos)"},
+            "Dia": {"type": "smallint", "description": "Day", "descriptionPt": "Dia"},
+            "Ano": {"type": "smallint", "description": "Fiscal year", "descriptionPt": "Ano fiscal"},
+            "Serie": {"type": "nvarchar", "description": "Series", "descriptionPt": "Serie"},
+            "Entidade": {"type": "nvarchar", "description": "Entity code", "descriptionPt": "Codigo da entidade"},
+            "TipoEntidade": {"type": "nvarchar", "description": "Entity type", "descriptionPt": "Tipo de entidade"},
+            "TipoConta": {"type": "nvarchar", "description": "Account type", "descriptionPt": "Tipo de conta"},
+            "Moeda": {"type": "nvarchar", "description": "Currency", "descriptionPt": "Moeda"},
+            "Cambio": {"type": "float", "description": "Exchange rate", "descriptionPt": "Taxa de cambio"},
+            "Fluxo": {"type": "nvarchar", "description": "Cash flow code", "descriptionPt": "Codigo de fluxo de caixa"},
+            "Modulo": {"type": "nvarchar", "description": "Source module", "descriptionPt": "Modulo de origem"},
+            "Estado": {"type": "smallint", "description": "Movement state", "descriptionPt": "Estado do movimento"},
+            "Linha": {"type": "int", "description": "Line number within entry", "descriptionPt": "Numero da linha no lancamento"},
+            "ContaOrigem": {"type": "nvarchar", "description": "Source account", "descriptionPt": "Conta de origem"},
+            "Lote": {"type": "smallint", "description": "Batch number", "descriptionPt": "Numero do lote"},
+            "Utilizador": {"type": "nvarchar", "description": "User", "descriptionPt": "Utilizador"},
+            "DataGravacao": {"type": "datetime", "description": "Record date", "descriptionPt": "Data de gravacao"}
+          },
+          "commonJoins": [
+            "CabecMovCBL ON CabecMovCBL.Id = Movimentos.IdCabec",
+            "PlanoContas ON PlanoContas.Conta = Movimentos.Conta"
+          ]
+        },
+        "CabecMovCBL": {
+          "description": "Accounting movement headers",
+          "descriptionPt": "Cabecalhos de movimentos contabilisticos",
+          "keyColumns": ["Id", "Diario", "NumDiario", "Documento", "NumDoc", "Ano", "Mes"],
+          "columns": {
+            "Id": {"type": "uniqueidentifier", "key": true, "description": "Primary key", "descriptionPt": "Chave primaria"},
+            "Diario": {"type": "nvarchar", "key": true, "description": "Journal code", "descriptionPt": "Codigo do diario"},
+            "NumDiario": {"type": "int", "key": true, "description": "Journal entry number", "descriptionPt": "Numero do diario"},
+            "Documento": {"type": "nvarchar", "key": true, "description": "Document type", "descriptionPt": "Tipo de documento"},
+            "NumDoc": {"type": "int", "key": true, "description": "Document number", "descriptionPt": "Numero do documento"},
+            "Ano": {"type": "smallint", "key": true, "description": "Fiscal year", "descriptionPt": "Ano fiscal"},
+            "Mes": {"type": "smallint", "key": true, "description": "Fiscal month", "descriptionPt": "Mes fiscal"},
+            "Dia": {"type": "smallint", "description": "Day", "descriptionPt": "Dia"},
+            "Descricao": {"type": "nvarchar", "description": "Header description", "descriptionPt": "Descricao do cabecalho"},
+            "Serie": {"type": "nvarchar", "description": "Series", "descriptionPt": "Serie"},
+            "Modulo": {"type": "nvarchar", "description": "Source module", "descriptionPt": "Modulo de origem"},
+            "Moeda": {"type": "nvarchar", "description": "Currency", "descriptionPt": "Moeda"},
+            "Cambio": {"type": "money", "description": "Exchange rate", "descriptionPt": "Taxa de cambio"},
+            "Terceiro": {"type": "nvarchar", "description": "Third party code", "descriptionPt": "Codigo de terceiro"},
+            "TipoTerc": {"type": "nvarchar", "description": "Third party type", "descriptionPt": "Tipo de terceiro"},
+            "Utilizador": {"type": "nvarchar", "description": "User", "descriptionPt": "Utilizador"},
+            "DataDoc": {"type": "datetime", "description": "Document date", "descriptionPt": "Data do documento"},
+            "DataCriacao": {"type": "datetime", "description": "Creation date", "descriptionPt": "Data de criacao"},
+            "NumDocExterno": {"type": "nvarchar", "description": "External document number", "descriptionPt": "Numero do documento externo"},
+            "Anulado": {"type": "bit", "description": "Voided flag", "descriptionPt": "Indica se esta anulado"},
+            "IdDocOrig": {"type": "uniqueidentifier", "description": "FK to source document", "descriptionPt": "FK para documento de origem"},
+            "Observacoes": {"type": "nvarchar", "description": "Observations", "descriptionPt": "Observacoes"}
+          },
+          "commonJoins": [
+            "Movimentos ON Movimentos.IdCabec = CabecMovCBL.Id",
+            "Diarios ON Diarios.Diario = CabecMovCBL.Diario"
+          ]
+        },
+        "PlanoContas": {
+          "description": "Chart of accounts",
+          "descriptionPt": "Plano de contas",
+          "keyColumns": ["Conta", "Descricao", "TipoConta", "Natureza"],
+          "columns": {
+            "Conta": {"type": "nvarchar", "key": true, "description": "Account code (PK)", "descriptionPt": "Codigo da conta (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Account description", "descriptionPt": "Descricao da conta"},
+            "TipoConta": {"type": "nvarchar", "key": true, "description": "Account type (M=Movement, A=Accumulation)", "descriptionPt": "Tipo de conta (M=Movimento, A=Acumulacao)"},
+            "Natureza": {"type": "nvarchar", "key": true, "description": "Nature: D=Debit, C=Credit", "descriptionPt": "Natureza: D=Debito, C=Credito"},
+            "Categoria": {"type": "nvarchar", "description": "Account category", "descriptionPt": "Categoria da conta"},
+            "NaturezaConta": {"type": "varchar", "description": "Account nature detail", "descriptionPt": "Natureza detalhada da conta"},
+            "ContaCorrente": {"type": "bit", "description": "Is current account", "descriptionPt": "E conta corrente"},
+            "Retencao": {"type": "bit", "description": "Subject to withholding", "descriptionPt": "Sujeito a retencao"},
+            "TaxaRetencao": {"type": "float", "description": "Withholding tax rate", "descriptionPt": "Taxa de retencao"},
+            "ClasseIva": {"type": "nvarchar", "description": "VAT class", "descriptionPt": "Classe de IVA"},
+            "Grupo": {"type": "nvarchar", "description": "Account group", "descriptionPt": "Grupo da conta"},
+            "Inactivo": {"type": "bit", "description": "Inactive flag", "descriptionPt": "Indica se esta inactiva"},
+            "TipoEntidade": {"type": "nvarchar", "description": "Entity type", "descriptionPt": "Tipo de entidade"},
+            "Entidade": {"type": "nvarchar", "description": "Associated entity", "descriptionPt": "Entidade associada"},
+            "Ano": {"type": "smallint", "description": "Fiscal year", "descriptionPt": "Ano fiscal"},
+            "Diario": {"type": "nvarchar", "description": "Default journal", "descriptionPt": "Diario por defeito"},
+            "ItemTesouraria": {"type": "nvarchar", "description": "Treasury item code", "descriptionPt": "Codigo do item de tesouraria"},
+            "MoedaValores": {"type": "nvarchar", "description": "Values currency", "descriptionPt": "Moeda dos valores"},
+            "DataCriacao": {"type": "datetime", "description": "Creation date", "descriptionPt": "Data de criacao"}
+          },
+          "commonJoins": [
+            "Movimentos ON Movimentos.Conta = PlanoContas.Conta",
+            "AcumuladosContas ON AcumuladosContas.Conta = PlanoContas.Conta"
+          ]
+        },
+        "AcumuladosContas": {
+          "description": "Account accumulated monthly balances (debit/credit per month)",
+          "descriptionPt": "Acumulados mensais de contas (debito/credito por mes)",
+          "keyColumns": ["Ano", "Conta", "Moeda"],
+          "columns": {
+            "Ano": {"type": "smallint", "key": true, "description": "Fiscal year", "descriptionPt": "Ano fiscal"},
+            "Conta": {"type": "nvarchar", "key": true, "description": "Account code", "descriptionPt": "Codigo da conta"},
+            "Moeda": {"type": "nvarchar", "key": true, "description": "Currency", "descriptionPt": "Moeda"},
+            "Mes00CR": {"type": "money", "description": "Opening balance credit", "descriptionPt": "Saldo de abertura credito"},
+            "Mes01CR": {"type": "money", "description": "January credit", "descriptionPt": "Credito Janeiro"},
+            "Mes02CR": {"type": "money", "description": "February credit", "descriptionPt": "Credito Fevereiro"},
+            "Mes03CR": {"type": "money", "description": "March credit", "descriptionPt": "Credito Marco"},
+            "Mes04CR": {"type": "money", "description": "April credit", "descriptionPt": "Credito Abril"},
+            "Mes05CR": {"type": "money", "description": "May credit", "descriptionPt": "Credito Maio"},
+            "Mes06CR": {"type": "money", "description": "June credit", "descriptionPt": "Credito Junho"},
+            "Mes07CR": {"type": "money", "description": "July credit", "descriptionPt": "Credito Julho"},
+            "Mes08CR": {"type": "money", "description": "August credit", "descriptionPt": "Credito Agosto"},
+            "Mes09CR": {"type": "money", "description": "September credit", "descriptionPt": "Credito Setembro"},
+            "Mes10CR": {"type": "money", "description": "October credit", "descriptionPt": "Credito Outubro"},
+            "Mes11CR": {"type": "money", "description": "November credit", "descriptionPt": "Credito Novembro"},
+            "Mes12CR": {"type": "money", "description": "December credit", "descriptionPt": "Credito Dezembro"},
+            "Mes13CR": {"type": "money", "description": "Period 13 credit (closing)", "descriptionPt": "Credito periodo 13 (fecho)"},
+            "Mes00DB": {"type": "money", "description": "Opening balance debit", "descriptionPt": "Saldo de abertura debito"},
+            "Mes01DB": {"type": "money", "description": "January debit", "descriptionPt": "Debito Janeiro"},
+            "Mes02DB": {"type": "money", "description": "February debit", "descriptionPt": "Debito Fevereiro"},
+            "Mes03DB": {"type": "money", "description": "March debit", "descriptionPt": "Debito Marco"},
+            "Mes04DB": {"type": "money", "description": "April debit", "descriptionPt": "Debito Abril"},
+            "Mes05DB": {"type": "money", "description": "May debit", "descriptionPt": "Debito Maio"},
+            "Mes06DB": {"type": "money", "description": "June debit", "descriptionPt": "Debito Junho"},
+            "Mes07DB": {"type": "money", "description": "July debit", "descriptionPt": "Debito Julho"},
+            "Mes08DB": {"type": "money", "description": "August debit", "descriptionPt": "Debito Agosto"},
+            "Mes09DB": {"type": "money", "description": "September debit", "descriptionPt": "Debito Setembro"},
+            "Mes10DB": {"type": "money", "description": "October debit", "descriptionPt": "Debito Outubro"},
+            "Mes11DB": {"type": "money", "description": "November debit", "descriptionPt": "Debito Novembro"},
+            "Mes12DB": {"type": "money", "description": "December debit", "descriptionPt": "Debito Dezembro"},
+            "Mes13DB": {"type": "money", "description": "Period 13 debit (closing)", "descriptionPt": "Debito periodo 13 (fecho)"},
+            "TipoLancamento": {"type": "varchar", "description": "Posting type", "descriptionPt": "Tipo de lancamento"}
+          },
+          "commonJoins": [
+            "PlanoContas ON PlanoContas.Conta = AcumuladosContas.Conta"
+          ]
+        },
+        "Diarios": {
+          "description": "Accounting journals configuration",
+          "descriptionPt": "Configuracao de diarios contabilisticos",
+          "keyColumns": ["Diario", "Descricao"],
+          "columns": {
+            "Diario": {"type": "nvarchar", "key": true, "description": "Journal code (PK)", "descriptionPt": "Codigo do diario (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Journal description", "descriptionPt": "Descricao do diario"},
+            "DataCriacao": {"type": "datetime", "description": "Creation date", "descriptionPt": "Data de criacao"},
+            "TipoTransacao": {"type": "varchar", "description": "Transaction type", "descriptionPt": "Tipo de transacao"}
+          },
+          "commonJoins": [
+            "CabecMovCBL ON CabecMovCBL.Diario = Diarios.Diario",
+            "Movimentos ON Movimentos.Diario = Diarios.Diario"
+          ]
+        }
+      }
+    },
+    "rh": {
+      "name": "Human Resources",
+      "namePt": "Recursos Humanos",
+      "tables": {
+        "Funcionarios": {
+          "description": "Employee master data",
+          "descriptionPt": "Dados mestre de funcionarios",
+          "keyColumns": ["Codigo", "Nome", "Categoria", "CodDepartamento", "Vencimento", "DataAdmissao"],
+          "columns": {
+            "Codigo": {"type": "nvarchar", "key": true, "description": "Employee code (PK)", "descriptionPt": "Codigo do funcionario (PK)"},
+            "Nome": {"type": "varchar", "key": true, "description": "Employee full name", "descriptionPt": "Nome completo do funcionario"},
+            "NomeAbreviado": {"type": "nvarchar", "description": "Short name", "descriptionPt": "Nome abreviado"},
+            "NumContr": {"type": "nvarchar", "description": "Tax number (NIF)", "descriptionPt": "Numero de contribuinte (NIF)"},
+            "NumBI": {"type": "nvarchar", "description": "ID card number", "descriptionPt": "Numero do BI/CC"},
+            "Morada": {"type": "varchar", "description": "Address", "descriptionPt": "Morada"},
+            "Localidade": {"type": "varchar", "description": "City", "descriptionPt": "Localidade"},
+            "CodPostal1": {"type": "nvarchar", "description": "Postal code", "descriptionPt": "Codigo postal"},
+            "Nacionalidade": {"type": "nvarchar", "description": "Nationality", "descriptionPt": "Nacionalidade"},
+            "Sexo": {"type": "nvarchar", "description": "Gender (M/F)", "descriptionPt": "Sexo (M/F)"},
+            "EstadoCivil": {"type": "nvarchar", "description": "Marital status", "descriptionPt": "Estado civil"},
+            "DataNascimento": {"type": "datetime", "description": "Birth date", "descriptionPt": "Data de nascimento"},
+            "DataAdmissao": {"type": "datetime", "key": true, "description": "Hire date", "descriptionPt": "Data de admissao"},
+            "DataDemissao": {"type": "datetime", "description": "Termination date", "descriptionPt": "Data de demissao"},
+            "DataFimContrato": {"type": "datetime", "description": "Contract end date", "descriptionPt": "Data de fim de contrato"},
+            "Categoria": {"type": "nvarchar", "key": true, "description": "Job category code", "descriptionPt": "Codigo da categoria profissional"},
+            "Profissao": {"type": "nvarchar", "description": "Profession code", "descriptionPt": "Codigo da profissao"},
+            "CodDepartamento": {"type": "nvarchar", "key": true, "description": "Department code", "descriptionPt": "Codigo do departamento"},
+            "CodEstabelecimento": {"type": "nvarchar", "description": "Establishment code", "descriptionPt": "Codigo do estabelecimento"},
+            "Situacao": {"type": "nvarchar", "description": "Employee status (Active/Inactive)", "descriptionPt": "Situacao do funcionario"},
+            "TipoContrato": {"type": "int", "description": "Contract type", "descriptionPt": "Tipo de contrato"},
+            "Vencimento": {"type": "float", "key": true, "description": "Base salary", "descriptionPt": "Vencimento base"},
+            "VencimentoMensal": {"type": "float", "description": "Monthly salary", "descriptionPt": "Vencimento mensal"},
+            "HorasSemana": {"type": "real", "description": "Weekly work hours", "descriptionPt": "Horas semanais"},
+            "Habilitacao": {"type": "nvarchar", "description": "Education level", "descriptionPt": "Habilitacao academica"},
+            "CodSegSocial": {"type": "nvarchar", "description": "Social security scheme code", "descriptionPt": "Codigo do regime de seguranca social"},
+            "NumBeneficiario": {"type": "nvarchar", "description": "Social security beneficiary number", "descriptionPt": "Numero de beneficiario SS"},
+            "CodIRS": {"type": "varchar", "description": "IRS tax bracket code", "descriptionPt": "Codigo do escalao de IRS"},
+            "TotalDependentes": {"type": "smallint", "description": "Number of dependents", "descriptionPt": "Total de dependentes"},
+            "TipoProcessamento": {"type": "smallint", "description": "Processing type", "descriptionPt": "Tipo de processamento"},
+            "Email": {"type": "nvarchar", "description": "Email address", "descriptionPt": "Endereco de email"},
+            "Telefone": {"type": "nvarchar", "description": "Phone", "descriptionPt": "Telefone"},
+            "CodBancoEmpr": {"type": "nvarchar", "description": "Bank account code", "descriptionPt": "Codigo da conta bancaria"},
+            "Moeda": {"type": "nvarchar", "description": "Currency", "descriptionPt": "Moeda"}
+          },
+          "commonJoins": [
+            "MovimentosFuncionarios ON MovimentosFuncionarios.Funcionario = Funcionarios.Codigo",
+            "Departamentos ON Departamentos.Departamento = Funcionarios.CodDepartamento",
+            "Categorias ON Categorias.Categoria = Funcionarios.Categoria"
+          ]
+        },
+        "MovimentosFuncionarios": {
+          "description": "Employee payroll movements (earnings, deductions, contributions)",
+          "descriptionPt": "Movimentos de processamento salarial",
+          "keyColumns": ["Funcionario", "CodMov", "NumProc", "Ano", "DataMov", "Valor"],
+          "columns": {
+            "Funcionario": {"type": "nvarchar", "key": true, "description": "Employee code", "descriptionPt": "Codigo do funcionario"},
+            "CodMov": {"type": "nvarchar", "key": true, "description": "Movement/earning/deduction code", "descriptionPt": "Codigo do movimento"},
+            "NumProc": {"type": "int", "key": true, "description": "Processing run number", "descriptionPt": "Numero do processamento"},
+            "Ano": {"type": "smallint", "key": true, "description": "Year", "descriptionPt": "Ano"},
+            "DataMov": {"type": "datetime", "key": true, "description": "Movement date", "descriptionPt": "Data do movimento"},
+            "Valor": {"type": "float", "key": true, "description": "Movement value", "descriptionPt": "Valor do movimento"},
+            "ValorIliquido": {"type": "float", "description": "Gross value", "descriptionPt": "Valor iliquido"},
+            "VencimentoBase": {"type": "float", "description": "Base salary at time", "descriptionPt": "Vencimento base na altura"},
+            "VencimentoLiquido": {"type": "float", "description": "Net salary", "descriptionPt": "Vencimento liquido"},
+            "TotalDeRemuneracoes": {"type": "float", "description": "Total earnings", "descriptionPt": "Total de remuneracoes"},
+            "TotalDeDescontos": {"type": "float", "description": "Total deductions", "descriptionPt": "Total de descontos"},
+            "TotalLiquido": {"type": "float", "description": "Net total", "descriptionPt": "Total liquido"},
+            "TipoVenc": {"type": "smallint", "description": "Salary type (1=Monthly,2=Holiday,3=Christmas)", "descriptionPt": "Tipo de vencimento"},
+            "TipoTabela": {"type": "smallint", "description": "Table type (remuneration/deduction)", "descriptionPt": "Tipo de tabela"},
+            "Departamento": {"type": "nvarchar", "description": "Department at time", "descriptionPt": "Departamento na altura"},
+            "Categoria": {"type": "nvarchar", "description": "Category at time", "descriptionPt": "Categoria na altura"},
+            "Estabelecimento": {"type": "nvarchar", "description": "Establishment", "descriptionPt": "Estabelecimento"},
+            "CentroCusto": {"type": "nvarchar", "description": "Cost center", "descriptionPt": "Centro de custo"},
+            "Periodo": {"type": "nvarchar", "description": "Pay period", "descriptionPt": "Periodo"},
+            "NumPeriodoProcessado": {"type": "smallint", "description": "Processed period number", "descriptionPt": "Numero do periodo processado"},
+            "DiasUteis": {"type": "real", "description": "Working days", "descriptionPt": "Dias uteis"},
+            "SalarioHora": {"type": "float", "description": "Hourly rate", "descriptionPt": "Salario hora"},
+            "ValorSegSocialEntPatronal": {"type": "float", "description": "Employer social security contribution", "descriptionPt": "Contribuicao patronal seg. social"},
+            "ValorSegSocialFuncionario": {"type": "float", "description": "Employee social security contribution", "descriptionPt": "Contribuicao funcionario seg. social"},
+            "PercentagemIRS": {"type": "real", "description": "IRS tax rate applied", "descriptionPt": "Taxa de IRS aplicada"},
+            "TotalEncargosEntPat": {"type": "float", "description": "Total employer charges", "descriptionPt": "Total de encargos patronais"},
+            "Moeda": {"type": "nvarchar", "description": "Currency", "descriptionPt": "Moeda"},
+            "Pagamento": {"type": "smallint", "description": "Payment type", "descriptionPt": "Tipo de pagamento"}
+          },
+          "commonJoins": [
+            "Funcionarios ON Funcionarios.Codigo = MovimentosFuncionarios.Funcionario",
+            "Remuneracoes ON Remuneracoes.Remuneracao = MovimentosFuncionarios.CodMov AND MovimentosFuncionarios.TipoTabela = 1",
+            "Descontos ON Descontos.Desconto = MovimentosFuncionarios.CodMov AND MovimentosFuncionarios.TipoTabela = 2"
+          ]
+        },
+        "Departamentos": {
+          "description": "Department configuration",
+          "descriptionPt": "Configuracao de departamentos",
+          "keyColumns": ["Departamento", "Descricao"],
+          "columns": {
+            "Departamento": {"type": "nvarchar", "key": true, "description": "Department code (PK)", "descriptionPt": "Codigo do departamento (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Department name", "descriptionPt": "Nome do departamento"},
+            "CblSalLiq": {"type": "nvarchar", "description": "Accounting account for net salary", "descriptionPt": "Conta contabilistica para salario liquido"}
+          },
+          "commonJoins": [
+            "Funcionarios ON Funcionarios.CodDepartamento = Departamentos.Departamento"
+          ]
+        },
+        "Categorias": {
+          "description": "Job category/position configuration",
+          "descriptionPt": "Configuracao de categorias profissionais",
+          "keyColumns": ["Categoria", "Descricao", "Valor"],
+          "columns": {
+            "Categoria": {"type": "nvarchar", "key": true, "description": "Category code (PK)", "descriptionPt": "Codigo da categoria (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Category description", "descriptionPt": "Descricao da categoria"},
+            "Valor": {"type": "decimal", "key": true, "description": "Base remuneration value", "descriptionPt": "Valor base de remuneracao"},
+            "ValSeguro": {"type": "real", "description": "Insurance value", "descriptionPt": "Valor do seguro"},
+            "CodigoQP": {"type": "nvarchar", "description": "Staff framework code", "descriptionPt": "Codigo do quadro de pessoal"},
+            "Carreira": {"type": "nvarchar", "description": "Career path", "descriptionPt": "Carreira"},
+            "Inactiva": {"type": "bit", "description": "Inactive flag", "descriptionPt": "Indica se esta inactiva"},
+            "Grupo": {"type": "nvarchar", "description": "Group", "descriptionPt": "Grupo"}
+          },
+          "commonJoins": [
+            "Funcionarios ON Funcionarios.Categoria = Categorias.Categoria"
+          ]
+        },
+        "Remuneracoes": {
+          "description": "Remuneration/earning types configuration",
+          "descriptionPt": "Configuracao de tipos de remuneracao",
+          "keyColumns": ["Remuneracao", "Descricao", "Valor", "Tipo"],
+          "columns": {
+            "Remuneracao": {"type": "nvarchar", "key": true, "description": "Remuneration code (PK)", "descriptionPt": "Codigo da remuneracao (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Description", "descriptionPt": "Descricao"},
+            "Valor": {"type": "float", "key": true, "description": "Default value", "descriptionPt": "Valor por defeito"},
+            "Tipo": {"type": "smallint", "key": true, "description": "Remuneration type", "descriptionPt": "Tipo de remuneracao"},
+            "Percentagem": {"type": "bit", "description": "Is percentage-based", "descriptionPt": "Baseado em percentagem"},
+            "ValorFixo": {"type": "bit", "description": "Is fixed value", "descriptionPt": "Valor fixo"},
+            "PagoVencimento": {"type": "bit", "description": "Paid with salary", "descriptionPt": "Pago com vencimento"},
+            "PagoMesFerias": {"type": "bit", "description": "Paid in holiday month", "descriptionPt": "Pago no mes de ferias"},
+            "PagoSubsFerias": {"type": "bit", "description": "Paid with holiday allowance", "descriptionPt": "Pago com subsidio de ferias"},
+            "PagoSubsNatal": {"type": "bit", "description": "Paid with Christmas allowance", "descriptionPt": "Pago com subsidio de Natal"},
+            "ColSegSocial": {"type": "smallint", "description": "Social security column", "descriptionPt": "Coluna de seguranca social"},
+            "Abrevdescricao": {"type": "nvarchar", "description": "Abbreviated description", "descriptionPt": "Descricao abreviada"},
+            "Moeda": {"type": "nvarchar", "description": "Currency", "descriptionPt": "Moeda"},
+            "TipoRendimento": {"type": "nvarchar", "description": "Income type for tax", "descriptionPt": "Tipo de rendimento"},
+            "TipoSubsidioAlimentacao": {"type": "smallint", "description": "Meal allowance type", "descriptionPt": "Tipo de subsidio de alimentacao"}
+          },
+          "commonJoins": [
+            "MovimentosFuncionarios ON MovimentosFuncionarios.CodMov = Remuneracoes.Remuneracao AND MovimentosFuncionarios.TipoTabela = 1"
+          ]
+        },
+        "Descontos": {
+          "description": "Deduction types configuration",
+          "descriptionPt": "Configuracao de tipos de desconto",
+          "keyColumns": ["Desconto", "Descricao", "Valor"],
+          "columns": {
+            "Desconto": {"type": "nvarchar", "key": true, "description": "Deduction code (PK)", "descriptionPt": "Codigo do desconto (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Description", "descriptionPt": "Descricao"},
+            "Valor": {"type": "float", "key": true, "description": "Default value", "descriptionPt": "Valor por defeito"},
+            "Percentual": {"type": "bit", "description": "Is percentage-based", "descriptionPt": "Baseado em percentagem"},
+            "Arredondamento": {"type": "smallint", "description": "Rounding method", "descriptionPt": "Metodo de arredondamento"},
+            "PagoVencimento": {"type": "bit", "description": "Applied to salary", "descriptionPt": "Aplicado ao vencimento"},
+            "PagoMesFerias": {"type": "bit", "description": "Applied in holiday month", "descriptionPt": "Aplicado no mes de ferias"},
+            "PagoSubsNatal": {"type": "bit", "description": "Applied to Christmas allowance", "descriptionPt": "Aplicado ao subsidio de Natal"},
+            "PagoSubsFerias": {"type": "bit", "description": "Applied to holiday allowance", "descriptionPt": "Aplicado ao subsidio de ferias"},
+            "PagoExtra": {"type": "bit", "description": "Applied to extra payments", "descriptionPt": "Aplicado a pagamentos extra"},
+            "TipoAfectacao": {"type": "smallint", "description": "Allocation type", "descriptionPt": "Tipo de afetacao"},
+            "Moeda": {"type": "nvarchar", "description": "Currency", "descriptionPt": "Moeda"},
+            "ValorAbatimento": {"type": "float", "description": "Abatement value", "descriptionPt": "Valor de abatimento"},
+            "TipoEntidadeCCT": {"type": "varchar", "description": "Entity type for current account", "descriptionPt": "Tipo de entidade para conta corrente"},
+            "EntidadeCCT": {"type": "nvarchar", "description": "Entity for current account", "descriptionPt": "Entidade para conta corrente"}
+          },
+          "commonJoins": [
+            "MovimentosFuncionarios ON MovimentosFuncionarios.CodMov = Descontos.Desconto AND MovimentosFuncionarios.TipoTabela = 2"
+          ]
+        }
+      }
+    },
+    "stocks": {
+      "name": "Inventory/Products",
+      "namePt": "Stocks/Artigos",
+      "tables": {
+        "Artigo": {
+          "description": "Product/article master data",
+          "descriptionPt": "Dados mestre de artigos/produtos",
+          "keyColumns": ["Artigo", "Descricao", "Familia", "UnidadeVenda", "STKActual", "PCMedio"],
+          "columns": {
+            "Artigo": {"type": "nvarchar", "key": true, "description": "Article code (PK)", "descriptionPt": "Codigo do artigo (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Article description", "descriptionPt": "Descricao do artigo"},
+            "CodBarras": {"type": "nvarchar", "description": "Barcode", "descriptionPt": "Codigo de barras"},
+            "Familia": {"type": "nvarchar", "key": true, "description": "Product family code", "descriptionPt": "Codigo da familia"},
+            "SubFamilia": {"type": "nvarchar", "description": "Sub-family code", "descriptionPt": "Codigo da subfamilia"},
+            "UnidadeVenda": {"type": "nvarchar", "key": true, "description": "Sales unit", "descriptionPt": "Unidade de venda"},
+            "UnidadeCompra": {"type": "nvarchar", "description": "Purchase unit", "descriptionPt": "Unidade de compra"},
+            "UnidadeBase": {"type": "nvarchar", "description": "Base unit", "descriptionPt": "Unidade base"},
+            "Iva": {"type": "nvarchar", "description": "VAT code", "descriptionPt": "Codigo de IVA"},
+            "Desconto": {"type": "real", "description": "Default discount", "descriptionPt": "Desconto por defeito"},
+            "Fornecedor": {"type": "nvarchar", "description": "Main supplier code", "descriptionPt": "Codigo do fornecedor principal"},
+            "UltimoFornecedor": {"type": "nvarchar", "description": "Last supplier", "descriptionPt": "Ultimo fornecedor"},
+            "TipoArtigo": {"type": "nvarchar", "description": "Article type (P=Product,S=Service,etc.)", "descriptionPt": "Tipo de artigo"},
+            "STKActual": {"type": "float", "key": true, "description": "Current stock quantity", "descriptionPt": "Stock atual"},
+            "STKMinimo": {"type": "float", "description": "Minimum stock level", "descriptionPt": "Stock minimo"},
+            "STKMaximo": {"type": "float", "description": "Maximum stock level", "descriptionPt": "Stock maximo"},
+            "STKReposicao": {"type": "float", "description": "Reorder point", "descriptionPt": "Ponto de reposicao"},
+            "PCMedio": {"type": "float", "key": true, "description": "Average cost price", "descriptionPt": "Preco de custo medio"},
+            "PCUltimo": {"type": "float", "description": "Last cost price", "descriptionPt": "Ultimo preco de custo"},
+            "PCPadrao": {"type": "float", "description": "Standard cost price", "descriptionPt": "Preco de custo padrao"},
+            "MovStock": {"type": "nvarchar", "description": "Moves stock flag", "descriptionPt": "Movimenta stock"},
+            "DataUltEntrada": {"type": "datetime", "description": "Last stock entry date", "descriptionPt": "Data da ultima entrada"},
+            "DataUltSaida": {"type": "datetime", "description": "Last stock exit date", "descriptionPt": "Data da ultima saida"},
+            "ArmazemSugestao": {"type": "nvarchar", "description": "Default warehouse", "descriptionPt": "Armazem sugerido"},
+            "Peso": {"type": "float", "description": "Weight", "descriptionPt": "Peso"},
+            "Marca": {"type": "nvarchar", "description": "Brand", "descriptionPt": "Marca"},
+            "ArtigoAnulado": {"type": "bit", "description": "Inactive/voided flag", "descriptionPt": "Indica se esta anulado"},
+            "TratamentoLotes": {"type": "bit", "description": "Uses lot tracking", "descriptionPt": "Usa rastreamento de lotes"},
+            "TratamentoSeries": {"type": "bit", "description": "Uses serial number tracking", "descriptionPt": "Usa rastreamento de series"}
+          },
+          "commonJoins": [
+            "ArtigoMoeda ON ArtigoMoeda.Artigo = Artigo.Artigo",
+            "Familias ON Familias.Familia = Artigo.Familia",
+            "SubFamilias ON SubFamilias.SubFamilia = Artigo.SubFamilia AND SubFamilias.Familia = Artigo.Familia",
+            "LinhasDoc ON LinhasDoc.Artigo = Artigo.Artigo",
+            "LinhasCompras ON LinhasCompras.Artigo = Artigo.Artigo"
+          ]
+        },
+        "ArtigoMoeda": {
+          "description": "Article prices per currency",
+          "descriptionPt": "Precos do artigo por moeda",
+          "keyColumns": ["Artigo", "Moeda", "PVP1"],
+          "columns": {
+            "Artigo": {"type": "nvarchar", "key": true, "description": "Article code (PK)", "descriptionPt": "Codigo do artigo (PK)"},
+            "Moeda": {"type": "nvarchar", "key": true, "description": "Currency code (PK)", "descriptionPt": "Codigo da moeda (PK)"},
+            "Unidade": {"type": "nvarchar", "description": "Price unit", "descriptionPt": "Unidade de preco"},
+            "PVP1": {"type": "float", "key": true, "description": "Price list 1 (default)", "descriptionPt": "Preco de venda 1 (defeito)"},
+            "PVP2": {"type": "float", "description": "Price list 2", "descriptionPt": "Preco de venda 2"},
+            "PVP3": {"type": "float", "description": "Price list 3", "descriptionPt": "Preco de venda 3"},
+            "PVP4": {"type": "float", "description": "Price list 4", "descriptionPt": "Preco de venda 4"},
+            "PVP5": {"type": "float", "description": "Price list 5", "descriptionPt": "Preco de venda 5"},
+            "PVP6": {"type": "float", "description": "Price list 6", "descriptionPt": "Preco de venda 6"},
+            "PVP1IvaIncluido": {"type": "bit", "description": "PVP1 includes VAT", "descriptionPt": "PVP1 inclui IVA"},
+            "PVP2IvaIncluido": {"type": "bit", "description": "PVP2 includes VAT", "descriptionPt": "PVP2 inclui IVA"},
+            "PVP3IvaIncluido": {"type": "bit", "description": "PVP3 includes VAT", "descriptionPt": "PVP3 inclui IVA"},
+            "PVP4IvaIncluido": {"type": "bit", "description": "PVP4 includes VAT", "descriptionPt": "PVP4 inclui IVA"},
+            "PVP5IvaIncluido": {"type": "bit", "description": "PVP5 includes VAT", "descriptionPt": "PVP5 inclui IVA"},
+            "PVP6IvaIncluido": {"type": "bit", "description": "PVP6 includes VAT", "descriptionPt": "PVP6 inclui IVA"}
+          },
+          "commonJoins": [
+            "Artigo ON Artigo.Artigo = ArtigoMoeda.Artigo"
+          ]
+        },
+        "Familias": {
+          "description": "Product family classification",
+          "descriptionPt": "Classificacao de familias de artigos",
+          "keyColumns": ["Familia", "Descricao"],
+          "columns": {
+            "Familia": {"type": "nvarchar", "key": true, "description": "Family code (PK)", "descriptionPt": "Codigo da familia (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Family description", "descriptionPt": "Descricao da familia"},
+            "Etiqueta": {"type": "nvarchar", "description": "Label template", "descriptionPt": "Modelo de etiqueta"},
+            "NaturezaAnalitica": {"type": "int", "description": "Analytical nature", "descriptionPt": "Natureza analitica"},
+            "PermiteDevolucao": {"type": "bit", "description": "Allows returns", "descriptionPt": "Permite devolucao"}
+          },
+          "commonJoins": [
+            "Artigo ON Artigo.Familia = Familias.Familia",
+            "SubFamilias ON SubFamilias.Familia = Familias.Familia"
+          ]
+        },
+        "SubFamilias": {
+          "description": "Product sub-family classification",
+          "descriptionPt": "Classificacao de subfamilias de artigos",
+          "keyColumns": ["Familia", "SubFamilia", "Descricao"],
+          "columns": {
+            "Familia": {"type": "nvarchar", "key": true, "description": "Parent family code (PK)", "descriptionPt": "Codigo da familia pai (PK)"},
+            "SubFamilia": {"type": "nvarchar", "key": true, "description": "Sub-family code (PK)", "descriptionPt": "Codigo da subfamilia (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Description", "descriptionPt": "Descricao"},
+            "Ordem": {"type": "int", "description": "Sort order", "descriptionPt": "Ordem"},
+            "PermiteDevolucao": {"type": "bit", "description": "Allows returns", "descriptionPt": "Permite devolucao"}
+          },
+          "commonJoins": [
+            "Artigo ON Artigo.SubFamilia = SubFamilias.SubFamilia AND Artigo.Familia = SubFamilias.Familia"
+          ]
+        },
+        "Armazens": {
+          "description": "Warehouse master data",
+          "descriptionPt": "Dados mestre de armazens",
+          "keyColumns": ["Armazem", "Descricao"],
+          "columns": {
+            "Armazem": {"type": "nvarchar", "key": true, "description": "Warehouse code (PK)", "descriptionPt": "Codigo do armazem (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Warehouse name", "descriptionPt": "Nome do armazem"},
+            "Morada": {"type": "nvarchar", "description": "Address", "descriptionPt": "Morada"},
+            "Localidade": {"type": "nvarchar", "description": "City", "descriptionPt": "Localidade"},
+            "Cp": {"type": "nvarchar", "description": "Postal code", "descriptionPt": "Codigo postal"},
+            "Telefone": {"type": "nvarchar", "description": "Phone", "descriptionPt": "Telefone"},
+            "Pais": {"type": "nvarchar", "description": "Country", "descriptionPt": "Pais"},
+            "BloqueioEntradas": {"type": "bit", "description": "Block incoming stock", "descriptionPt": "Bloqueio de entradas"},
+            "BloqueioSaidas": {"type": "bit", "description": "Block outgoing stock", "descriptionPt": "Bloqueio de saidas"}
+          },
+          "commonJoins": [
+            "LinhasDoc ON LinhasDoc.Armazem = Armazens.Armazem",
+            "LinhasCompras ON LinhasCompras.Armazem = Armazens.Armazem"
+          ]
+        },
+        "Unidades": {
+          "description": "Units of measure",
+          "descriptionPt": "Unidades de medida",
+          "keyColumns": ["Unidade", "Descricao"],
+          "columns": {
+            "Unidade": {"type": "nvarchar", "key": true, "description": "Unit code (PK)", "descriptionPt": "Codigo da unidade (PK)"},
+            "Descricao": {"type": "nvarchar", "key": true, "description": "Unit description", "descriptionPt": "Descricao da unidade"},
+            "Arredondamento": {"type": "int", "description": "Decimal rounding", "descriptionPt": "Arredondamento decimal"},
+            "CodigoUNECERec20": {"type": "nvarchar", "description": "UN/ECE Rec 20 code", "descriptionPt": "Codigo UN/ECE Rec 20"}
+          },
+          "commonJoins": [
+            "Artigo ON Artigo.UnidadeVenda = Unidades.Unidade"
+          ]
+        }
+      }
+    },
+    "tesouraria": {
+      "name": "Treasury",
+      "namePt": "Tesouraria",
+      "tables": {
+        "CabecTesouraria": {
+          "description": "Treasury document headers (receipts, payments)",
+          "descriptionPt": "Cabecalhos de documentos de tesouraria (recibos, pagamentos)",
+          "keyColumns": ["Id", "TipoDoc", "Serie", "NumDoc", "Data", "Entidade", "TotalDebito", "TotalCredito"],
+          "columns": {
+            "Id": {"type": "uniqueidentifier", "key": true, "description": "Primary key", "descriptionPt": "Chave primaria"},
+            "TipoDoc": {"type": "nvarchar", "key": true, "description": "Document type", "descriptionPt": "Tipo de documento"},
+            "Serie": {"type": "nvarchar", "key": true, "description": "Document series", "descriptionPt": "Serie do documento"},
+            "NumDoc": {"type": "int", "key": true, "description": "Document number", "descriptionPt": "Numero do documento"},
+            "Data": {"type": "datetime", "key": true, "description": "Document date", "descriptionPt": "Data do documento"},
+            "Entidade": {"type": "nvarchar", "key": true, "description": "Entity code", "descriptionPt": "Codigo da entidade"},
+            "TipoEntidade": {"type": "nvarchar", "description": "Entity type", "descriptionPt": "Tipo de entidade"},
+            "ContaOrigem": {"type": "nvarchar", "description": "Source account (bank/cash)", "descriptionPt": "Conta de origem"},
+            "ContaDestino": {"type": "nvarchar", "description": "Destination account", "descriptionPt": "Conta de destino"},
+            "TotalDebito": {"type": "float", "key": true, "description": "Total debit", "descriptionPt": "Total a debito"},
+            "TotalCredito": {"type": "float", "key": true, "description": "Total credit", "descriptionPt": "Total a credito"},
+            "ValorNumerario": {"type": "float", "description": "Cash value", "descriptionPt": "Valor em numerario"},
+            "ValorMovimento": {"type": "float", "description": "Movement value", "descriptionPt": "Valor do movimento"},
+            "Filial": {"type": "nvarchar", "description": "Branch code", "descriptionPt": "Filial"},
+            "Moeda": {"type": "nvarchar", "description": "Currency", "descriptionPt": "Moeda"},
+            "Cambio": {"type": "float", "description": "Exchange rate", "descriptionPt": "Taxa de cambio"},
+            "Diario": {"type": "nvarchar", "description": "Accounting journal", "descriptionPt": "Diario contabilistico"},
+            "NumDiario": {"type": "int", "description": "Journal entry number", "descriptionPt": "Numero do diario"},
+            "Observacoes": {"type": "ntext", "description": "Observations", "descriptionPt": "Observacoes"},
+            "Utilizador": {"type": "nvarchar", "description": "User", "descriptionPt": "Utilizador"},
+            "DocImp": {"type": "bit", "description": "Printed flag", "descriptionPt": "Indica se foi impresso"},
+            "MovContab": {"type": "smallint", "description": "Accounting posting status", "descriptionPt": "Estado da contabilizacao"},
+            "Numero": {"type": "nvarchar", "description": "Treasury document number", "descriptionPt": "Numero do documento de tesouraria"},
+            "IdCabecMovCbl": {"type": "uniqueidentifier", "description": "FK to accounting header", "descriptionPt": "FK para cabecalho contabilistico"}
+          },
+          "commonJoins": [
+            "CabecDoc ON CabecDoc.IdCabecTesouraria = CabecTesouraria.Id",
+            "MovimentosBancos ON MovimentosBancos.IdMovimentosBancos IS NOT NULL"
+          ]
+        },
+        "MovimentosBancos": {
+          "description": "Bank account movements",
+          "descriptionPt": "Movimentos de contas bancarias",
+          "keyColumns": ["Id", "Conta", "Valor", "DtMov", "DtValor", "Rubrica"],
+          "columns": {
+            "Id": {"type": "uniqueidentifier", "key": true, "description": "Primary key", "descriptionPt": "Chave primaria"},
+            "Conta": {"type": "nvarchar", "key": true, "description": "Bank account code", "descriptionPt": "Codigo da conta bancaria"},
+            "Rubrica": {"type": "nvarchar", "key": true, "description": "Treasury item code", "descriptionPt": "Codigo da rubrica"},
+            "Valor": {"type": "float", "key": true, "description": "Movement value", "descriptionPt": "Valor do movimento"},
+            "DtMov": {"type": "datetime", "key": true, "description": "Movement date", "descriptionPt": "Data do movimento"},
+            "DtValor": {"type": "datetime", "key": true, "description": "Value date", "descriptionPt": "Data valor"},
+            "DtRecon": {"type": "datetime", "description": "Reconciliation date", "descriptionPt": "Data de reconciliacao"},
+            "Movim": {"type": "nvarchar", "description": "Movement type", "descriptionPt": "Tipo de movimento"},
+            "Entidade": {"type": "nvarchar", "description": "Entity code", "descriptionPt": "Codigo da entidade"},
+            "TipoEntidade": {"type": "nvarchar", "description": "Entity type", "descriptionPt": "Tipo de entidade"},
+            "Descricao": {"type": "nvarchar", "description": "Description", "descriptionPt": "Descricao"},
+            "Estado": {"type": "smallint", "description": "Movement state", "descriptionPt": "Estado do movimento"},
+            "TipoMov": {"type": "nvarchar", "description": "Movement type (D/C)", "descriptionPt": "Tipo de movimento (D/C)"},
+            "Numero": {"type": "nvarchar", "description": "Document/cheque number", "descriptionPt": "Numero do documento/cheque"},
+            "Obsv": {"type": "nvarchar", "description": "Observations", "descriptionPt": "Observacoes"},
+            "Modulo": {"type": "nvarchar", "description": "Source module", "descriptionPt": "Modulo de origem"},
+            "FilialOriginal": {"type": "nvarchar", "description": "Original branch", "descriptionPt": "Filial original"},
+            "TipoDocOriginal": {"type": "nvarchar", "description": "Original document type", "descriptionPt": "Tipo de documento original"},
+            "NumDocOriginal": {"type": "int", "description": "Original document number", "descriptionPt": "Numero do documento original"},
+            "ValorPendente": {"type": "float", "description": "Pending value", "descriptionPt": "Valor pendente"},
+            "ValorDebitado": {"type": "float", "description": "Debited value", "descriptionPt": "Valor debitado"},
+            "Utilizador": {"type": "nvarchar", "description": "User", "descriptionPt": "Utilizador"}
+          },
+          "commonJoins": [
+            "ContasBancarias ON ContasBancarias.Conta = MovimentosBancos.Conta"
+          ]
+        },
+        "ContasBancarias": {
+          "description": "Bank account master data",
+          "descriptionPt": "Dados mestre de contas bancarias",
+          "keyColumns": ["Conta", "DescBanco", "NIB", "IBAN", "Moeda"],
+          "columns": {
+            "Conta": {"type": "nvarchar", "key": true, "description": "Account code (PK)", "descriptionPt": "Codigo da conta (PK)"},
+            "NumConta": {"type": "nvarchar", "description": "Account number", "descriptionPt": "Numero da conta"},
+            "Banco": {"type": "nvarchar", "description": "Bank code", "descriptionPt": "Codigo do banco"},
+            "DescBanco": {"type": "nvarchar", "key": true, "description": "Bank name", "descriptionPt": "Nome do banco"},
+            "Agencia": {"type": "nvarchar", "description": "Branch code", "descriptionPt": "Codigo da agencia"},
+            "DescAgen": {"type": "nvarchar", "description": "Branch name", "descriptionPt": "Nome da agencia"},
+            "Gestor": {"type": "nvarchar", "description": "Account manager", "descriptionPt": "Gestor de conta"},
+            "NIB": {"type": "nvarchar", "key": true, "description": "NIB (Portuguese bank ID)", "descriptionPt": "NIB"},
+            "IBAN": {"type": "nvarchar", "key": true, "description": "IBAN", "descriptionPt": "IBAN"},
+            "SWIFT": {"type": "nvarchar", "description": "SWIFT/BIC code", "descriptionPt": "Codigo SWIFT/BIC"},
+            "Moeda": {"type": "nvarchar", "key": true, "description": "Account currency", "descriptionPt": "Moeda da conta"},
+            "TipoConta": {"type": "smallint", "description": "Account type (0=Bank,1=Cash,2=Cheques)", "descriptionPt": "Tipo de conta (0=Banco,1=Caixa,2=Cheques)"},
+            "Limite": {"type": "money", "description": "Credit limit/overdraft", "descriptionPt": "Limite de credito/descoberto"},
+            "Estado": {"type": "bit", "description": "Active flag", "descriptionPt": "Indicador ativo"},
+            "FundoManeio": {"type": "bit", "description": "Is petty cash", "descriptionPt": "E fundo de maneio"},
+            "ValorFundoManeio": {"type": "float", "description": "Petty cash value", "descriptionPt": "Valor do fundo de maneio"},
+            "ContaCBL": {"type": "nvarchar", "description": "Linked accounting account", "descriptionPt": "Conta contabilistica associada"},
+            "Pais": {"type": "nvarchar", "description": "Country", "descriptionPt": "Pais"},
+            "NIF": {"type": "nvarchar", "description": "Bank tax number", "descriptionPt": "NIF do banco"}
+          },
+          "commonJoins": [
+            "MovimentosBancos ON MovimentosBancos.Conta = ContasBancarias.Conta"
+          ]
+        }
+      }
+    },
+    "contas_correntes": {
+      "name": "Current Accounts",
+      "namePt": "Contas Correntes",
+      "tables": {
+        "Pendentes": {
+          "description": "Open/pending items in current accounts (receivables and payables)",
+          "descriptionPt": "Pendentes em contas correntes (a receber e a pagar)",
+          "keyColumns": ["Entidade", "TipoDoc", "NumDoc", "DataDoc", "ValorTotal", "ValorPendente"],
+          "columns": {
+            "Modulo": {"type": "nvarchar", "description": "Source module (V=Sales, C=Purchases)", "descriptionPt": "Modulo de origem (V=Vendas, C=Compras)"},
+            "TipoEntidade": {"type": "nvarchar", "key": true, "description": "Entity type (C=Customer, F=Supplier)", "descriptionPt": "Tipo de entidade (C=Cliente, F=Fornecedor)"},
+            "Entidade": {"type": "nvarchar", "key": true, "description": "Entity code", "descriptionPt": "Codigo da entidade"},
+            "TipoDoc": {"type": "nvarchar", "key": true, "description": "Document type", "descriptionPt": "Tipo de documento"},
+            "NumDoc": {"type": "nvarchar", "key": true, "description": "Document number (string)", "descriptionPt": "Numero do documento (string)"},
+            "NumDocInt": {"type": "int", "description": "Document number (integer)", "descriptionPt": "Numero do documento (inteiro)"},
+            "DataDoc": {"type": "datetime", "key": true, "description": "Document date", "descriptionPt": "Data do documento"},
+            "DataVenc": {"type": "datetime", "key": true, "description": "Due date", "descriptionPt": "Data de vencimento"},
+            "ValorTotal": {"type": "float", "key": true, "description": "Total document value", "descriptionPt": "Valor total do documento"},
+            "ValorPendente": {"type": "float", "key": true, "description": "Outstanding/pending value", "descriptionPt": "Valor pendente"},
+            "Moeda": {"type": "nvarchar", "description": "Currency", "descriptionPt": "Moeda"},
+            "Cambio": {"type": "float", "description": "Exchange rate", "descriptionPt": "Taxa de cambio"},
+            "ModoPag": {"type": "nvarchar", "description": "Payment method", "descriptionPt": "Modo de pagamento"},
+            "CondPag": {"type": "nvarchar", "description": "Payment condition", "descriptionPt": "Condicao de pagamento"},
+            "Vendedor": {"type": "nvarchar", "description": "Salesperson", "descriptionPt": "Vendedor"},
+            "Estado": {"type": "nvarchar", "description": "State", "descriptionPt": "Estado"},
+            "TipoConta": {"type": "nvarchar", "description": "Account type", "descriptionPt": "Tipo de conta"},
+            "Filial": {"type": "nvarchar", "description": "Branch", "descriptionPt": "Filial"},
+            "Serie": {"type": "nvarchar", "description": "Series", "descriptionPt": "Serie"},
+            "NumPrestacao": {"type": "smallint", "description": "Installment number", "descriptionPt": "Numero da prestacao"},
+            "TotalIva": {"type": "float", "description": "Total VAT", "descriptionPt": "Total de IVA"},
+            "ValorRetencao": {"type": "float", "description": "Withholding value", "descriptionPt": "Valor de retencao"},
+            "ValorRetencaoPendente": {"type": "float", "description": "Pending withholding", "descriptionPt": "Retencao pendente"},
+            "RespCobranca": {"type": "nvarchar", "description": "Collection responsible", "descriptionPt": "Responsavel de cobranca"},
+            "NumAvisos": {"type": "smallint", "description": "Number of reminders sent", "descriptionPt": "Numero de avisos enviados"},
+            "Conta": {"type": "nvarchar", "description": "Accounting account", "descriptionPt": "Conta contabilistica"},
+            "IdHistorico": {"type": "uniqueidentifier", "description": "Historical record FK", "descriptionPt": "FK para historico"},
+            "IdCabecMovCbl": {"type": "uniqueidentifier", "description": "FK to accounting header", "descriptionPt": "FK para cabecalho contabilistico"},
+            "Origem": {"type": "smallint", "description": "Origin (0=Manual, 1=Auto)", "descriptionPt": "Origem (0=Manual, 1=Auto)"},
+            "DataIntroducao": {"type": "datetime", "description": "Entry date", "descriptionPt": "Data de introducao"}
+          },
+          "commonJoins": [
+            "Clientes ON Clientes.Cliente = Pendentes.Entidade AND Pendentes.TipoEntidade = 'C'",
+            "Fornecedores ON Fornecedores.Fornecedor = Pendentes.Entidade AND Pendentes.TipoEntidade = 'F'"
+          ]
+        },
+        "BasContasCorrentes": {
+          "description": "Current accounts settlement/movement records",
+          "descriptionPt": "Registos de liquidacao/movimento de contas correntes",
+          "keyColumns": ["Id", "Entidade", "TipoDoc", "NumDoc", "Valor", "DataDoc"],
+          "columns": {
+            "Id": {"type": "uniqueidentifier", "key": true, "description": "Primary key", "descriptionPt": "Chave primaria"},
+            "Rascunho": {"type": "bit", "description": "Draft flag", "descriptionPt": "Indicador de rascunho"},
+            "ModuloOrigem": {"type": "nvarchar", "description": "Source module", "descriptionPt": "Modulo de origem"},
+            "IdDocOrigem": {"type": "uniqueidentifier", "description": "FK to source document", "descriptionPt": "FK para documento de origem"},
+            "DescricaoDocOrigem": {"type": "nvarchar", "description": "Source document description", "descriptionPt": "Descricao do documento de origem"},
+            "IdCabecMovCBL": {"type": "uniqueidentifier", "description": "FK to accounting header", "descriptionPt": "FK para cabecalho contabilistico"},
+            "Ano": {"type": "smallint", "key": true, "description": "Year", "descriptionPt": "Ano"},
+            "Mes": {"type": "smallint", "description": "Month", "descriptionPt": "Mes"},
+            "Dia": {"type": "smallint", "description": "Day", "descriptionPt": "Dia"},
+            "Valor": {"type": "money", "key": true, "description": "Settlement value (base currency)", "descriptionPt": "Valor de liquidacao (moeda base)"},
+            "ValorDoc": {"type": "money", "description": "Document currency value", "descriptionPt": "Valor na moeda do documento"},
+            "MoedaDoc": {"type": "nvarchar", "description": "Document currency", "descriptionPt": "Moeda do documento"},
+            "Moeda": {"type": "nvarchar", "description": "Base currency", "descriptionPt": "Moeda base"},
+            "TipoEntidade": {"type": "nvarchar", "key": true, "description": "Entity type", "descriptionPt": "Tipo de entidade"},
+            "Entidade": {"type": "nvarchar", "key": true, "description": "Entity code", "descriptionPt": "Codigo da entidade"},
+            "Filial": {"type": "nvarchar", "description": "Branch", "descriptionPt": "Filial"},
+            "TipoDoc": {"type": "nvarchar", "key": true, "description": "Document type", "descriptionPt": "Tipo de documento"},
+            "Serie": {"type": "nvarchar", "description": "Series", "descriptionPt": "Serie"},
+            "NumDoc": {"type": "int", "key": true, "description": "Document number", "descriptionPt": "Numero do documento"},
+            "NumDocExterno": {"type": "nvarchar", "description": "External document number", "descriptionPt": "Numero do documento externo"},
+            "Natureza": {"type": "nvarchar", "description": "Nature (D=Debit, C=Credit)", "descriptionPt": "Natureza (D=Debito, C=Credito)"},
+            "DataDoc": {"type": "datetime", "key": true, "description": "Document date", "descriptionPt": "Data do documento"},
+            "IdHistorico": {"type": "uniqueidentifier", "description": "FK to historical record", "descriptionPt": "FK para historico"},
+            "DataGravacao": {"type": "datetime", "description": "Record date", "descriptionPt": "Data de gravacao"},
+            "ModuloDoc": {"type": "nvarchar", "description": "Document module", "descriptionPt": "Modulo do documento"},
+            "NumLinha": {"type": "int", "description": "Line number", "descriptionPt": "Numero da linha"}
+          },
+          "commonJoins": [
+            "Pendentes ON Pendentes.IdHistorico = BasContasCorrentes.IdHistorico",
+            "CabecMovCBL ON CabecMovCBL.Id = BasContasCorrentes.IdCabecMovCBL"
+          ]
+        }
+      }
+    }
+  }
+}
