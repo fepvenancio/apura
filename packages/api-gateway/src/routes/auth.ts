@@ -67,23 +67,25 @@ auth.post('/signup', async (c) => {
   const trialLimits = PLAN_LIMITS.trial;
 
   // Create org + user in D1 (batch for atomicity)
+  const orgName = body.organizationName || (body as any).orgName || 'My Organization';
   await c.env.DB.batch([
     c.env.DB.prepare(
-      `INSERT INTO organizations (id, name, slug, plan, primavera_version, agent_api_key, max_users, max_queries_per_month, queries_this_month, billing_email, country, timezone, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO organizations (id, name, slug, plan, primavera_version, agent_api_key, agent_api_key_hash, max_users, max_queries_per_month, queries_this_month, billing_email, country, timezone, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(
       orgId,
-      body.organizationName,
+      orgName,
       body.slug,
       'trial',
-      '',
+      'V10',
+      apiKey.key,
       apiKey.hash,
       trialLimits.maxUsers,
       trialLimits.maxQueries,
       0,
       body.email,
-      body.country ?? '',
-      body.timezone ?? 'UTC',
+      'PT',
+      'Europe/Lisbon',
       now,
       now,
     ),
