@@ -78,7 +78,7 @@ auth.post('/signup', async (c) => {
       body.slug,
       'trial',
       'V10',
-      apiKey.key,
+      apiKey.prefix,
       apiKey.hash,
       trialLimits.maxUsers,
       trialLimits.maxQueries,
@@ -341,8 +341,8 @@ auth.post('/forgot-password', async (c) => {
       { expirationTtl: 3600 },
     );
 
-    // TODO: Send email with reset link containing resetToken
-    console.log(`Password reset requested for ${body.email}, token: ${resetToken}`);
+    // TODO: Send reset email via Resend
+    // console.log(`Password reset requested for ${body.email}`);
   }
 
   return c.json({

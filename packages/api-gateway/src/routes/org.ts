@@ -22,7 +22,7 @@ org.get('/', async (c) => {
   }
 
   // Strip sensitive fields
-  const { agent_api_key, ...safe } = organization;
+  const { agent_api_key, agent_api_key_hash, ...safe } = organization;
 
   return c.json({ success: true, data: safe });
 });
@@ -116,7 +116,10 @@ org.get('/connector-status', async (c) => {
 
   try {
     const response = await c.env.WS_GATEWAY.fetch(
-      new Request(`http://internal/connector/status/${orgId}`, { method: 'GET' }),
+      new Request(`http://internal/connector/status/${orgId}`, {
+        method: 'GET',
+        headers: { 'X-Internal-Secret': c.env.INTERNAL_SECRET ?? '' },
+      }),
     );
 
     if (!response.ok) {

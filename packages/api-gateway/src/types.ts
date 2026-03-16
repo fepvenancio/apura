@@ -6,6 +6,7 @@ export interface Env {
   AI_ORCHESTRATOR: Fetcher;
   WS_GATEWAY: Fetcher;
   JWT_SECRET: string;
+  INTERNAL_SECRET: string;
   STRIPE_WEBHOOK_SECRET?: string;
 }
 

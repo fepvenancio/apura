@@ -22,6 +22,9 @@ bindings = [
   { name = "CONNECTOR", class_name = "ConnectorSession" }
 ]
 
+[vars]
+INTERNAL_SECRET = "apura-internal-2026-change-me"
+
 [[migrations]]
 tag = "v1"
 new_classes = ["ConnectorSession"]

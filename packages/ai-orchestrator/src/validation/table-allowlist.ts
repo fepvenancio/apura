@@ -20,16 +20,30 @@ export class TableAllowlist {
   isAllowed(tableName: string): boolean {
     const lower = tableName.toLowerCase();
 
+    // Reject three/four-part names (cross-database)
+    const parts = lower.split('.');
+    if (parts.length > 2) return false; // db.schema.table = not allowed
+
+    // Block system prefixes
+    const systemPrefixes = ['sys.', 'information_schema.', 'msdb.', 'master.', 'tempdb.', 'sys'];
+    for (const prefix of systemPrefixes) {
+      if (lower.startsWith(prefix)) return false;
+    }
+
+    const name = parts[parts.length - 1].replace(/[\[\]]/g, '');
+
+    // Block system table names directly
+    const systemTables = new Set(['sysobjects', 'syscolumns', 'sysindexes', 'sysusers', 'syslogins', 'sql_logins', 'server_principals', 'database_principals']);
+    if (systemTables.has(name.toLowerCase())) return false;
+
     // Direct match
     if (this.tables.has(lower)) {
       return true;
     }
 
     // If it's schema-qualified (e.g., dbo.CabecDoc), check just the table part
-    const dotIndex = lower.lastIndexOf('.');
-    if (dotIndex >= 0) {
-      const tableOnly = lower.substring(dotIndex + 1);
-      if (this.tables.has(tableOnly)) {
+    if (parts.length === 2) {
+      if (this.tables.has(name)) {
         return true;
       }
     }

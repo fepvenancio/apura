@@ -17,6 +17,9 @@ database_id = "48a7c67d-223e-4ee1-8c87-9a9b3231def0"
 binding = "CACHE"
 id = "290e5fb7d86847b6823b79be9b6d2cb4"
 
+[vars]
+INTERNAL_SECRET = "apura-internal-2026-change-me"
+
 [[services]]
 binding = "AI_ORCHESTRATOR"
 service = "apura-ai"

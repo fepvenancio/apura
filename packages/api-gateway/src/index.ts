@@ -38,10 +38,32 @@ app.use(
   }),
 );
 
+// Body size check (1MB max)
+app.use('*', async (c, next) => {
+  const contentLength = parseInt(c.req.header('content-length') ?? '0', 10);
+  if (contentLength > 1_000_000) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Request body too large' } }, 413);
+  }
+  return next();
+});
+
 // Health check (no auth)
 app.get('/health', (c) =>
   c.json({ status: 'ok', timestamp: new Date().toISOString() }),
 );
+
+// Rate limiting for auth routes
+app.use('/auth/*', async (c, next) => {
+  const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
+  const minute = Math.floor(Date.now() / 60000);
+  const key = `rate:auth:${ip}:${minute}`;
+  const current = parseInt(await c.env.CACHE.get(key) ?? '0', 10);
+  if (current >= 10) {
+    return c.json({ success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests' } }, 429);
+  }
+  await c.env.CACHE.put(key, String(current + 1), { expirationTtl: 60 });
+  return next();
+});
 
 // Public routes
 app.route('/auth', auth);

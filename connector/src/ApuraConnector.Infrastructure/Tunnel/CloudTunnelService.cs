@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using ApuraConnector.Core.Models;
@@ -15,6 +16,7 @@ public class CloudTunnelService
     private readonly ILogger _logger;
     private ClientWebSocket? _ws;
     private readonly DateTime _startTime = DateTime.UtcNow;
+    private readonly SemaphoreSlim _sendLock = new(1, 1);
     private bool _isConnected;
 
     public bool IsConnected => _isConnected;
@@ -68,23 +70,41 @@ public class CloudTunnelService
 
     private async Task ReceiveLoopAsync(CancellationToken ct)
     {
-        var buffer = new byte[64 * 1024]; // 64KB buffer
+        var buffer = new byte[8 * 1024]; // 8KB buffer
+        const int maxMessageSize = 256 * 1024; // 256KB max message
 
         while (_ws?.State == WebSocketState.Open && !ct.IsCancellationRequested)
         {
-            var result = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
+            using var ms = new MemoryStream();
+            WebSocketReceiveResult result;
 
-            if (result.MessageType == WebSocketMessageType.Close)
+            do
             {
-                _isConnected = false;
-                _logger.Information("Server closed connection: {Status} {Description}",
-                    result.CloseStatus, result.CloseStatusDescription);
-                break;
-            }
+                result = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
 
-            if (result.MessageType == WebSocketMessageType.Text)
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    _isConnected = false;
+                    _logger.Information("Server closed connection");
+                    return;
+                }
+
+                ms.Write(buffer, 0, result.Count);
+
+                if (ms.Length > maxMessageSize)
+                {
+                    _logger.Warning("Message exceeds {MaxSize} bytes, discarding", maxMessageSize);
+                    // Drain the rest of the message
+                    while (!result.EndOfMessage)
+                        result = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
+                    ms.SetLength(0);
+                    break;
+                }
+            } while (!result.EndOfMessage);
+
+            if (ms.Length > 0 && result.MessageType == WebSocketMessageType.Text)
             {
-                var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                var json = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
                 _ = Task.Run(() => HandleMessageAsync(json, ct), ct);
             }
         }
@@ -139,10 +159,16 @@ public class CloudTunnelService
 
         try
         {
+            // SECURITY: Clamp cloud-provided values to local config limits
+            var clampedTimeout = Math.Min(payload.TimeoutSeconds, _config.DefaultQueryTimeoutSeconds);
+            var clampedMaxRows = Math.Min(payload.MaxRows, _config.MaxRowsPerQuery);
+            if (clampedTimeout <= 0) clampedTimeout = _config.DefaultQueryTimeoutSeconds;
+            if (clampedMaxRows <= 0) clampedMaxRows = _config.MaxRowsPerQuery;
+
             var result = await _queryExecutor.ExecuteAsync(
                 payload.Sql,
-                payload.TimeoutSeconds,
-                payload.MaxRows,
+                clampedTimeout,
+                clampedMaxRows,
                 ct);
 
             await SendMessageAsync(MessageSerializer.CreateQueryResult(envelope.Id, result), ct);
@@ -150,15 +176,18 @@ public class CloudTunnelService
         catch (InvalidOperationException ex)
         {
             // Validation failure or concurrency limit
+            _logger.Warning(ex, "Query validation failed (id: {Id})", envelope.Id);
             await SendMessageAsync(
-                MessageSerializer.CreateErrorMessage(envelope.Id, "QUERY_VALIDATION_FAILED", ex.Message),
+                MessageSerializer.CreateErrorMessage(envelope.Id, "QUERY_VALIDATION_FAILED", "Query validation failed"),
                 ct);
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "Query execution failed (id: {Id})", envelope.Id);
+            // SECURITY: Never send raw exception messages to cloud — they may contain
+            // server names, file paths, or connection details
             await SendMessageAsync(
-                MessageSerializer.CreateErrorMessage(envelope.Id, "SQL_ERROR", ex.Message),
+                MessageSerializer.CreateErrorMessage(envelope.Id, "SQL_ERROR", "Query execution failed"),
                 ct);
         }
     }
@@ -182,14 +211,17 @@ public class CloudTunnelService
     {
         if (_ws?.State != WebSocketState.Open) return;
 
-        var json = MessageSerializer.Serialize(message);
-        var bytes = Encoding.UTF8.GetBytes(json);
-
-        await _ws.SendAsync(
-            new ArraySegment<byte>(bytes),
-            WebSocketMessageType.Text,
-            endOfMessage: true,
-            ct);
+        await _sendLock.WaitAsync(ct);
+        try
+        {
+            var json = MessageSerializer.Serialize(message);
+            var bytes = Encoding.UTF8.GetBytes(json);
+            await _ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, ct);
+        }
+        finally
+        {
+            _sendLock.Release();
+        }
     }
 
     private async Task ReconnectWithBackoffAsync(CancellationToken ct)

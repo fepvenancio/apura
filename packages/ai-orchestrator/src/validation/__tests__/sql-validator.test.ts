@@ -736,3 +736,70 @@ describe('Security regression — additional attack vectors', () => {
     assert.equal(result.valid, false);
   });
 });
+
+// =====================================================================
+// Security Hardening Tests (V-01 through V-09)
+// =====================================================================
+
+describe('Security hardening — new vulnerability fixes', () => {
+  it('V-01 — SELECT * FROM sys.sql_logins is rejected by allowlist', () => {
+    const allowlist = TableAllowlist.getDefaultPrimaveraAllowlist();
+    expectRejected('SELECT * FROM sql_logins', { allowedTables: allowlist });
+  });
+
+  it('V-01 — sys.objects rejected by allowlist', () => {
+    const list = new TableAllowlist(['Clientes']);
+    assert.equal(list.isAllowed('sys.objects'), false);
+  });
+
+  it('V-01 — sysobjects rejected by allowlist', () => {
+    const list = new TableAllowlist(['Clientes']);
+    assert.equal(list.isAllowed('sysobjects'), false);
+  });
+
+  it('V-01 — information_schema.tables rejected by allowlist', () => {
+    const list = new TableAllowlist(['Clientes']);
+    assert.equal(list.isAllowed('information_schema.tables'), false);
+  });
+
+  it('V-02 — SELECT INTO #temp is rejected', () => {
+    expectRejected('SELECT Nome INTO #temp FROM Clientes');
+  });
+
+  it('V-02 — SELECT INTO @tableVar is rejected', () => {
+    expectRejected('SELECT Nome INTO @tableVar FROM Clientes');
+  });
+
+  it('V-03 — SELECT * FROM master.dbo.Clientes is rejected (three-part name)', () => {
+    expectRejected('SELECT * FROM master.dbo.Clientes');
+  });
+
+  it('V-03 — allowlist rejects three-part names', () => {
+    const list = new TableAllowlist(['Clientes']);
+    assert.equal(list.isAllowed('master.dbo.Clientes'), false);
+  });
+
+  it('V-04 — SELECT DB_NAME() is rejected', () => {
+    expectRejected('SELECT DB_NAME()');
+  });
+
+  it('V-04 — SUSER_SNAME() is rejected', () => {
+    expectRejected('SELECT SUSER_SNAME()');
+  });
+
+  it('V-04 — HAS_PERMS_BY_NAME is rejected', () => {
+    expectRejected("SELECT HAS_PERMS_BY_NAME('Clientes', 'OBJECT', 'SELECT')");
+  });
+
+  it('V-05 — SELECT * FROM Clientes FOR XML PATH is rejected', () => {
+    expectRejected("SELECT * FROM Clientes FOR XML PATH('')");
+  });
+
+  it('V-05 — FOR JSON is rejected', () => {
+    expectRejected('SELECT * FROM Clientes FOR JSON PATH');
+  });
+
+  it('V-09 — CROSS JOIN is rejected', () => {
+    expectRejected('SELECT * FROM Clientes CROSS JOIN Clientes');
+  });
+});

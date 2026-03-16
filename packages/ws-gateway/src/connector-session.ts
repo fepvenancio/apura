@@ -40,7 +40,7 @@ export class ConnectorSession implements DurableObject {
           return new Response('Not found', { status: 404 });
       }
     } catch (err: any) {
-      return Response.json({ error: err.message }, { status: 500 });
+      return Response.json({ error: 'Internal server error' }, { status: 500 });
     }
   }
 
@@ -51,6 +51,11 @@ export class ConnectorSession implements DurableObject {
     // Create WebSocket pair
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);
+
+    // Close existing connection if any
+    if (this.agentSocket) {
+      try { this.agentSocket.close(1000, 'Replaced by new connection'); } catch {}
+    }
 
     // Accept with hibernation tag
     this.state.acceptWebSocket(server, ['agent']);
@@ -82,6 +87,20 @@ export class ConnectorSession implements DurableObject {
       sql: string;
       timeoutMs?: number;
     }>();
+
+    // Basic safety check — only SELECT/WITH allowed
+    const sqlUpper = sql.trim().toUpperCase();
+    if (!sqlUpper.startsWith('SELECT') && !sqlUpper.startsWith('WITH')) {
+      return Response.json({ error: 'Only SELECT queries allowed' }, { status: 400 });
+    }
+    if (sql.includes(';')) {
+      return Response.json({ error: 'Batch queries not allowed' }, { status: 400 });
+    }
+
+    // Limit concurrent pending queries
+    if (this.pendingQueries.size >= 50) {
+      return Response.json({ error: 'Too many pending queries' }, { status: 429 });
+    }
 
     const timeout = timeoutMs ?? 30000;
 
@@ -193,5 +212,11 @@ export class ConnectorSession implements DurableObject {
     console.error('WebSocket error:', error);
     this.agentSocket = null;
     await this.state.storage.put('status', 'error');
+
+    // Reject all pending queries
+    for (const [id, pending] of this.pendingQueries) {
+      pending.reject(new Error('Agent connection error'));
+    }
+    this.pendingQueries.clear();
   }
 }

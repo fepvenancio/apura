@@ -7,6 +7,7 @@ import { buildSystemPrompt, buildUserPrompt } from './prompt/prompt-builder';
 import { ClaudeClient } from './ai/claude-client';
 import { validateSql } from './validation/sql-validator';
 import { sanitizeSql } from './validation/sql-sanitizer';
+import { TableAllowlist } from './validation/table-allowlist';
 
 /** Maximum number of schema tables to include in prompt context. */
 const MAX_CONTEXT_TABLES = 20;
@@ -117,7 +118,8 @@ export class QueryOrchestrator {
     let sql = sanitizeSql(aiResult.sql);
 
     // 10. Validate SQL (AST parser)
-    let validation = validateSql(sql);
+    const allowlist = TableAllowlist.getDefaultPrimaveraAllowlist();
+    let validation = validateSql(sql, { allowedTables: allowlist });
 
     // 11. If validation fails, retry once with error feedback
     if (!validation.valid) {
@@ -133,7 +135,7 @@ export class QueryOrchestrator {
       );
 
       sql = sanitizeSql(retryResult.sql);
-      validation = validateSql(sql);
+      validation = validateSql(sql, { allowedTables: allowlist });
 
       if (!validation.valid) {
         throw new OrchestratorError(

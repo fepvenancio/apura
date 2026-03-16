@@ -18,6 +18,8 @@ const FORBIDDEN_KEYWORDS = [
   'ALTER',
   'CREATE',
   'TRUNCATE',
+  'MERGE',
+  'RENAME',
   'EXEC',
   'EXECUTE',
   'GRANT',
@@ -34,6 +36,9 @@ const FORBIDDEN_KEYWORDS = [
   'BULK',
   'WAITFOR',
   'DBCC',
+  'WRITETEXT',
+  'UPDATETEXT',
+  'READTEXT',
 ];
 
 /**

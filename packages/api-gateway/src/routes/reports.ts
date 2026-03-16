@@ -169,7 +169,7 @@ reports.post('/:id/run', requireRole('owner', 'admin', 'analyst'), quotaMiddlewa
     const connectorResponse = await c.env.WS_GATEWAY.fetch(
       new Request('http://internal/query/execute', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': c.env.INTERNAL_SECRET ?? '' },
         body: JSON.stringify({
           orgId,
           queryId: newQueryId,

@@ -132,7 +132,10 @@ schema.post('/sync', requireRole('owner', 'admin'), async (c) => {
 
   try {
     const response = await c.env.WS_GATEWAY.fetch(
-      new Request(`http://internal/schema/sync/${orgId}`, { method: 'POST' }),
+      new Request(`http://internal/schema/sync/${orgId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': c.env.INTERNAL_SECRET ?? '' },
+      }),
     );
 
     if (!response.ok) {

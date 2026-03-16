@@ -9,6 +9,7 @@ import {
 } from '@apura/shared';
 import type { QueryRequest } from '@apura/shared';
 import type { Env, AppVariables } from '../types';
+import { requireRole } from '../middleware/auth';
 import { rateLimitMiddleware } from '../middleware/rate-limit';
 import { quotaMiddleware } from '../middleware/quota';
 import { OrgDatabase } from '../services/org-db';
@@ -21,7 +22,7 @@ queries.use('*', rateLimitMiddleware);
 // ---------------------------------------------------------------------------
 // POST /api/queries — Execute natural language query
 // ---------------------------------------------------------------------------
-queries.post('/', quotaMiddleware, async (c) => {
+queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
@@ -78,6 +79,13 @@ queries.post('/', quotaMiddleware, async (c) => {
 
     const aiResult = await aiResponse.json<{ sql: string; explanation: string }>();
 
+    // Validate that AI generated a SELECT query
+    const sqlUpper = aiResult.sql.trim().toUpperCase();
+    if (!sqlUpper.startsWith('SELECT') && !sqlUpper.startsWith('WITH')) {
+      await orgDb.updateQuery(queryId, { status: 'error', error_message: 'AI generated non-SELECT query' });
+      return c.json({ success: false, error: { code: 'QUERY_VALIDATION_FAILED', message: 'Generated query is not a SELECT statement' } }, 400);
+    }
+
     // 3. Update query with generated SQL (status: validating)
     await orgDb.updateQuery(queryId, {
       generated_sql: aiResult.sql,
@@ -93,7 +101,7 @@ queries.post('/', quotaMiddleware, async (c) => {
     const connectorResponse = await c.env.WS_GATEWAY.fetch(
       new Request('http://internal/query/execute', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': c.env.INTERNAL_SECRET ?? '' },
         body: JSON.stringify({
           orgId,
           queryId,
@@ -209,7 +217,7 @@ queries.get('/:id', async (c) => {
 // ---------------------------------------------------------------------------
 // POST /api/queries/:id/rerun — Re-execute a previous query
 // ---------------------------------------------------------------------------
-queries.post('/:id/rerun', quotaMiddleware, async (c) => {
+queries.post('/:id/rerun', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
   const queryId = c.req.param('id');
@@ -237,7 +245,7 @@ queries.post('/:id/rerun', quotaMiddleware, async (c) => {
     const connectorResponse = await c.env.WS_GATEWAY.fetch(
       new Request('http://internal/query/execute', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': c.env.INTERNAL_SECRET ?? '' },
         body: JSON.stringify({
           orgId,
           queryId: newQueryId,

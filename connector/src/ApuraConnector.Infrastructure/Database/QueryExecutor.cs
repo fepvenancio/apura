@@ -13,6 +13,7 @@ public class QueryExecutor
     private readonly SqlValidator _validator;
     private readonly ILogger _logger;
     private readonly SemaphoreSlim _concurrencyLimiter;
+    private readonly int _maxConcurrent;
     private readonly int _maxRows;
 
     public QueryExecutor(
@@ -25,11 +26,12 @@ public class QueryExecutor
         _connection = connection;
         _validator = validator;
         _logger = logger;
+        _maxConcurrent = maxConcurrent;
         _concurrencyLimiter = new SemaphoreSlim(maxConcurrent);
         _maxRows = maxRows;
     }
 
-    public int ActiveQueries => _concurrencyLimiter.CurrentCount;
+    public int ActiveQueries => _maxConcurrent - _concurrencyLimiter.CurrentCount;
 
     public async Task<QueryResultPayload> ExecuteAsync(
         string sql,
@@ -98,7 +100,7 @@ public class QueryExecutor
                             DateTime dt => dt.ToString("O"),
                             DateTimeOffset dto => dto.ToString("O"),
                             byte[] bytes => Convert.ToBase64String(bytes),
-                            decimal d => (double)d,
+                            decimal d => d.ToString("G"),
                             _ => value,
                         };
                     }

@@ -90,7 +90,7 @@ const BLOCKED_KEYWORD_PATTERNS: Array<[RegExp, string]> = [
   // Timing / DoS
   [/\bWAITFOR\b/i, 'WAITFOR'],
   // SELECT INTO (creates table)
-  [/\bSELECT\b[\s\S]*?\bINTO\b\s+\[?\w/i, 'SELECT INTO'],
+  [/\bSELECT\b[\s\S]*?\bINTO\b\s+[#@\[\w]/i, 'SELECT INTO'],
   // Text operations
   [/\bWRITETEXT\b/i, 'WRITETEXT'],
   [/\bUPDATETEXT\b/i, 'UPDATETEXT'],
@@ -154,6 +154,28 @@ export function validateSql(
     if (pattern.test(sql)) {
       return reject(`Query contains blocked keyword: ${label}`);
     }
+  }
+
+  // Block cross-database access (three-part names: db.schema.table)
+  if (/\b\w+\.\w+\.\w+/i.test(sql)) {
+    return { valid: false, reason: 'Cross-database access not allowed (three-part names detected)' };
+  }
+
+  // Block system reconnaissance functions
+  const recon_pattern = /\b(DB_NAME|SUSER_SNAME|SUSER_NAME|IS_SRVROLEMEMBER|IS_MEMBER|SERVERPROPERTY|HOST_NAME|APP_NAME|ORIGINAL_LOGIN|CONNECTIONPROPERTY|HAS_PERMS_BY_NAME|OBJECT_ID|OBJECT_NAME|COL_NAME|SCHEMA_NAME|SCHEMA_ID|DATABASE_PRINCIPAL_ID|USER_NAME|USER_ID)\s*\(/i;
+  if (recon_pattern.test(sql)) {
+    return { valid: false, reason: 'System reconnaissance functions not allowed' };
+  }
+
+  // Block FOR XML / FOR JSON (data exfiltration)
+  if (/\bFOR\s+(XML|JSON)\b/i.test(sql)) {
+    return { valid: false, reason: 'FOR XML/JSON not allowed' };
+  }
+
+  // Block CROSS JOIN (can create cartesian products)
+  const crossJoinCount = (sql.match(/\bCROSS\s+JOIN\b/gi) || []).length;
+  if (crossJoinCount > 0) {
+    return { valid: false, reason: 'CROSS JOIN not allowed (can create excessive result sets)' };
   }
 
   // ── Layer 3: AST parsing ─────────────────────────────────────────

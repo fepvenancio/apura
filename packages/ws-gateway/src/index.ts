@@ -42,6 +42,12 @@ export default {
       });
     }
 
+    // Authenticate internal endpoints
+    const internalSecret = request.headers.get('X-Internal-Secret');
+    if (internalSecret !== env.INTERNAL_SECRET) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Internal: execute query (called by api-gateway via service binding)
     if (url.pathname === '/query/execute' && request.method === 'POST') {
       const body = await request.json<{
@@ -89,7 +95,7 @@ export default {
 
     return new Response('Not found', { status: 404 });
     } catch (err: any) {
-      return Response.json({ error: err.message, stack: err.stack }, { status: 500 });
+      return Response.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
 };

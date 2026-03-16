@@ -1,0 +1,14 @@
+{
+  "Connector": {
+    "ApiKey": "YOUR_API_KEY_HERE",
+    "TunnelEndpoint": "wss://ws.apura.xyz/agent/connect"
+  },
+  "SqlServer": {
+    "ServerName": "localhost",
+    "DatabaseName": "YOUR_DATABASE",
+    "UseWindowsAuth": false,
+    "Username": "YOUR_USERNAME",
+    "Password": "YOUR_PASSWORD",
+    "TrustServerCertificate": true
+  }
+}

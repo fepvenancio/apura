@@ -35,6 +35,12 @@ export async function authMiddleware(c: AppContext, next: Next): Promise<Respons
       return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Session expired or revoked' } }, 401);
     }
 
+    // Reject refresh tokens used as access tokens
+    const sessionData = JSON.parse(session);
+    if (sessionData.type === 'refresh') {
+      return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid token type' } }, 401);
+    }
+
     // Attach user context
     c.set('userId', payload.sub);
     c.set('orgId', payload.org);
