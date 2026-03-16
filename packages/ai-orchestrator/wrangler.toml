@@ -9,9 +9,9 @@ AI_MODEL_BUDGET = "claude-haiku-4-5-20251001"
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = "placeholder"
+id = "290e5fb7d86847b6823b79be9b6d2cb4"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "apura-main"
-database_id = "placeholder"
+database_id = "48a7c67d-223e-4ee1-8c87-9a9b3231def0"
