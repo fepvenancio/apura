@@ -49,7 +49,7 @@ export function ResultTable({ result }: ResultTableProps) {
   };
 
   const formatCellValue = (col: string, value: unknown): string => {
-    if (value == null) return "\u2014";
+    if (value == null) return "—";
     if (typeof value === "number") {
       if (isCurrencyColumn(col)) return formatCurrency(value);
       return formatNumber(value);
