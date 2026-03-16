@@ -332,7 +332,7 @@ export class OrgDatabase {
 
     await this.db
       .prepare(
-        `INSERT INTO audit_logs (id, org_id, action, resource_type, resource_id, details, ip_address, created_at)
+        `INSERT INTO audit_log (id, org_id, action, resource_type, resource_id, details, ip_address, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
