@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Bug Fixes and CI/CD** - Fix 5 known bugs and establish automated test/deploy pipeline
 - [ ] **Phase 2: Email Activation** - Activate email-worker for password reset, verification, and invitations
 - [x] **Phase 3: Billing** - Stripe Checkout, webhook handling, Customer Portal, and plan enforcement (completed 2026-03-18)
-- [ ] **Phase 4: GDPR Compliance** - Right-to-erasure, data export, consent tracking, DPA, and data retention
+- [x] **Phase 4: GDPR Compliance** - Right-to-erasure, data export, consent tracking, DPA, and data retention (completed 2026-03-18)
 - [ ] **Phase 5: MFA** - TOTP-based multi-factor authentication with recovery codes and org enforcement
 - [ ] **Phase 6: Security Hardening** - mTLS for connector-to-cloud communication
 - [ ] **Phase 7: Export** - CSV download and print-optimized HTML report views
@@ -184,7 +184,7 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 | 1. Bug Fixes and CI/CD | 0/2 | Planning complete | - |
 | 2. Email Activation | 1/2 | In Progress|  |
 | 3. Billing | 0/2 | Complete    | 2026-03-18 |
-| 4. GDPR Compliance | 0/3 | Planning complete | - |
+| 4. GDPR Compliance | 0/3 | Complete    | 2026-03-18 |
 | 5. MFA | 0/? | Not started | - |
 | 6. Security Hardening | 0/? | Not started | - |
 | 7. Export | 0/? | Not started | - |
