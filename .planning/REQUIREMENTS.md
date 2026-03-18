@@ -28,7 +28,7 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 - [x] **MAIL-02**: Email verification sent on signup with verification link
 - [x] **MAIL-03**: Team invitation email sent when org admin invites a user
 - [x] **MAIL-04**: Email worker connected to api-gateway via Cloudflare Queue binding
-- [ ] **MAIL-05**: Email templates render correctly with Resend + HTML templates
+- [x] **MAIL-05**: Email templates render correctly with Resend + HTML templates
 
 ### Billing
 
@@ -155,7 +155,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MAIL-02 | Phase 2: Email Activation | Complete |
 | MAIL-03 | Phase 2: Email Activation | Complete |
 | MAIL-04 | Phase 2: Email Activation | Complete |
-| MAIL-05 | Phase 2: Email Activation | Pending |
+| MAIL-05 | Phase 2: Email Activation | Complete |
 | BILL-01 | Phase 3: Billing | Pending |
 | BILL-02 | Phase 3: Billing | Pending |
 | BILL-03 | Phase 3: Billing | Pending |
