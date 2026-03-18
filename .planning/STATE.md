@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-18T19:48:05.766Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-03-18T19:52:13.802Z"
 progress:
   total_phases: 10
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -46,6 +46,7 @@ Plan: 2 of 2
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01-bug-fixes-and-cicd P01 | 5min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -56,6 +57,8 @@ Recent decisions affecting current work:
 
 - Used Turbo-based root scripts for CI instead of per-workspace commands
 - Kept production frontend deploy in deploy.yml separate from PR preview deploy in ci.yml
+- [Phase 01-bug-fixes-and-cicd]: Quota middleware fails closed (503) on DB errors to prevent unmetered usage
+- [Phase 01-bug-fixes-and-cicd]: Timing-safe comparison for internal secrets using crypto.subtle.timingSafeEqual in Workers
 
 ### Pending Todos
 
@@ -69,6 +72,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T19:48:05.765Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-03-18T19:52:13.800Z
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None

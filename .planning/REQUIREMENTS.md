@@ -9,11 +9,11 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 ### Bug Fixes
 
-- [ ] **BUG-01**: Quota middleware fails closed on DB error instead of allowing unverified requests through
-- [ ] **BUG-02**: AI orchestrator error messages are sanitized before returning to users (no internal details leak)
-- [ ] **BUG-03**: KV session race condition fixed — new session stored before old one deleted
-- [ ] **BUG-04**: Internal secret header value validated against actual secret using constant-time comparison
-- [ ] **BUG-05**: JSON parse errors in password reset token handled gracefully (return 401, not 500)
+- [x] **BUG-01**: Quota middleware fails closed on DB error instead of allowing unverified requests through
+- [x] **BUG-02**: AI orchestrator error messages are sanitized before returning to users (no internal details leak)
+- [x] **BUG-03**: KV session race condition fixed — new session stored before old one deleted
+- [x] **BUG-04**: Internal secret header value validated against actual secret using constant-time comparison
+- [x] **BUG-05**: JSON parse errors in password reset token handled gracefully (return 401, not 500)
 
 ### CI/CD
 
@@ -142,11 +142,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BUG-01 | Phase 1: Bug Fixes and CI/CD | Pending |
-| BUG-02 | Phase 1: Bug Fixes and CI/CD | Pending |
-| BUG-03 | Phase 1: Bug Fixes and CI/CD | Pending |
-| BUG-04 | Phase 1: Bug Fixes and CI/CD | Pending |
-| BUG-05 | Phase 1: Bug Fixes and CI/CD | Pending |
+| BUG-01 | Phase 1: Bug Fixes and CI/CD | Complete |
+| BUG-02 | Phase 1: Bug Fixes and CI/CD | Complete |
+| BUG-03 | Phase 1: Bug Fixes and CI/CD | Complete |
+| BUG-04 | Phase 1: Bug Fixes and CI/CD | Complete |
+| BUG-05 | Phase 1: Bug Fixes and CI/CD | Complete |
 | CICD-01 | Phase 1: Bug Fixes and CI/CD | Complete |
 | CICD-02 | Phase 1: Bug Fixes and CI/CD | Complete |
 | CICD-03 | Phase 1: Bug Fixes and CI/CD | Complete |
