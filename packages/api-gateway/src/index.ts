@@ -13,6 +13,7 @@ import schedules from './routes/schedules';
 import webhooks from './routes/webhooks';
 import billing from './routes/billing';
 import gdpr from './routes/gdpr';
+import mfa from './routes/mfa';
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -91,6 +92,7 @@ app.route('/api/dashboards', dashboards);
 app.route('/api/schedules', schedules);
 app.route('/api/billing', billing);
 app.route('/api/gdpr', gdpr);
+app.route('/api/mfa', mfa);
 
 // 404 handler
 app.notFound((c) =>
