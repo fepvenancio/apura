@@ -24,10 +24,10 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 ### Email
 
-- [ ] **MAIL-01**: Password reset email sent with valid reset link when user requests password reset
-- [ ] **MAIL-02**: Email verification sent on signup with verification link
-- [ ] **MAIL-03**: Team invitation email sent when org admin invites a user
-- [ ] **MAIL-04**: Email worker connected to api-gateway via Cloudflare Queue binding
+- [x] **MAIL-01**: Password reset email sent with valid reset link when user requests password reset
+- [x] **MAIL-02**: Email verification sent on signup with verification link
+- [x] **MAIL-03**: Team invitation email sent when org admin invites a user
+- [x] **MAIL-04**: Email worker connected to api-gateway via Cloudflare Queue binding
 - [ ] **MAIL-05**: Email templates render correctly with Resend + HTML templates
 
 ### Billing
@@ -151,10 +151,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CICD-02 | Phase 1: Bug Fixes and CI/CD | Complete |
 | CICD-03 | Phase 1: Bug Fixes and CI/CD | Complete |
 | CICD-04 | Phase 1: Bug Fixes and CI/CD | Complete |
-| MAIL-01 | Phase 2: Email Activation | Pending |
-| MAIL-02 | Phase 2: Email Activation | Pending |
-| MAIL-03 | Phase 2: Email Activation | Pending |
-| MAIL-04 | Phase 2: Email Activation | Pending |
+| MAIL-01 | Phase 2: Email Activation | Complete |
+| MAIL-02 | Phase 2: Email Activation | Complete |
+| MAIL-03 | Phase 2: Email Activation | Complete |
+| MAIL-04 | Phase 2: Email Activation | Complete |
 | MAIL-05 | Phase 2: Email Activation | Pending |
 | BILL-01 | Phase 3: Billing | Pending |
 | BILL-02 | Phase 3: Billing | Pending |
