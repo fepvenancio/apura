@@ -9,7 +9,7 @@ import type { User } from '../types';
  */
 export class OrgDatabase {
   // Column allowlists for dynamic update methods — prevents SQL injection via column names
-  private static readonly ORG_COLUMNS = new Set(['name', 'slug', 'plan', 'billing_email', 'country', 'timezone', 'max_users', 'max_queries_per_month', 'queries_this_month', 'queries_month_reset', 'stripe_customer_id', 'stripe_subscription_id', 'updated_at']);
+  private static readonly ORG_COLUMNS = new Set(['name', 'slug', 'plan', 'billing_email', 'country', 'timezone', 'max_users', 'max_queries_per_month', 'queries_this_month', 'queries_month_reset', 'stripe_customer_id', 'stripe_subscription_id', 'subscription_status', 'current_period_end', 'updated_at']);
   private static readonly USER_COLUMNS = new Set(['name', 'email', 'role', 'password_hash', 'language', 'last_login_at', 'email_verified', 'updated_at']);
   private static readonly QUERY_COLUMNS = new Set(['natural_language', 'generated_sql', 'explanation', 'status', 'error_message', 'row_count', 'execution_time_ms', 'ai_model', 'ai_tokens_used', 'result_preview', 'completed_at']);
   private static readonly REPORT_COLUMNS = new Set(['name', 'description', 'natural_language', 'sql_query', 'chart_config', 'layout_config', 'is_shared', 'last_run_at', 'updated_at']);
@@ -29,7 +29,7 @@ export class OrgDatabase {
   async getOrg(): Promise<Organization | null> {
     return this.db
       .prepare(
-        'SELECT id, name, slug, plan, primavera_version, max_users, max_queries_per_month, queries_this_month, billing_email, country, timezone, stripe_customer_id, stripe_subscription_id, created_at, updated_at FROM organizations WHERE id = ?'
+        'SELECT id, name, slug, plan, primavera_version, max_users, max_queries_per_month, queries_this_month, billing_email, country, timezone, stripe_customer_id, stripe_subscription_id, subscription_status, current_period_end, created_at, updated_at FROM organizations WHERE id = ?'
       )
       .bind(this.orgId)
       .first<Organization>();

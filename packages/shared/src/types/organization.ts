@@ -18,6 +18,8 @@ export interface Organization {
   billing_email: string;
   country: string;
   timezone: string;
+  subscription_status: string | null;
+  current_period_end: string | null;
   created_at: string;
   updated_at: string;
 }

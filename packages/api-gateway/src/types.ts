@@ -9,7 +9,9 @@ export interface Env {
   INTERNAL_SECRET: string;
   REPORT_QUEUE: Queue;
   EMAIL_QUEUE: Queue;
-  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_SECRET_KEY: string;
+  STRIPE_PUBLISHABLE_KEY?: string;
+  STRIPE_WEBHOOK_SECRET: string;
 }
 
 /** User record as stored in D1. */
