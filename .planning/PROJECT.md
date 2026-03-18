@@ -50,6 +50,11 @@ Users can query their Primavera database using natural language and get accurate
 - [ ] Scheduled reports and cache refresh (cron worker)
 - [ ] CI/CD pipeline (GitHub Actions for test/build/deploy)
 - [ ] Validate .NET connector works end-to-end on Windows
+- [ ] GDPR compliance (right-to-erasure endpoint, DPA template, privacy content)
+- [ ] i18n support (PT/ES/EN) via next-intl
+- [ ] MFA (TOTP-based) for user accounts
+- [ ] mTLS for connector-to-cloud communication
+- [ ] .NET connector production installer (MSI, DPAPI credential storage, auto-update)
 
 ### Out of Scope
 
