@@ -84,6 +84,7 @@ export default function OrgSettingsPage() {
             <p className="text-sm">A carregar...</p>
           </div>
         ) : settings ? (
+          <>
           <Card>
             <CardHeader>
               <h3 className="text-sm font-semibold">Organizacao</h3>
@@ -271,6 +272,7 @@ export default function OrgSettingsPage() {
               )}
             </CardContent>
           </Card>
+          </>
         ) : (
           <Card>
             <div className="flex flex-col items-center justify-center py-16 text-muted">
