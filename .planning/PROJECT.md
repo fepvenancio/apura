@@ -32,16 +32,16 @@ Users can query their Primavera database using natural language and get accurate
 - ✓ Settings page — existing
 - ✓ Landing/marketing page — existing
 - ✓ Privacy, terms, docs pages — existing
+- ✓ Quota middleware fails closed on DB error — Phase 1
+- ✓ AI orchestrator error messages sanitized — Phase 1
+- ✓ KV session race condition fixed (store-before-delete) — Phase 1
+- ✓ Internal secret validated with timing-safe comparison — Phase 1
+- ✓ JSON parse error handling in password reset token — Phase 1
+- ✓ CI/CD pipeline (lint, typecheck, test, auto-deploy, PR previews) — Phase 1
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
-
-- [ ] Fix: Quota middleware fails open on DB error (should fail closed)
-- [ ] Fix: AI orchestrator error messages leak to users (should sanitize)
-- [ ] Fix: KV session race condition (old session deleted before new stored)
-- [ ] Fix: Internal secret header not validated (presence-only check)
-- [ ] Fix: Missing JSON parse error handling in password reset token
 - [ ] Email service integration (password reset, email verification)
 - [ ] Stripe billing (webhook handler, subscription lifecycle, plan enforcement)
 - [ ] CSV export of query results
@@ -94,4 +94,4 @@ Users can query their Primavera database using natural language and get accurate
 | Durable Objects for connector sessions | Stateful WebSocket management per-org | — Pending |
 
 ---
-*Last updated: 2026-03-18 after initialization*
+*Last updated: 2026-03-18 after Phase 1 completion*
