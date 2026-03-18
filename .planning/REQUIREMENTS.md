@@ -70,9 +70,9 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 - [ ] **GDPR-01**: Right-to-erasure endpoint cascade-deletes all user PII across all tables and KV/R2
 - [ ] **GDPR-02**: Data export endpoint generates JSON of all user PII, stores in R2, emails download link
 - [ ] **GDPR-03**: Consent logging tracks terms/privacy acceptance with version, IP, and timestamp
-- [ ] **GDPR-04**: DPA (Data Processing Agreement) page hosted on site
-- [ ] **GDPR-05**: Data retention policy enforced via cron-worker cleanup (queries 12mo, audit 24mo)
-- [ ] **GDPR-06**: Privacy policy updated to list sub-processors (Cloudflare, Anthropic, Resend, Stripe)
+- [x] **GDPR-04**: DPA (Data Processing Agreement) page hosted on site
+- [x] **GDPR-05**: Data retention policy enforced via cron-worker cleanup (queries 12mo, audit 24mo)
+- [x] **GDPR-06**: Privacy policy updated to list sub-processors (Cloudflare, Anthropic, Resend, Stripe)
 
 ### i18n
 
@@ -165,9 +165,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GDPR-01 | Phase 4: GDPR Compliance | Pending |
 | GDPR-02 | Phase 4: GDPR Compliance | Pending |
 | GDPR-03 | Phase 4: GDPR Compliance | Pending |
-| GDPR-04 | Phase 4: GDPR Compliance | Pending |
-| GDPR-05 | Phase 4: GDPR Compliance | Pending |
-| GDPR-06 | Phase 4: GDPR Compliance | Pending |
+| GDPR-04 | Phase 4: GDPR Compliance | Complete |
+| GDPR-05 | Phase 4: GDPR Compliance | Complete |
+| GDPR-06 | Phase 4: GDPR Compliance | Complete |
 | MFA-01 | Phase 5: MFA | Pending |
 | MFA-02 | Phase 5: MFA | Pending |
 | MFA-03 | Phase 5: MFA | Pending |
