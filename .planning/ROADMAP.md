@@ -98,11 +98,12 @@ Plans:
   2. Login requires a valid 6-digit TOTP code when MFA is enabled
   3. User receives 10 backup codes on MFA setup and can use any one to bypass TOTP
   4. Org admin can require MFA for all org members and reset MFA for locked-out users
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md -- Backend MFA: D1 migration, crypto utilities, MFA routes, two-phase login, backup codes, tests
+- [ ] 05-02-PLAN.md -- Frontend MFA: security settings page, login MFA step, org admin controls
+- [ ] 05-03-PLAN.md -- Org MFA enforcement: login redirect for setup, member MFA status, settings toggle
 
 ### Phase 6: Security Hardening
 **Goal**: Connector-to-cloud communication is secured with mutual TLS authentication
@@ -185,7 +186,7 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 | 2. Email Activation | 1/2 | In Progress|  |
 | 3. Billing | 0/2 | Complete    | 2026-03-18 |
 | 4. GDPR Compliance | 0/3 | Complete    | 2026-03-18 |
-| 5. MFA | 0/? | Not started | - |
+| 5. MFA | 0/3 | Planning complete | - |
 | 6. Security Hardening | 0/? | Not started | - |
 | 7. Export | 0/? | Not started | - |
 | 8. Sharing and Scheduled Reports | 0/? | Not started | - |
