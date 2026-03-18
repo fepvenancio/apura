@@ -1,0 +1,92 @@
+# Apura
+
+## What This Is
+
+Apura is a natural language to SQL query tool for Primavera P6 ERP databases. Users ask questions in plain English, Claude converts them to SQL, and results are executed against on-premise SQL Server databases via a .NET connector agent. Built on Cloudflare Workers with a Next.js frontend.
+
+## Core Value
+
+Users can query their Primavera database using natural language and get accurate, validated SQL results — without knowing SQL.
+
+## Requirements
+
+### Validated
+
+<!-- Shipped and confirmed valuable. -->
+
+- ✓ User signup/login with email and password (JWT auth) — existing
+- ✓ JWT session management with refresh tokens — existing
+- ✓ Role-based access control (owner, admin, analyst, viewer) — existing
+- ✓ Multi-tenant organization management — existing
+- ✓ Natural language → SQL conversion via Claude API — existing
+- ✓ SQL validation with AST parsing (injection prevention) — existing
+- ✓ Query execution via WebSocket/Durable Object relay to .NET connector — existing
+- ✓ Query history viewing — existing
+- ✓ Report saving, listing, and viewing — existing
+- ✓ Dashboard with query input and results display — existing
+- ✓ Data visualization with ECharts — existing
+- ✓ Rate limiting on auth routes — existing
+- ✓ Per-org quota enforcement by plan tier — existing
+- ✓ Schema management (category-based loading, few-shot examples) — existing
+- ✓ Connector session management via Durable Objects — existing
+- ✓ Settings page — existing
+- ✓ Landing/marketing page — existing
+- ✓ Privacy, terms, docs pages — existing
+
+### Active
+
+<!-- Current scope. Building toward these. -->
+
+- [ ] Fix: Quota middleware fails open on DB error (should fail closed)
+- [ ] Fix: AI orchestrator error messages leak to users (should sanitize)
+- [ ] Fix: KV session race condition (old session deleted before new stored)
+- [ ] Fix: Internal secret header not validated (presence-only check)
+- [ ] Fix: Missing JSON parse error handling in password reset token
+- [ ] Email service integration (password reset, email verification)
+- [ ] Stripe billing (webhook handler, subscription lifecycle, plan enforcement)
+- [ ] CSV export of query results
+- [ ] PDF report generation
+- [ ] Query/report sharing via links
+- [ ] Scheduled reports and cache refresh (cron worker)
+- [ ] CI/CD pipeline (GitHub Actions for test/build/deploy)
+- [ ] Validate .NET connector works end-to-end on Windows
+
+### Out of Scope
+
+<!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
+
+- Real-time chat — high complexity, not core to query value
+- Mobile app — web-first, mobile later
+- OAuth login (Google/GitHub) — email/password sufficient for v1
+- Video/media uploads — not relevant to query tool
+- Multi-database support (non-Primavera) — Primavera focus for v1
+
+## Context
+
+- Existing monorepo with 3 active Workers (api-gateway, ai-orchestrator, ws-gateway) and 4 stub Workers (query-executor, report-worker, email-worker, cron-worker)
+- .NET connector exists in `connector/` directory for on-premise SQL Server access
+- Cloudflare D1 (SQLite) as primary database, KV for caching, Durable Objects for WebSocket state
+- Frontend is statically exported Next.js 15 deployed to Cloudflare Pages
+- Pricing tiers defined: trial (100 queries), starter, professional, business, enterprise
+- Stripe schema fields present in organizations table but webhook handler not implemented
+
+## Constraints
+
+- **Platform**: Cloudflare Workers ecosystem (Workers, D1, KV, Durable Objects, Pages)
+- **AI Provider**: Anthropic Claude API (sonnet default, haiku budget)
+- **On-prem**: .NET connector must run on customer Windows servers with SQL Server access
+- **Database**: D1/SQLite — single-writer limitation, plan migration path for scale
+- **Frontend**: Static export (no SSR) — deployed to CDN/Pages
+
+## Key Decisions
+
+| Decision | Rationale | Outcome |
+|----------|-----------|---------|
+| Cloudflare Workers over traditional server | Serverless, edge-distributed, cost-effective at low scale | — Pending |
+| D1 over PostgreSQL | Simplicity for v1, native Cloudflare integration | — Pending |
+| Custom JWT auth over Auth0/Clerk | Full control, no external dependency for auth | — Pending |
+| Static Next.js export over SSR | Simpler deployment to CDN, no server needed for frontend | — Pending |
+| Durable Objects for connector sessions | Stateful WebSocket management per-org | — Pending |
+
+---
+*Last updated: 2026-03-18 after initialization*
