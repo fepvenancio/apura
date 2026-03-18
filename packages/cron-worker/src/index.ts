@@ -92,6 +92,20 @@ function computeNextRun(cronExpression: string, fromDate: Date): Date {
 }
 
 // ---------------------------------------------------------------------------
+// Data retention cleanup
+// ---------------------------------------------------------------------------
+
+export async function runRetentionCleanup(db: D1Database): Promise<void> {
+  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 3600_000).toISOString();
+  const twentyFourMonthsAgo = new Date(Date.now() - 2 * 365 * 24 * 3600_000).toISOString();
+
+  await db.batch([
+    db.prepare('DELETE FROM queries WHERE created_at < ? AND status IN (?, ?)').bind(twelveMonthsAgo, 'completed', 'failed'),
+    db.prepare('UPDATE audit_log SET user_id = NULL, ip_address = NULL, user_agent = NULL, details = NULL WHERE created_at < ?').bind(twentyFourMonthsAgo),
+  ]);
+}
+
+// ---------------------------------------------------------------------------
 // Worker export
 // ---------------------------------------------------------------------------
 
@@ -172,6 +186,9 @@ export default {
         console.error(`Failed to process schedule ${schedule.id}:`, err);
       }
     }
+
+    // Run data retention cleanup after schedule processing
+    await runRetentionCleanup(env.DB);
   },
 
   // Health check
