@@ -112,10 +112,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Connector WebSocket connections require a valid client certificate issued by Cloudflare
   2. Connector validates the server certificate before establishing a WebSocket connection
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md -- Worker mTLS: D1 migration, cert-auth module, dual-auth in /agent/connect handler
+- [ ] 06-02-PLAN.md -- .NET connector: CertificateLoader, client cert loading, SEC-02 server cert audit
 
 ### Phase 7: Export
 **Goal**: Users can export query results and reports in portable formats
@@ -124,7 +125,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User can click a button to download current query results as a CSV file
   2. User can generate a print-optimized HTML view of any report suitable for browser print-to-PDF
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 07-01: TBD
@@ -138,7 +139,7 @@ Plans:
   2. User can create a daily, weekly, or monthly schedule for recurring report generation
   3. Scheduled reports generate CSV, store in R2, and deliver via email on schedule
   4. User can view the run history and status of their scheduled reports
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 08-01: TBD
@@ -152,7 +153,7 @@ Plans:
   1. User can switch language to PT, ES, or EN in settings and the entire UI updates
   2. All UI text is rendered from locale JSON files with no hardcoded English strings
   3. Dates display as DD/MM/YYYY for PT/ES and MM/DD/YYYY for EN; numbers use locale-appropriate separators
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 09-01: TBD
@@ -168,7 +169,7 @@ Plans:
   3. SQL Server credentials are stored encrypted via DPAPI (not plaintext config files)
   4. Connector checks for updates and can trigger an MSI upgrade automatically
   5. Connector works end-to-end on Windows: connects to Primavera database, relays queries, returns results
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 10-01: TBD
