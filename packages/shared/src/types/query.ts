@@ -56,6 +56,8 @@ export interface SavedQuery {
   row_count: number | null;
   execution_time_ms: number | null;
   error_message: string | null;
+  /** JSON-serialized result preview (columns + rows). */
+  result_preview: string | null;
   cached: boolean;
   created_at: string;
   updated_at: string;

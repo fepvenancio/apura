@@ -215,6 +215,63 @@ queries.get('/:id', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// GET /api/queries/:id/export/:fmt — Export query results
+// ---------------------------------------------------------------------------
+queries.get('/:id/export/:fmt', async (c) => {
+  const orgId = c.get('orgId');
+  const queryId = c.req.param('id');
+  const fmt = c.req.param('fmt');
+  const orgDb = new OrgDatabase(c.env.DB, orgId);
+
+  if (fmt !== 'csv') {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Unsupported export format. Supported: csv' } }, 400);
+  }
+
+  const query = await orgDb.getQuery(queryId);
+  if (!query) {
+    return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'Query not found' } }, 404);
+  }
+
+  if (!query.result_preview) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Query has no result data to export' } }, 400);
+  }
+
+  let resultData: { columns?: { name: string }[]; rows?: unknown[][] };
+  try {
+    resultData = JSON.parse(query.result_preview as string);
+  } catch {
+    return c.json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to parse result data' } }, 500);
+  }
+
+  const columns = resultData.columns ?? [];
+  const rows = resultData.rows ?? [];
+
+  // Build CSV
+  const escapeCsv = (value: unknown): string => {
+    if (value === null || value === undefined) return '';
+    const str = String(value);
+    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const headerLine = columns.map((col) => escapeCsv(col.name)).join(',');
+  const dataLines = rows.map((row) =>
+    (Array.isArray(row) ? row : []).map((cell) => escapeCsv(cell)).join(','),
+  );
+  const csv = [headerLine, ...dataLines].join('\r\n');
+
+  return new Response(csv, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="query-${queryId}.csv"`,
+    },
+  });
+});
+
+// ---------------------------------------------------------------------------
 // POST /api/queries/:id/rerun — Re-execute a previous query
 // ---------------------------------------------------------------------------
 queries.post('/:id/rerun', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, async (c) => {

@@ -8,6 +8,8 @@ import queries from './routes/queries';
 import reports from './routes/reports';
 import org from './routes/org';
 import schema from './routes/schema';
+import dashboards from './routes/dashboards';
+import schedules from './routes/schedules';
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -74,6 +76,8 @@ app.route('/api/queries', queries);
 app.route('/api/reports', reports);
 app.route('/api/org', org);
 app.route('/api/schema', schema);
+app.route('/api/dashboards', dashboards);
+app.route('/api/schedules', schedules);
 
 // 404 handler
 app.notFound((c) =>

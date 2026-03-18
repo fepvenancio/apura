@@ -7,6 +7,7 @@ export interface Env {
   WS_GATEWAY: Fetcher;
   JWT_SECRET: string;
   INTERNAL_SECRET: string;
+  REPORT_QUEUE: Queue;
   STRIPE_WEBHOOK_SECRET?: string;
 }
 

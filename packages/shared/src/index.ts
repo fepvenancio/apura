@@ -50,6 +50,11 @@ export type {
 } from './types/report';
 
 export type {
+  Dashboard,
+  DashboardWidget,
+} from './types/dashboard';
+
+export type {
   OutputFormat,
   Schedule,
   ScheduleRun,

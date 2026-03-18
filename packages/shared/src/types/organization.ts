@@ -9,6 +9,9 @@ export interface Organization {
   plan: PlanType;
   primavera_version: string;
   agent_api_key: string;
+  agent_api_key_hash: string;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
   max_users: number;
   max_queries_per_month: number;
   queries_this_month: number;

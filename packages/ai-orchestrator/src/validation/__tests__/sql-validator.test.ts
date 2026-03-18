@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test';
-import { strict as assert } from 'node:assert';
+import { describe, it, assert } from 'vitest';
 import { validateSql, SqlValidatorOptions } from '../sql-validator';
 import { sanitizeSql } from '../sql-sanitizer';
 import { TableAllowlist } from '../table-allowlist';

@@ -324,6 +324,41 @@ auth.post('/refresh', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// POST /auth/verify-email
+// ---------------------------------------------------------------------------
+auth.post('/verify-email', async (c) => {
+  const body = await c.req.json<{ token: string }>();
+
+  if (!body.token) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Token required' } }, 400);
+  }
+
+  // Look up verification token in KV
+  const verifyKey = `email_verify:${body.token}`;
+  const verifyData = await c.env.CACHE.get(verifyKey);
+  if (!verifyData) {
+    return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid or expired verification token' } }, 401);
+  }
+
+  const { userId, orgId } = JSON.parse(verifyData);
+
+  // Update user's email_verified field in D1
+  const orgDb = new OrgDatabase(c.env.DB, orgId);
+  await orgDb.updateUser(userId, { email_verified: 1 } as any);
+
+  // Delete the KV token
+  await c.env.CACHE.delete(verifyKey);
+
+  // Audit log
+  await orgDb.logAudit('email.verify', 'user', userId);
+
+  return c.json({
+    success: true,
+    data: { message: 'Email verified successfully.' },
+  });
+});
+
+// ---------------------------------------------------------------------------
 // POST /auth/forgot-password
 // ---------------------------------------------------------------------------
 auth.post('/forgot-password', async (c) => {

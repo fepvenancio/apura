@@ -1,4 +1,4 @@
-import type { Organization, SavedQuery, Report } from '@apura/shared';
+import type { Organization, SavedQuery, Report, Dashboard, DashboardWidget, Schedule } from '@apura/shared';
 import type { User } from '../types';
 
 /**
@@ -13,6 +13,9 @@ export class OrgDatabase {
   private static readonly USER_COLUMNS = new Set(['name', 'email', 'role', 'password_hash', 'language', 'last_login_at', 'email_verified', 'updated_at']);
   private static readonly QUERY_COLUMNS = new Set(['natural_language', 'generated_sql', 'explanation', 'status', 'error_message', 'row_count', 'execution_time_ms', 'ai_model', 'ai_tokens_used', 'result_preview', 'completed_at']);
   private static readonly REPORT_COLUMNS = new Set(['name', 'description', 'natural_language', 'sql_query', 'chart_config', 'layout_config', 'is_shared', 'last_run_at', 'updated_at']);
+  private static readonly DASHBOARD_COLUMNS = new Set(['name', 'layout', 'is_shared', 'updated_at']);
+  private static readonly WIDGET_COLUMNS = new Set(['report_id', 'position_x', 'position_y', 'width', 'height', 'config']);
+  private static readonly SCHEDULE_COLUMNS = new Set(['cron_expression', 'timezone', 'output_format', 'recipients', 'subject_template', 'body_template', 'is_active', 'last_run_at', 'next_run_at']);
 
   constructor(
     private db: D1Database,
@@ -220,6 +223,241 @@ export class OrgDatabase {
     await this.db
       .prepare('DELETE FROM reports WHERE id = ? AND org_id = ?')
       .bind(reportId, this.orgId)
+      .run();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Dashboards
+  // ---------------------------------------------------------------------------
+
+  async createDashboard(dashboard: Partial<Dashboard>): Promise<string> {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    await this.db
+      .prepare(
+        `INSERT INTO dashboards (id, org_id, user_id, name, layout, is_shared, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        id,
+        this.orgId,
+        dashboard.user_id ?? null,
+        dashboard.name ?? '',
+        dashboard.layout ?? null,
+        dashboard.is_shared ? 1 : 0,
+        now,
+        now,
+      )
+      .run();
+
+    return id;
+  }
+
+  async getDashboard(dashboardId: string): Promise<Dashboard | null> {
+    return this.db
+      .prepare('SELECT * FROM dashboards WHERE id = ? AND org_id = ?')
+      .bind(dashboardId, this.orgId)
+      .first<Dashboard>();
+  }
+
+  async listDashboards(): Promise<Dashboard[]> {
+    const { results } = await this.db
+      .prepare('SELECT * FROM dashboards WHERE org_id = ? ORDER BY created_at DESC')
+      .bind(this.orgId)
+      .all<Dashboard>();
+
+    return results ?? [];
+  }
+
+  async updateDashboard(dashboardId: string, updates: Partial<Dashboard>): Promise<void> {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (key === 'id' || key === 'org_id' || key === 'created_at') continue;
+      if (!OrgDatabase.DASHBOARD_COLUMNS.has(key)) continue;
+      fields.push(`${key} = ?`);
+      values.push(value);
+    }
+
+    if (fields.length === 0) return;
+
+    fields.push('updated_at = ?');
+    values.push(new Date().toISOString());
+    values.push(dashboardId);
+    values.push(this.orgId);
+
+    await this.db
+      .prepare(`UPDATE dashboards SET ${fields.join(', ')} WHERE id = ? AND org_id = ?`)
+      .bind(...values)
+      .run();
+  }
+
+  async deleteDashboard(dashboardId: string): Promise<void> {
+    // Delete widgets first (cascade)
+    await this.db
+      .prepare('DELETE FROM dashboard_widgets WHERE dashboard_id = ?')
+      .bind(dashboardId)
+      .run();
+
+    await this.db
+      .prepare('DELETE FROM dashboards WHERE id = ? AND org_id = ?')
+      .bind(dashboardId, this.orgId)
+      .run();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Dashboard Widgets
+  // ---------------------------------------------------------------------------
+
+  async addWidget(widget: Partial<DashboardWidget>): Promise<string> {
+    const id = crypto.randomUUID();
+
+    await this.db
+      .prepare(
+        `INSERT INTO dashboard_widgets (id, dashboard_id, report_id, position_x, position_y, width, height, config)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        id,
+        widget.dashboard_id ?? null,
+        widget.report_id ?? null,
+        widget.position_x ?? 0,
+        widget.position_y ?? 0,
+        widget.width ?? 6,
+        widget.height ?? 4,
+        widget.config ?? null,
+      )
+      .run();
+
+    return id;
+  }
+
+  async getWidget(widgetId: string): Promise<DashboardWidget | null> {
+    return this.db
+      .prepare('SELECT * FROM dashboard_widgets WHERE id = ?')
+      .bind(widgetId)
+      .first<DashboardWidget>();
+  }
+
+  async listWidgets(dashboardId: string): Promise<DashboardWidget[]> {
+    const { results } = await this.db
+      .prepare('SELECT * FROM dashboard_widgets WHERE dashboard_id = ? ORDER BY position_y, position_x')
+      .bind(dashboardId)
+      .all<DashboardWidget>();
+
+    return results ?? [];
+  }
+
+  async updateWidget(widgetId: string, updates: Partial<DashboardWidget>): Promise<void> {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (key === 'id' || key === 'dashboard_id') continue;
+      if (!OrgDatabase.WIDGET_COLUMNS.has(key)) continue;
+      fields.push(`${key} = ?`);
+      values.push(value);
+    }
+
+    if (fields.length === 0) return;
+
+    values.push(widgetId);
+
+    await this.db
+      .prepare(`UPDATE dashboard_widgets SET ${fields.join(', ')} WHERE id = ?`)
+      .bind(...values)
+      .run();
+  }
+
+  async deleteWidget(widgetId: string): Promise<void> {
+    await this.db
+      .prepare('DELETE FROM dashboard_widgets WHERE id = ?')
+      .bind(widgetId)
+      .run();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Schedules
+  // ---------------------------------------------------------------------------
+
+  async createSchedule(schedule: Partial<Schedule>): Promise<string> {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    await this.db
+      .prepare(
+        `INSERT INTO schedules (id, org_id, report_id, created_by, cron_expression, timezone, output_format, recipients, subject_template, body_template, is_active, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        id,
+        this.orgId,
+        schedule.report_id ?? null,
+        schedule.created_by ?? null,
+        schedule.cron_expression ?? '',
+        schedule.timezone ?? 'Europe/Lisbon',
+        schedule.output_format ?? 'pdf',
+        schedule.recipients ?? '[]',
+        schedule.subject_template ?? null,
+        schedule.body_template ?? null,
+        schedule.is_active ?? 1,
+        now,
+      )
+      .run();
+
+    return id;
+  }
+
+  async getSchedule(scheduleId: string): Promise<Schedule | null> {
+    return this.db
+      .prepare('SELECT * FROM schedules WHERE id = ? AND org_id = ?')
+      .bind(scheduleId, this.orgId)
+      .first<Schedule>();
+  }
+
+  async listSchedules(): Promise<Schedule[]> {
+    const { results } = await this.db
+      .prepare('SELECT * FROM schedules WHERE org_id = ? ORDER BY created_at DESC')
+      .bind(this.orgId)
+      .all<Schedule>();
+
+    return results ?? [];
+  }
+
+  async updateSchedule(scheduleId: string, updates: Partial<Schedule>): Promise<void> {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (key === 'id' || key === 'org_id' || key === 'created_at' || key === 'created_by') continue;
+      if (!OrgDatabase.SCHEDULE_COLUMNS.has(key)) continue;
+      fields.push(`${key} = ?`);
+      values.push(value);
+    }
+
+    if (fields.length === 0) return;
+
+    values.push(scheduleId);
+    values.push(this.orgId);
+
+    await this.db
+      .prepare(`UPDATE schedules SET ${fields.join(', ')} WHERE id = ? AND org_id = ?`)
+      .bind(...values)
+      .run();
+  }
+
+  async deleteSchedule(scheduleId: string): Promise<void> {
+    // Delete schedule runs first
+    await this.db
+      .prepare('DELETE FROM schedule_runs WHERE schedule_id = ?')
+      .bind(scheduleId)
+      .run();
+
+    await this.db
+      .prepare('DELETE FROM schedules WHERE id = ? AND org_id = ?')
+      .bind(scheduleId, this.orgId)
       .run();
   }
 
