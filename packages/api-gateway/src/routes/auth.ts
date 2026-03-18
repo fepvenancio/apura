@@ -101,6 +101,19 @@ auth.post('/signup', async (c) => {
       `INSERT INTO users (id, org_id, email, name, password_hash, role, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(userId, orgId, body.email, body.name, passwordHash, 'owner', now, now),
+    c.env.DB.prepare(
+      `INSERT INTO consent_log (id, user_id, org_id, consent_type, policy_version, ip_address, user_agent, accepted_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(
+      crypto.randomUUID(),
+      userId,
+      orgId,
+      'terms_and_privacy',
+      'v1.0',
+      c.req.header('CF-Connecting-IP') || c.req.header('x-forwarded-for') || 'unknown',
+      c.req.header('User-Agent') || 'unknown',
+      now,
+    ),
   ]);
 
   // Generate email verification token and enqueue verification email
