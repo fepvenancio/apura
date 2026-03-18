@@ -23,6 +23,8 @@ export interface User {
   name: string;
   password_hash: string;
   role: UserRole;
+  mfa_enabled?: number;
+  totp_secret?: string | null;
   created_at: string;
   updated_at: string;
 }

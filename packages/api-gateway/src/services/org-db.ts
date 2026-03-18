@@ -9,8 +9,8 @@ import type { User } from '../types';
  */
 export class OrgDatabase {
   // Column allowlists for dynamic update methods — prevents SQL injection via column names
-  private static readonly ORG_COLUMNS = new Set(['name', 'slug', 'plan', 'billing_email', 'country', 'timezone', 'max_users', 'max_queries_per_month', 'queries_this_month', 'queries_month_reset', 'stripe_customer_id', 'stripe_subscription_id', 'subscription_status', 'current_period_end', 'updated_at']);
-  private static readonly USER_COLUMNS = new Set(['name', 'email', 'role', 'password_hash', 'language', 'last_login_at', 'email_verified', 'updated_at']);
+  private static readonly ORG_COLUMNS = new Set(['name', 'slug', 'plan', 'billing_email', 'country', 'timezone', 'max_users', 'max_queries_per_month', 'queries_this_month', 'queries_month_reset', 'stripe_customer_id', 'stripe_subscription_id', 'subscription_status', 'current_period_end', 'mfa_required', 'updated_at']);
+  private static readonly USER_COLUMNS = new Set(['name', 'email', 'role', 'password_hash', 'language', 'last_login_at', 'email_verified', 'mfa_enabled', 'totp_secret', 'updated_at']);
   private static readonly QUERY_COLUMNS = new Set(['natural_language', 'generated_sql', 'explanation', 'status', 'error_message', 'row_count', 'execution_time_ms', 'ai_model', 'ai_tokens_used', 'result_preview', 'completed_at']);
   private static readonly REPORT_COLUMNS = new Set(['name', 'description', 'natural_language', 'sql_query', 'chart_config', 'layout_config', 'is_shared', 'last_run_at', 'updated_at']);
   private static readonly DASHBOARD_COLUMNS = new Set(['name', 'layout', 'is_shared', 'updated_at']);
