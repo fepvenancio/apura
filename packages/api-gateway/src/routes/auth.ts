@@ -265,9 +265,6 @@ auth.post('/refresh', async (c) => {
     return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid token type' } }, 401);
   }
 
-  // Revoke old refresh token
-  await c.env.CACHE.delete(sessionKey);
-
   // Get current user data (role may have changed)
   const user = await c.env.DB
     .prepare('SELECT id, org_id, role, email FROM users WHERE id = ? AND org_id = ?')
@@ -306,6 +303,9 @@ auth.post('/refresh', async (c) => {
     c.env.CACHE.put(`session:${jti}`, JSON.stringify({ userId: user.id, orgId: user.org_id }), { expirationTtl: ACCESS_TOKEN_TTL }),
     c.env.CACHE.put(`session:${refreshJti}`, JSON.stringify({ userId: user.id, orgId: user.org_id, type: 'refresh' }), { expirationTtl: REFRESH_TOKEN_TTL }),
   ]);
+
+  // Revoke old refresh token AFTER new sessions are stored
+  await c.env.CACHE.delete(sessionKey);
 
   return c.json({
     success: true,
@@ -415,7 +415,13 @@ auth.post('/reset-password', async (c) => {
     return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid or expired reset token' } }, 401);
   }
 
-  const { userId, orgId } = JSON.parse(resetData);
+  let parsed: { userId: string; orgId: string };
+  try {
+    parsed = JSON.parse(resetData);
+  } catch {
+    return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid or expired reset token' } }, 401);
+  }
+  const { userId, orgId } = parsed;
 
   // Hash new password and update
   const passwordHash = await hashPassword(body.password);

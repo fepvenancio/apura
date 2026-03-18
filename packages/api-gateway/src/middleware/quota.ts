@@ -67,7 +67,13 @@ export async function quotaMiddleware(c: AppContext, next: Next): Promise<Respon
     return next();
   } catch (err) {
     console.error('Quota check error:', err);
-    // Fail open on quota check errors to avoid blocking all queries
-    return next();
+    // Fail closed on quota check errors — do not allow unverified requests
+    return c.json({
+      success: false,
+      error: {
+        code: 'SERVICE_UNAVAILABLE',
+        message: 'Unable to verify quota. Please try again later.',
+      },
+    }, 503);
   }
 }

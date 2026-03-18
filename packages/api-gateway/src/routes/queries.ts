@@ -73,7 +73,8 @@ queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, asy
 
     if (!aiResponse.ok) {
       const errorBody = await aiResponse.text();
-      await orgDb.updateQuery(queryId, { status: 'error', error_message: `AI generation failed: ${errorBody}` });
+      console.error('AI generation error for query', queryId, ':', errorBody);
+      await orgDb.updateQuery(queryId, { status: 'error', error_message: 'AI generation failed' });
       return c.json({ success: false, error: { code: 'AI_ERROR', message: 'Failed to generate SQL query' } }, 502);
     }
 
