@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Billing** - Stripe Checkout, webhook handling, Customer Portal, and plan enforcement (completed 2026-03-18)
 - [x] **Phase 4: GDPR Compliance** - Right-to-erasure, data export, consent tracking, DPA, and data retention (completed 2026-03-18)
 - [x] **Phase 5: MFA** - TOTP-based multi-factor authentication with recovery codes and org enforcement (completed 2026-03-18)
-- [ ] **Phase 6: Security Hardening** - mTLS for connector-to-cloud communication
+- [x] **Phase 6: Security Hardening** - mTLS for connector-to-cloud communication (completed 2026-03-18)
 - [ ] **Phase 7: Export** - CSV download and print-optimized HTML report views
 - [ ] **Phase 8: Sharing and Scheduled Reports** - Internal report sharing and recurring report generation pipeline
 - [ ] **Phase 9: Internationalization** - PT/ES/EN language support across all UI surfaces
@@ -188,7 +188,7 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 | 3. Billing | 0/2 | Complete    | 2026-03-18 |
 | 4. GDPR Compliance | 0/3 | Complete    | 2026-03-18 |
 | 5. MFA | 3/3 | Complete    | 2026-03-18 |
-| 6. Security Hardening | 0/? | Not started | - |
+| 6. Security Hardening | 0/? | Complete    | 2026-03-18 |
 | 7. Export | 0/? | Not started | - |
 | 8. Sharing and Scheduled Reports | 0/? | Not started | - |
 | 9. Internationalization | 0/? | Not started | - |
