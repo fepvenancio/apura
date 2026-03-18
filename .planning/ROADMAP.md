@@ -35,11 +35,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User sessions persist correctly across login/logout cycles with no race conditions
   4. Every push to main triggers lint, typecheck, and tests, then auto-deploys to Cloudflare Workers
   5. Pull requests generate frontend preview deployments on Cloudflare Pages
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- Fix 5 security/reliability bugs with Vitest test infrastructure and tests
+- [ ] 01-02-PLAN.md -- Enhance CI/CD: lint+typecheck+test, D1 migrations, PR preview deploys
 
 ### Phase 2: Email Activation
 **Goal**: Users receive transactional emails for password reset, email verification, and team invitations
@@ -180,7 +180,7 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Bug Fixes and CI/CD | 0/? | Not started | - |
+| 1. Bug Fixes and CI/CD | 0/2 | Planning complete | - |
 | 2. Email Activation | 0/? | Not started | - |
 | 3. Billing | 0/? | Not started | - |
 | 4. GDPR Compliance | 0/? | Not started | - |
