@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-03-18T23:33:40.642Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-18T23:55:39.398Z"
 progress:
   total_phases: 10
   completed_phases: 5
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 14
+  completed_plans: 13
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Users can query their Primavera database using natural language and get accurate, validated SQL results -- without knowing SQL.
-**Current focus:** Phase 05 — mfa
+**Current focus:** Phase 06 — security-hardening
 
 ## Current Position
 
-Phase: 05 (mfa) — EXECUTING
-Plan: 3 of 3
+Phase: 06 (security-hardening) — EXECUTING
+Plan: 2 of 2 (COMPLETE)
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Plan: 3 of 3
 | Phase 05-mfa P01 | 7min | 2 tasks | 10 files |
 | Phase 05-mfa P02 | 5min | 2 tasks | 7 files |
 | Phase 05-mfa P03 | 3min | 2 tasks | 7 files |
+| Phase 06-security-hardening P02 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,8 @@ Recent decisions affecting current work:
 - [Phase 05-mfa]: Security page checks MFA status by attempting setupMfa() -- MFA_ALREADY_ENABLED error indicates active MFA
 - [Phase 05-mfa]: Short-TTL tokens (300s) for org-enforced MFA setup instead of opaque setup tokens -- reuses existing auth middleware
 - [Phase 05-mfa]: Org enforcement check placed AFTER user.mfa_enabled check so existing MFA users get normal challenge flow
+- [Phase 06-security-hardening]: EphemeralKeySet flag for cross-platform PFX loading (avoids macOS keychain and Linux permission issues)
+- [Phase 06-security-hardening]: SEC-02 implemented by absence -- no ServerCertificateCustomValidationCallback means .NET validates server certs by default
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T23:28:55.255Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-03-18T23:55:39.396Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None

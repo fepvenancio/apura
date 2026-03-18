@@ -83,8 +83,8 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 ### Security Hardening
 
-- [ ] **SEC-01**: mTLS configured for connector-to-cloud communication via Cloudflare API Shield
-- [ ] **SEC-02**: Connector validates server certificate on WebSocket connection
+- [x] **SEC-01**: mTLS configured for connector-to-cloud communication via Cloudflare API Shield
+- [x] **SEC-02**: Connector validates server certificate on WebSocket connection
 
 ### .NET Connector
 
@@ -173,8 +173,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MFA-03 | Phase 5: MFA | Complete |
 | MFA-04 | Phase 5: MFA | Complete |
 | MFA-05 | Phase 5: MFA | Complete |
-| SEC-01 | Phase 6: Security Hardening | Pending |
-| SEC-02 | Phase 6: Security Hardening | Pending |
+| SEC-01 | Phase 6: Security Hardening | Complete |
+| SEC-02 | Phase 6: Security Hardening | Complete |
 | EXPORT-01 | Phase 7: Export | Pending |
 | EXPORT-02 | Phase 7: Export | Pending |
 | SHARE-01 | Phase 8: Sharing and Scheduled Reports | Pending |
