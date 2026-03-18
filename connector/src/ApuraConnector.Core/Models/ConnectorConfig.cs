@@ -10,6 +10,11 @@ public class ConnectorConfig
     public int HeartbeatIntervalSeconds { get; set; } = 30;
     public int ReconnectInitialDelayMs { get; set; } = 1000;
     public int ReconnectMaxDelayMs { get; set; } = 120000;
+
+    // Client certificate for mTLS
+    public string? ClientCertificatePath { get; set; }
+    public string? ClientCertificatePassword { get; set; }
+    public string? ClientCertificateThumbprint { get; set; }
 }
 
 public class SqlServerConfig

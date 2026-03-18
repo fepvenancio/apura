@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ApuraConnector.Core\ApuraConnector.Core.csproj" />
+    <ProjectReference Include="..\..\src\ApuraConnector.Infrastructure\ApuraConnector.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
