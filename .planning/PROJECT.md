@@ -38,11 +38,11 @@ Users can query their Primavera database using natural language and get accurate
 - ✓ Internal secret validated with timing-safe comparison — Phase 1
 - ✓ JSON parse error handling in password reset token — Phase 1
 - ✓ CI/CD pipeline (lint, typecheck, test, auto-deploy, PR previews) — Phase 1
+- ✓ Email service integration (password reset, email verification, team invitations) — Phase 2
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
-- [ ] Email service integration (password reset, email verification)
 - [ ] Stripe billing (webhook handler, subscription lifecycle, plan enforcement)
 - [ ] CSV export of query results
 - [ ] PDF report generation
@@ -94,4 +94,4 @@ Users can query their Primavera database using natural language and get accurate
 | Durable Objects for connector sessions | Stateful WebSocket management per-org | — Pending |
 
 ---
-*Last updated: 2026-03-18 after Phase 1 completion*
+*Last updated: 2026-03-18 after Phase 2 completion*
