@@ -32,12 +32,12 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 ### Billing
 
-- [ ] **BILL-01**: User can subscribe to a plan via Stripe Checkout hosted page
-- [ ] **BILL-02**: Webhook handler processes 6 critical Stripe events (checkout.session.completed, subscription.updated, subscription.deleted, invoice.payment_succeeded, invoice.payment_failed, invoice.payment_action_required)
-- [ ] **BILL-03**: Org plan/limits update immediately when Stripe subscription changes
-- [ ] **BILL-04**: User can manage billing (update card, view invoices, cancel) via Stripe Customer Portal
-- [ ] **BILL-05**: Failed payment shows banner in UI; account locked only after final retry fails
-- [ ] **BILL-06**: Subscription cancellation preserves access until end of billing period
+- [x] **BILL-01**: User can subscribe to a plan via Stripe Checkout hosted page
+- [x] **BILL-02**: Webhook handler processes 6 critical Stripe events (checkout.session.completed, subscription.updated, subscription.deleted, invoice.payment_succeeded, invoice.payment_failed, invoice.payment_action_required)
+- [x] **BILL-03**: Org plan/limits update immediately when Stripe subscription changes
+- [x] **BILL-04**: User can manage billing (update card, view invoices, cancel) via Stripe Customer Portal
+- [x] **BILL-05**: Failed payment shows banner in UI; account locked only after final retry fails
+- [x] **BILL-06**: Subscription cancellation preserves access until end of billing period
 
 ### MFA
 
@@ -156,12 +156,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MAIL-03 | Phase 2: Email Activation | Complete |
 | MAIL-04 | Phase 2: Email Activation | Complete |
 | MAIL-05 | Phase 2: Email Activation | Complete |
-| BILL-01 | Phase 3: Billing | Pending |
-| BILL-02 | Phase 3: Billing | Pending |
-| BILL-03 | Phase 3: Billing | Pending |
-| BILL-04 | Phase 3: Billing | Pending |
-| BILL-05 | Phase 3: Billing | Pending |
-| BILL-06 | Phase 3: Billing | Pending |
+| BILL-01 | Phase 3: Billing | Complete |
+| BILL-02 | Phase 3: Billing | Complete |
+| BILL-03 | Phase 3: Billing | Complete |
+| BILL-04 | Phase 3: Billing | Complete |
+| BILL-05 | Phase 3: Billing | Complete |
+| BILL-06 | Phase 3: Billing | Complete |
 | GDPR-01 | Phase 4: GDPR Compliance | Pending |
 | GDPR-02 | Phase 4: GDPR Compliance | Pending |
 | GDPR-03 | Phase 4: GDPR Compliance | Pending |
