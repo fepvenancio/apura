@@ -492,7 +492,7 @@ export class OrgDatabase {
 
   async listUsers(): Promise<User[]> {
     const { results } = await this.db
-      .prepare('SELECT id, org_id, email, name, role, created_at, updated_at FROM users WHERE org_id = ? ORDER BY created_at')
+      .prepare('SELECT id, org_id, email, name, role, mfa_enabled, created_at, updated_at FROM users WHERE org_id = ? ORDER BY created_at')
       .bind(this.orgId)
       .all<User>();
 

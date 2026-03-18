@@ -234,6 +234,61 @@ auth.post('/login', async (c) => {
     });
   }
 
+  // Org-level MFA enforcement: if org requires MFA but user hasn't set it up,
+  // issue short-lived tokens and signal the frontend to redirect to MFA setup
+  const orgRow = await c.env.DB
+    .prepare('SELECT mfa_required FROM organizations WHERE id = ?')
+    .bind(user.org_id)
+    .first<{ mfa_required: number }>();
+
+  if (orgRow?.mfa_required === 1 && !user.mfa_enabled) {
+    // Issue short-TTL tokens (5 min) so user can complete MFA setup
+    const shortTTL = 300;
+    const jti = generateJti();
+    const iat = Math.floor(Date.now() / 1000);
+    const payload: JWTPayload = {
+      sub: user.id,
+      org: user.org_id,
+      role: user.role as JWTPayload['role'],
+      jti,
+      iat,
+      exp: iat + shortTTL,
+    };
+    const accessToken = await createJWT(payload, c.env.JWT_SECRET);
+
+    const refreshJti = generateJti();
+    const refreshPayload: JWTPayload = {
+      sub: user.id,
+      org: user.org_id,
+      role: user.role as JWTPayload['role'],
+      jti: refreshJti,
+      iat,
+      exp: iat + shortTTL,
+    };
+    const refreshToken = await createJWT(refreshPayload, c.env.JWT_SECRET);
+
+    await Promise.all([
+      c.env.CACHE.put(`session:${jti}`, JSON.stringify({ userId: user.id, orgId: user.org_id }), { expirationTtl: shortTTL }),
+      c.env.CACHE.put(`session:${refreshJti}`, JSON.stringify({ userId: user.id, orgId: user.org_id, type: 'refresh' }), { expirationTtl: shortTTL }),
+    ]);
+
+    return c.json({
+      success: true,
+      data: {
+        accessToken,
+        refreshToken,
+        expiresIn: shortTTL,
+        mfaSetupRequired: true,
+        user: {
+          userId: user.id,
+          orgId: user.org_id,
+          role: user.role,
+          email: user.email,
+        },
+      },
+    });
+  }
+
   // Create access token
   const jti = generateJti();
   const iat = Math.floor(Date.now() / 1000);

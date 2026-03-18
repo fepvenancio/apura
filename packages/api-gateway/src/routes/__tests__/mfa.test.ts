@@ -410,6 +410,131 @@ describe('MFA routes', () => {
   });
 
   // =========================================================================
+  // MFA-04: Org enforcement
+  // =========================================================================
+  describe('Org MFA enforcement', () => {
+    it('returns mfaSetupRequired when org.mfa_required=1 and user.mfa_enabled=0', async () => {
+      const env = createMockEnv({
+        first: (sql: string) => {
+          if (sql.includes('FROM users')) {
+            return Promise.resolve({
+              id: 'user_1', org_id: 'org_1', email: 'test@test.com', name: 'Test',
+              password_hash: '$scrypt$hash',
+              role: 'owner', mfa_enabled: 0,
+            });
+          }
+          if (sql.includes('mfa_required')) {
+            return Promise.resolve({ mfa_required: 1 });
+          }
+          return Promise.resolve(null);
+        },
+      });
+
+      const app = await createAuthTestApp();
+      const res = await app.request('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'test@test.com', password: 'password123' }),
+      }, env);
+
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as any;
+      expect(json.success).toBe(true);
+      expect(json.data.mfaSetupRequired).toBe(true);
+      expect(json.data.accessToken).toBeDefined();
+      expect(json.data.expiresIn).toBe(300);
+    });
+
+    it('returns mfaRequired when org.mfa_required=1 and user.mfa_enabled=1', async () => {
+      const env = createMockEnv({
+        first: () => Promise.resolve({
+          id: 'user_1', org_id: 'org_1', email: 'test@test.com', name: 'Test',
+          password_hash: '$scrypt$hash',
+          role: 'owner', mfa_enabled: 1,
+        }),
+      });
+
+      const app = await createAuthTestApp();
+      const res = await app.request('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'test@test.com', password: 'password123' }),
+      }, env);
+
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as any;
+      expect(json.success).toBe(true);
+      expect(json.data.mfaRequired).toBe(true);
+      expect(json.data.mfaToken).toBeDefined();
+      expect(json.data.mfaSetupRequired).toBeUndefined();
+    });
+
+    it('returns normal tokens when org.mfa_required=0 and user.mfa_enabled=0', async () => {
+      const env = createMockEnv({
+        first: (sql: string) => {
+          if (sql.includes('FROM users')) {
+            return Promise.resolve({
+              id: 'user_1', org_id: 'org_1', email: 'test@test.com', name: 'Test',
+              password_hash: '$scrypt$hash',
+              role: 'owner', mfa_enabled: 0,
+            });
+          }
+          if (sql.includes('mfa_required')) {
+            return Promise.resolve({ mfa_required: 0 });
+          }
+          return Promise.resolve(null);
+        },
+      });
+
+      const app = await createAuthTestApp();
+      const res = await app.request('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'test@test.com', password: 'password123' }),
+      }, env);
+
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as any;
+      expect(json.success).toBe(true);
+      expect(json.data.accessToken).toBeDefined();
+      expect(json.data.mfaSetupRequired).toBeUndefined();
+      expect(json.data.mfaRequired).toBeUndefined();
+    });
+
+    it('GET /api/org/users returns mfa_enabled field for each member', async () => {
+      const env = createMockEnv({
+        all: () => Promise.resolve({
+          results: [
+            { id: 'user_1', org_id: 'org_1', email: 'a@test.com', name: 'A', role: 'owner', mfa_enabled: 1, created_at: '2024-01-01', updated_at: '2024-01-01' },
+            { id: 'user_2', org_id: 'org_1', email: 'b@test.com', name: 'B', role: 'admin', mfa_enabled: 0, created_at: '2024-01-01', updated_at: '2024-01-01' },
+          ],
+        }),
+      });
+
+      const { Hono } = await import('hono');
+      const { default: orgRoutes } = await import('../org');
+
+      const app = new Hono();
+      app.use('/*', async (c, next) => {
+        c.set('userId' as any, 'user_1');
+        c.set('orgId' as any, 'org_1');
+        c.set('role' as any, 'owner');
+        await next();
+      });
+      app.route('/', orgRoutes);
+
+      const res = await app.request('/users', { method: 'GET' }, env);
+
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as any;
+      expect(json.success).toBe(true);
+      expect(json.data.items).toHaveLength(2);
+      expect(json.data.items[0].mfa_enabled).toBe(1);
+      expect(json.data.items[1].mfa_enabled).toBe(0);
+    });
+  });
+
+  // =========================================================================
   // MFA-03: Backup codes
   // =========================================================================
   describe('Backup code verification', () => {

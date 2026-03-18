@@ -42,6 +42,7 @@ org.put('/', requireRole('owner', 'admin'), async (c) => {
     billing_email?: string;
     timezone?: string;
     country?: string;
+    mfa_required?: number;
   }>();
 
   const updates: Record<string, unknown> = {};
@@ -49,6 +50,7 @@ org.put('/', requireRole('owner', 'admin'), async (c) => {
   if (body.billing_email !== undefined) updates.billing_email = body.billing_email;
   if (body.timezone !== undefined) updates.timezone = body.timezone;
   if (body.country !== undefined) updates.country = body.country;
+  if (body.mfa_required !== undefined) updates.mfa_required = body.mfa_required;
 
   if (Object.keys(updates).length === 0) {
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'No updates provided' } }, 400);
