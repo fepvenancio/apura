@@ -1,6 +1,7 @@
-import type { Env } from './types';
+import type { Env, TlsClientAuth } from './types';
 import { ConnectorSession } from './connector-session';
 import { validateAgentApiKey } from './auth/agent-auth';
+import { lookupOrgByCertSerial } from './auth/cert-auth';
 
 /**
  * Timing-safe string comparison to prevent timing attacks on secret values.
@@ -25,19 +26,40 @@ export default {
     }
 
     // Agent WebSocket connection — handle OUTSIDE Hono for proper upgrade
+    // Dual-auth: try mTLS certificate first, fall back to API key
     if (url.pathname === '/agent/connect') {
-      const authHeader = request.headers.get('Authorization') ?? '';
-      const apiKey = authHeader.startsWith('Bearer ')
-        ? authHeader.slice(7)
-        : authHeader;
+      let orgId: string | undefined;
 
-      if (!apiKey) {
-        return Response.json({ error: 'Missing Authorization header' }, { status: 401 });
+      // Try mTLS certificate authentication first (preferred)
+      const cf = (request as any).cf as { tlsClientAuth?: TlsClientAuth } | undefined;
+      if (cf?.tlsClientAuth?.certPresented === '1') {
+        // Certificate was presented — verify it was validated by Cloudflare
+        if (cf.tlsClientAuth.certVerified !== 'SUCCESS') {
+          return Response.json({ error: 'Invalid client certificate' }, { status: 403 });
+        }
+        // Map certificate serial to org_id (excludes revoked certs)
+        const certOrgId = await lookupOrgByCertSerial(cf.tlsClientAuth.certSerial, env.DB);
+        if (certOrgId) {
+          orgId = certOrgId;
+        }
       }
 
-      const { valid, orgId } = await validateAgentApiKey(apiKey, env.DB);
-      if (!valid || !orgId) {
-        return Response.json({ error: 'Invalid API key' }, { status: 401 });
+      // Fall back to API key auth if no cert or cert not in DB
+      if (!orgId) {
+        const authHeader = request.headers.get('Authorization') ?? '';
+        const apiKey = authHeader.startsWith('Bearer ')
+          ? authHeader.slice(7)
+          : authHeader;
+
+        if (!apiKey) {
+          return Response.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
+        const { valid, orgId: keyOrgId } = await validateAgentApiKey(apiKey, env.DB);
+        if (!valid || !keyOrgId) {
+          return Response.json({ error: 'Invalid API key' }, { status: 401 });
+        }
+        orgId = keyOrgId;
       }
 
       // Get DO stub and forward the WebSocket upgrade request
