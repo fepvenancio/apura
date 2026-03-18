@@ -9,7 +9,7 @@ gdpr.delete('/erasure', async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
 
-  await eraseUserData(c.env.DB, c.env.REPORTS_BUCKET, userId, orgId);
+  await eraseUserData(c.env.DB, c.env.REPORTS_BUCKET, c.env.CACHE, userId, orgId);
 
   return c.json({
     success: true,

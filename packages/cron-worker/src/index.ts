@@ -126,6 +126,8 @@ export default {
       .all<ScheduleRow>();
 
     if (!dueSchedules.results || dueSchedules.results.length === 0) {
+      // Still run retention cleanup even when no schedules are due
+      await runRetentionCleanup(env.DB);
       return;
     }
 

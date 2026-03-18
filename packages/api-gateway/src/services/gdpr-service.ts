@@ -1,14 +1,11 @@
 /**
  * GDPR service — erasure (cascade delete) and data export.
- *
- * eraseUserData intentionally does NOT clean up KV sessions.
- * Auth middleware validates the user via D1 lookup, so deleted users
- * are automatically rejected. KV entries expire via TTL.
  */
 
 export async function eraseUserData(
   db: D1Database,
   r2: R2Bucket,
+  kv: KVNamespace,
   userId: string,
   orgId: string,
 ): Promise<void> {
@@ -77,6 +74,12 @@ export async function eraseUserData(
   const listed = await r2.list({ prefix: `exports/${orgId}/${userId}/` });
   for (const obj of listed.objects) {
     await r2.delete(obj.key);
+  }
+
+  // Clean up KV sessions for this user
+  const kvKeys = await kv.list({ prefix: `session:${userId}:` });
+  for (const key of kvKeys.keys) {
+    await kv.delete(key.name);
   }
 }
 

@@ -45,6 +45,8 @@ function createMockEnv(dbOverrides: Record<string, any> = {}) {
     CACHE: {
       get: vi.fn().mockResolvedValue(null),
       put: vi.fn().mockResolvedValue(undefined),
+      delete: vi.fn().mockResolvedValue(undefined),
+      list: vi.fn().mockResolvedValue({ keys: [], list_complete: true, cursor: '' }),
     },
     AI_ORCHESTRATOR: {},
     WS_GATEWAY: {},
