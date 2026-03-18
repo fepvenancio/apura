@@ -298,7 +298,26 @@ org.post('/invitations', requireRole('owner', 'admin'), async (c) => {
 
   await orgDb.logAudit('invitation.create', 'invitation', invitationId, { email: body.email, role }, c.req.header('CF-Connecting-IP'));
 
-  // TODO: Send invitation email via Resend
+  // Fetch inviter and org names for the invitation email
+  const inviter = await c.env.DB
+    .prepare('SELECT name FROM users WHERE id = ?')
+    .bind(userId)
+    .first<{ name: string | null }>();
+  const orgData = await c.env.DB
+    .prepare('SELECT name FROM organizations WHERE id = ?')
+    .bind(orgId)
+    .first<{ name: string }>();
+
+  c.executionCtx.waitUntil(
+    c.env.EMAIL_QUEUE.send({
+      type: 'team_invitation',
+      to: [body.email],
+      inviterName: inviter?.name ?? 'A team member',
+      orgName: orgData?.name ?? 'your organization',
+      inviteUrl: `https://app.apura.xyz/accept-invite/${token}`,
+      role,
+    })
+  );
 
   return c.json({
     success: true,

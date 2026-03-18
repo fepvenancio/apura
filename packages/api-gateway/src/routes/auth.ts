@@ -103,6 +103,22 @@ auth.post('/signup', async (c) => {
     ).bind(userId, orgId, body.email, body.name, passwordHash, 'owner', now, now),
   ]);
 
+  // Generate email verification token and enqueue verification email
+  const verifyToken = generateJti();
+  await c.env.CACHE.put(
+    `email_verify:${verifyToken}`,
+    JSON.stringify({ userId, orgId }),
+    { expirationTtl: 24 * 3600 },
+  );
+  c.executionCtx.waitUntil(
+    c.env.EMAIL_QUEUE.send({
+      type: 'email_verification',
+      to: [body.email],
+      verifyUrl: `https://app.apura.xyz/verify-email/${verifyToken}`,
+      userName: body.name,
+    })
+  );
+
   // Create JWT
   const jti = generateJti();
   const iat = Math.floor(Date.now() / 1000);
@@ -369,11 +385,10 @@ auth.post('/forgot-password', async (c) => {
   }
 
   // Always return success to prevent email enumeration
-  // TODO: Integrate email service to send reset link
   const user = await c.env.DB
-    .prepare('SELECT id, org_id FROM users WHERE email = ?')
+    .prepare('SELECT id, org_id, name FROM users WHERE email = ?')
     .bind(body.email)
-    .first<{ id: string; org_id: string }>();
+    .first<{ id: string; org_id: string; name: string | null }>();
 
   if (user) {
     const resetToken = generateJti();
@@ -384,8 +399,15 @@ auth.post('/forgot-password', async (c) => {
       { expirationTtl: 3600 },
     );
 
-    // TODO: Send reset email via Resend
-    // console.log(`Password reset requested for ${body.email}`);
+    // Enqueue password reset email
+    c.executionCtx.waitUntil(
+      c.env.EMAIL_QUEUE.send({
+        type: 'password_reset',
+        to: [body.email],
+        resetUrl: `https://app.apura.xyz/reset-password/${resetToken}`,
+        userName: user.name ?? body.email,
+      })
+    );
   }
 
   return c.json({

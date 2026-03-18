@@ -27,3 +27,7 @@ service = "apura-ai"
 [[services]]
 binding = "WS_GATEWAY"
 service = "apura-ws"
+
+[[queues.producers]]
+binding = "EMAIL_QUEUE"
+queue = "email-outbound"
