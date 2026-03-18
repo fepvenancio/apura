@@ -22,6 +22,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
+      // Check if org requires MFA setup — redirect to security settings
+      if (useAuthStore.getState().mfaSetupRequired) {
+        router.push("/settings/security");
+        return;
+      }
       router.push("/home");
     } catch (err) {
       if (err instanceof MfaRequiredError) {

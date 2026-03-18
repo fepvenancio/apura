@@ -72,6 +72,13 @@ export class MfaRequiredError extends Error {
   }
 }
 
+export class MfaSetupRequiredError extends Error {
+  constructor() {
+    super("MFA setup required by organization");
+    this.name = "MfaSetupRequiredError";
+  }
+}
+
 class ApiClient {
   private accessToken: string | null = null;
 
@@ -176,8 +183,8 @@ class ApiClient {
     return result;
   }
 
-  async login(email: string, password: string): Promise<LoginResponse> {
-    const raw = await this.request<RawAuthResponse & { mfaRequired?: boolean; mfaToken?: string }>(
+  async login(email: string, password: string): Promise<LoginResponse & { mfaSetupRequired?: boolean }> {
+    const raw = await this.request<RawAuthResponse & { mfaRequired?: boolean; mfaToken?: string; mfaSetupRequired?: boolean }>(
       "POST",
       "/auth/login",
       { email, password }
@@ -187,6 +194,9 @@ class ApiClient {
     }
     const result = this.normalizeAuthResponse(raw);
     this.persistAuth(result);
+    if (raw.mfaSetupRequired) {
+      return { ...result, mfaSetupRequired: true };
+    }
     return result;
   }
 

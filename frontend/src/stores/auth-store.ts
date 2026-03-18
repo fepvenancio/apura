@@ -9,6 +9,7 @@ interface AuthStore {
   isLoading: boolean;
   pendingMfaToken: string | null;
   mfaRequired: boolean;
+  mfaSetupRequired: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (data: SignupData) => Promise<void>;
   logout: () => void;
@@ -24,16 +25,29 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isLoading: true,
   pendingMfaToken: null,
   mfaRequired: false,
+  mfaSetupRequired: false,
 
   login: async (email: string, password: string) => {
     try {
       const result = await api.login(email, password);
+      if (result.mfaSetupRequired) {
+        set({
+          user: result.user,
+          org: result.org,
+          isAuthenticated: true,
+          mfaSetupRequired: true,
+          pendingMfaToken: null,
+          mfaRequired: false,
+        });
+        return;
+      }
       set({
         user: result.user,
         org: result.org,
         isAuthenticated: true,
         pendingMfaToken: null,
         mfaRequired: false,
+        mfaSetupRequired: false,
       });
     } catch (error) {
       if (error instanceof MfaRequiredError) {
