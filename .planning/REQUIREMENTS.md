@@ -142,13 +142,63 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated during roadmap creation) | | |
+| BUG-01 | Phase 1: Bug Fixes and CI/CD | Pending |
+| BUG-02 | Phase 1: Bug Fixes and CI/CD | Pending |
+| BUG-03 | Phase 1: Bug Fixes and CI/CD | Pending |
+| BUG-04 | Phase 1: Bug Fixes and CI/CD | Pending |
+| BUG-05 | Phase 1: Bug Fixes and CI/CD | Pending |
+| CICD-01 | Phase 1: Bug Fixes and CI/CD | Pending |
+| CICD-02 | Phase 1: Bug Fixes and CI/CD | Pending |
+| CICD-03 | Phase 1: Bug Fixes and CI/CD | Pending |
+| CICD-04 | Phase 1: Bug Fixes and CI/CD | Pending |
+| MAIL-01 | Phase 2: Email Activation | Pending |
+| MAIL-02 | Phase 2: Email Activation | Pending |
+| MAIL-03 | Phase 2: Email Activation | Pending |
+| MAIL-04 | Phase 2: Email Activation | Pending |
+| MAIL-05 | Phase 2: Email Activation | Pending |
+| BILL-01 | Phase 3: Billing | Pending |
+| BILL-02 | Phase 3: Billing | Pending |
+| BILL-03 | Phase 3: Billing | Pending |
+| BILL-04 | Phase 3: Billing | Pending |
+| BILL-05 | Phase 3: Billing | Pending |
+| BILL-06 | Phase 3: Billing | Pending |
+| GDPR-01 | Phase 4: GDPR Compliance | Pending |
+| GDPR-02 | Phase 4: GDPR Compliance | Pending |
+| GDPR-03 | Phase 4: GDPR Compliance | Pending |
+| GDPR-04 | Phase 4: GDPR Compliance | Pending |
+| GDPR-05 | Phase 4: GDPR Compliance | Pending |
+| GDPR-06 | Phase 4: GDPR Compliance | Pending |
+| MFA-01 | Phase 5: MFA | Pending |
+| MFA-02 | Phase 5: MFA | Pending |
+| MFA-03 | Phase 5: MFA | Pending |
+| MFA-04 | Phase 5: MFA | Pending |
+| MFA-05 | Phase 5: MFA | Pending |
+| SEC-01 | Phase 6: Security Hardening | Pending |
+| SEC-02 | Phase 6: Security Hardening | Pending |
+| EXPORT-01 | Phase 7: Export | Pending |
+| EXPORT-02 | Phase 7: Export | Pending |
+| SHARE-01 | Phase 8: Sharing and Scheduled Reports | Pending |
+| SHARE-02 | Phase 8: Sharing and Scheduled Reports | Pending |
+| SCHED-01 | Phase 8: Sharing and Scheduled Reports | Pending |
+| SCHED-02 | Phase 8: Sharing and Scheduled Reports | Pending |
+| SCHED-03 | Phase 8: Sharing and Scheduled Reports | Pending |
+| SCHED-04 | Phase 8: Sharing and Scheduled Reports | Pending |
+| EXPORT-03 | Phase 8: Sharing and Scheduled Reports | Pending |
+| I18N-01 | Phase 9: Internationalization | Pending |
+| I18N-02 | Phase 9: Internationalization | Pending |
+| I18N-03 | Phase 9: Internationalization | Pending |
+| I18N-04 | Phase 9: Internationalization | Pending |
+| CONN-01 | Phase 10: Connector Packaging | Pending |
+| CONN-02 | Phase 10: Connector Packaging | Pending |
+| CONN-03 | Phase 10: Connector Packaging | Pending |
+| CONN-04 | Phase 10: Connector Packaging | Pending |
+| CONN-05 | Phase 10: Connector Packaging | Pending |
 
 **Coverage:**
-- v1 requirements: 49 total
-- Mapped to phases: 0
-- Unmapped: 49
+- v1 requirements: 51 total
+- Mapped to phases: 51
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after initial definition*
+*Last updated: 2026-03-18 after roadmap creation*
