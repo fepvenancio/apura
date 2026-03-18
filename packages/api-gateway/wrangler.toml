@@ -31,3 +31,7 @@ service = "apura-ws"
 [[queues.producers]]
 binding = "EMAIL_QUEUE"
 queue = "email-outbound"
+
+[[r2_buckets]]
+binding = "REPORTS_BUCKET"
+bucket_name = "apura-reports"

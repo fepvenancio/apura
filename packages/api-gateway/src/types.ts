@@ -9,6 +9,7 @@ export interface Env {
   INTERNAL_SECRET: string;
   REPORT_QUEUE: Queue;
   EMAIL_QUEUE: Queue;
+  REPORTS_BUCKET: R2Bucket;
   STRIPE_SECRET_KEY: string;
   STRIPE_PUBLISHABLE_KEY?: string;
   STRIPE_WEBHOOK_SECRET: string;
