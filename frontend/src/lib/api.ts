@@ -408,6 +408,15 @@ class ApiClient {
   async updateReport(id: string, data: Partial<Report>): Promise<Report> {
     return this.request<Report>("PATCH", `/reports/${id}`, data);
   }
+
+  // GDPR
+  async requestDataExport(): Promise<{ success: boolean; message: string }> {
+    return this.request<{ success: boolean; message: string }>("POST", "/api/gdpr/export");
+  }
+
+  async requestAccountDeletion(): Promise<{ success: boolean; message: string }> {
+    return this.request<{ success: boolean; message: string }>("DELETE", "/api/gdpr/erasure");
+  }
 }
 
 export const api = new ApiClient();

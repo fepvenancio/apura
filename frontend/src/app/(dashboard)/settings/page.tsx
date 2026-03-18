@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { OrgSettings } from "@/lib/types";
+import { useAuthStore } from "@/stores/auth-store";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,6 +37,16 @@ export default function OrgSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // GDPR state
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const { user, logout } = useAuthStore();
+  const router = useRouter();
 
   useEffect(() => {
     api
@@ -150,6 +162,113 @@ export default function OrgSettingsPage() {
                   Guardar
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+
+          {/* GDPR - Data Export */}
+          <Card className="mt-6">
+            <CardHeader>
+              <h3 className="text-sm font-semibold">Dados Pessoais</h3>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-[13px] text-muted mb-3">
+                  Pode solicitar uma copia de todos os seus dados pessoais.
+                  Receberá um email com o link de download.
+                </p>
+                {exportMessage && (
+                  <div className="rounded-md bg-success/10 border border-success/20 px-3 py-2.5 text-[13px] text-success mb-3">
+                    {exportMessage}
+                  </div>
+                )}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  isLoading={exportLoading}
+                  onClick={async () => {
+                    setExportLoading(true);
+                    try {
+                      const result = await api.requestDataExport();
+                      setExportMessage(result.message);
+                    } catch {
+                      setExportMessage(
+                        "Erro ao solicitar exportacao. Tente novamente."
+                      );
+                    } finally {
+                      setExportLoading(false);
+                    }
+                  }}
+                >
+                  Exportar Dados
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* GDPR - Danger Zone */}
+          <Card className="mt-6 border-danger/30">
+            <CardHeader>
+              <h3 className="text-sm font-semibold text-danger">
+                Zona de Perigo
+              </h3>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-[13px] text-muted">
+                A eliminacao da conta e irreversivel. Todos os seus dados,
+                consultas, relatorios e dashboards serao permanentemente
+                eliminados.
+              </p>
+              {!showDeleteConfirm ? (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  Eliminar Conta
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-[13px] text-muted">
+                    Para confirmar, escreva o seu email:{" "}
+                    <strong className="text-foreground">{user?.email}</strong>
+                  </p>
+                  <Input
+                    placeholder="Escreva o seu email para confirmar"
+                    value={deleteConfirm}
+                    onChange={(e) => setDeleteConfirm(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      isLoading={deleteLoading}
+                      disabled={deleteConfirm !== user?.email}
+                      onClick={async () => {
+                        setDeleteLoading(true);
+                        try {
+                          await api.requestAccountDeletion();
+                          logout();
+                          router.push("/");
+                        } catch {
+                          setDeleteLoading(false);
+                        }
+                      }}
+                    >
+                      Confirmar Eliminacao
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setShowDeleteConfirm(false);
+                        setDeleteConfirm("");
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ) : (
