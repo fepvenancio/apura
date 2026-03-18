@@ -10,6 +10,8 @@ import org from './routes/org';
 import schema from './routes/schema';
 import dashboards from './routes/dashboards';
 import schedules from './routes/schedules';
+import webhooks from './routes/webhooks';
+import billing from './routes/billing';
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -67,8 +69,16 @@ app.use('/auth/*', async (c, next) => {
   return next();
 });
 
+// Webhook CORS (Stripe needs to POST, no auth)
+app.use('/webhooks/*', cors({
+  origin: '*',
+  allowMethods: ['POST'],
+  allowHeaders: ['Content-Type', 'Stripe-Signature'],
+}));
+
 // Public routes
 app.route('/auth', auth);
+app.route('/webhooks', webhooks);
 
 // Protected routes (auth required)
 app.use('/api/*', authMiddleware);
@@ -78,6 +88,7 @@ app.route('/api/org', org);
 app.route('/api/schema', schema);
 app.route('/api/dashboards', dashboards);
 app.route('/api/schedules', schedules);
+app.route('/api/billing', billing);
 
 // 404 handler
 app.notFound((c) =>
