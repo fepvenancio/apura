@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-03-18T22:23:25.320Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-18T22:24:05.538Z"
 progress:
   total_phases: 10
   completed_phases: 3
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -52,6 +52,7 @@ Plan: 2 of 3
 | Phase 03-billing P01 | 4min | 2 tasks | 11 files |
 | Phase 03-billing P02 | 5min | 2 tasks | 5 files |
 | Phase 04-gdpr-compliance P02 | 2min | 2 tasks | 6 files |
+| Phase 04-gdpr-compliance P01 | 3min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,9 @@ Recent decisions affecting current work:
 - [Phase 03-billing]: Price IDs from NEXT_PUBLIC_STRIPE_PRICE_* env vars for test/prod separation
 - [Phase 03-billing]: getBilling() route updated from /org/billing to /api/billing to match Plan 01 backend
 - [Phase 04-gdpr-compliance]: Retention cleanup runs on every cron trigger via db.batch() for atomic DELETE+UPDATE
+- [Phase 04-gdpr-compliance]: No FK on consent_log.user_id so consent records survive user deletion (compliance evidence)
+- [Phase 04-gdpr-compliance]: No KV session cleanup during erasure -- auth middleware rejects deleted users via D1 lookup
+- [Phase 04-gdpr-compliance]: Sole-owner org erasure deletes org-scoped tables; multi-member org erasure only deletes user data
 
 ### Pending Todos
 
@@ -86,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T22:23:25.318Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-03-18T22:24:05.536Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None

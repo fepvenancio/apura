@@ -67,9 +67,9 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 ### GDPR
 
-- [ ] **GDPR-01**: Right-to-erasure endpoint cascade-deletes all user PII across all tables and KV/R2
-- [ ] **GDPR-02**: Data export endpoint generates JSON of all user PII, stores in R2, emails download link
-- [ ] **GDPR-03**: Consent logging tracks terms/privacy acceptance with version, IP, and timestamp
+- [x] **GDPR-01**: Right-to-erasure endpoint cascade-deletes all user PII across all tables and KV/R2
+- [x] **GDPR-02**: Data export endpoint generates JSON of all user PII, stores in R2, emails download link
+- [x] **GDPR-03**: Consent logging tracks terms/privacy acceptance with version, IP, and timestamp
 - [x] **GDPR-04**: DPA (Data Processing Agreement) page hosted on site
 - [x] **GDPR-05**: Data retention policy enforced via cron-worker cleanup (queries 12mo, audit 24mo)
 - [x] **GDPR-06**: Privacy policy updated to list sub-processors (Cloudflare, Anthropic, Resend, Stripe)
@@ -162,9 +162,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BILL-04 | Phase 3: Billing | Complete |
 | BILL-05 | Phase 3: Billing | Complete |
 | BILL-06 | Phase 3: Billing | Complete |
-| GDPR-01 | Phase 4: GDPR Compliance | Pending |
-| GDPR-02 | Phase 4: GDPR Compliance | Pending |
-| GDPR-03 | Phase 4: GDPR Compliance | Pending |
+| GDPR-01 | Phase 4: GDPR Compliance | Complete |
+| GDPR-02 | Phase 4: GDPR Compliance | Complete |
+| GDPR-03 | Phase 4: GDPR Compliance | Complete |
 | GDPR-04 | Phase 4: GDPR Compliance | Complete |
 | GDPR-05 | Phase 4: GDPR Compliance | Complete |
 | GDPR-06 | Phase 4: GDPR Compliance | Complete |
