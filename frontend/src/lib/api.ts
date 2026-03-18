@@ -374,6 +374,14 @@ class ApiClient {
     return this.request<void>("POST", "/auth/forgot-password", { email });
   }
 
+  async resetPassword(token: string, password: string): Promise<void> {
+    return this.request<void>("POST", "/auth/reset-password", { token, password });
+  }
+
+  async verifyEmail(token: string): Promise<void> {
+    return this.request<void>("POST", "/auth/verify-email", { token });
+  }
+
   // Billing
   async getBilling(): Promise<BillingInfo> {
     return this.request<BillingInfo>("GET", "/org/billing");
