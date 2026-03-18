@@ -2,6 +2,18 @@ import type { Env } from './types';
 import { ConnectorSession } from './connector-session';
 import { validateAgentApiKey } from './auth/agent-auth';
 
+/**
+ * Timing-safe string comparison to prevent timing attacks on secret values.
+ * Uses crypto.subtle.timingSafeEqual which is available in Workers runtime and Node.js 20+.
+ */
+async function timingSafeCompare(a: string, b: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const bufA = encoder.encode(a);
+  const bufB = encoder.encode(b);
+  if (bufA.byteLength !== bufB.byteLength) return false;
+  return crypto.subtle.timingSafeEqual(bufA, bufB);
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     try {
@@ -42,9 +54,9 @@ export default {
       });
     }
 
-    // Authenticate internal endpoints
+    // Authenticate internal endpoints with timing-safe comparison
     const internalSecret = request.headers.get('X-Internal-Secret');
-    if (internalSecret !== env.INTERNAL_SECRET) {
+    if (!internalSecret || !(await timingSafeCompare(internalSecret, env.INTERNAL_SECRET))) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

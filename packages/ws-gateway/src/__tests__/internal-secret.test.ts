@@ -1,41 +1,42 @@
 import { describe, it, expect } from 'vitest';
+import { timingSafeEqual } from 'node:crypto';
 
 /**
  * BUG-04: Internal secret header must be compared using timing-safe comparison.
  *
  * We test the timingSafeCompare helper directly and verify that ws-gateway
  * source code uses it instead of string equality.
+ *
+ * Note: In Workers runtime, crypto.subtle.timingSafeEqual is used.
+ * In Node.js tests, we use the equivalent node:crypto.timingSafeEqual.
+ * The logic is identical -- compare fixed-length buffers in constant time.
  */
-
-// Import or re-implement the timingSafeCompare function for testing
-// Since the function will be defined in index.ts, we test it via a standalone copy
-// that mirrors the implementation
-async function timingSafeCompare(a: string, b: string): Promise<boolean> {
+function timingSafeCompare(a: string, b: string): boolean {
   const encoder = new TextEncoder();
   const bufA = encoder.encode(a);
   const bufB = encoder.encode(b);
   if (bufA.byteLength !== bufB.byteLength) return false;
-  return crypto.subtle.timingSafeEqual(bufA, bufB);
+  return timingSafeEqual(bufA, bufB);
 }
 
 describe('BUG-04: timing-safe internal secret comparison', () => {
-  it('returns true when header value matches secret', async () => {
-    const result = await timingSafeCompare('my-secret-value', 'my-secret-value');
+  it('returns true when header value matches secret', () => {
+    const result = timingSafeCompare('my-secret-value', 'my-secret-value');
     expect(result).toBe(true);
   });
 
-  it('returns false when header value does NOT match secret', async () => {
-    const result = await timingSafeCompare('wrong-secret', 'my-secret-value');
+  it('returns false when header value does NOT match secret', () => {
+    const result = timingSafeCompare('wrong-secret', 'my-secret-value');
     expect(result).toBe(false);
   });
 
-  it('returns false when strings have different lengths (no crash)', async () => {
-    const result = await timingSafeCompare('short', 'much-longer-secret-value');
+  it('returns false when strings have different lengths (no crash)', () => {
+    const result = timingSafeCompare('short', 'much-longer-secret-value');
     expect(result).toBe(false);
   });
 
-  it('returns false for empty string vs non-empty', async () => {
-    const result = await timingSafeCompare('', 'secret');
+  it('returns false for empty string vs non-empty', () => {
+    const result = timingSafeCompare('', 'secret');
     expect(result).toBe(false);
   });
 
