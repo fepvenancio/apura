@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-03-18T22:33:14.447Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-18T23:17:02.314Z"
 progress:
   total_phases: 10
   completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Users can query their Primavera database using natural language and get accurate, validated SQL results -- without knowing SQL.
-**Current focus:** Phase 04 — gdpr-compliance
+**Current focus:** Phase 05 — mfa
 
 ## Current Position
 
-Phase: 04 (gdpr-compliance) — COMPLETE
-Plan: 3 of 3
+Phase: 05 (mfa) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Plan: 3 of 3
 | Phase 04-gdpr-compliance P02 | 2min | 2 tasks | 6 files |
 | Phase 04-gdpr-compliance P01 | 3min | 3 tasks | 8 files |
 | Phase 04-gdpr-compliance P03 | 2min | 2 tasks | 2 files |
+| Phase 05-mfa P01 | 7min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Recent decisions affecting current work:
 - [Phase 04-gdpr-compliance]: No KV session cleanup during erasure -- auth middleware rejects deleted users via D1 lookup
 - [Phase 04-gdpr-compliance]: Sole-owner org erasure deletes org-scoped tables; multi-member org erasure only deletes user data
 - [Phase 04-gdpr-compliance]: Email confirmation required before account deletion to prevent accidental data loss
+- [Phase 05-mfa]: SHA-256 with per-code salt for backup codes instead of scrypt (high-entropy codes make fast hashing acceptable)
+- [Phase 05-mfa]: HKDF key derivation from JWT_SECRET with salt apura-mfa-v1 for AES-256-GCM TOTP encryption
+- [Phase 05-mfa]: MFA challenge tokens stored as opaque KV strings (not JWTs) with 5-min TTL to prevent half-authenticated token misuse
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T22:27:38.811Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-03-18T23:17:02.312Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None

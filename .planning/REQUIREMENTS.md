@@ -41,11 +41,11 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 ### MFA
 
-- [ ] **MFA-01**: User can enable TOTP-based MFA with QR code setup
-- [ ] **MFA-02**: Login requires 6-digit TOTP code when MFA is enabled (30s window +/- 1 step)
-- [ ] **MFA-03**: 10 single-use backup codes generated on MFA setup, stored hashed
+- [x] **MFA-01**: User can enable TOTP-based MFA with QR code setup
+- [x] **MFA-02**: Login requires 6-digit TOTP code when MFA is enabled (30s window +/- 1 step)
+- [x] **MFA-03**: 10 single-use backup codes generated on MFA setup, stored hashed
 - [ ] **MFA-04**: Org admin can require MFA for all org members
-- [ ] **MFA-05**: Admin can reset MFA for a locked-out user
+- [x] **MFA-05**: Admin can reset MFA for a locked-out user
 
 ### Export
 
@@ -168,11 +168,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GDPR-04 | Phase 4: GDPR Compliance | Complete |
 | GDPR-05 | Phase 4: GDPR Compliance | Complete |
 | GDPR-06 | Phase 4: GDPR Compliance | Complete |
-| MFA-01 | Phase 5: MFA | Pending |
-| MFA-02 | Phase 5: MFA | Pending |
-| MFA-03 | Phase 5: MFA | Pending |
+| MFA-01 | Phase 5: MFA | Complete |
+| MFA-02 | Phase 5: MFA | Complete |
+| MFA-03 | Phase 5: MFA | Complete |
 | MFA-04 | Phase 5: MFA | Pending |
-| MFA-05 | Phase 5: MFA | Pending |
+| MFA-05 | Phase 5: MFA | Complete |
 | SEC-01 | Phase 6: Security Hardening | Pending |
 | SEC-02 | Phase 6: Security Hardening | Pending |
 | EXPORT-01 | Phase 7: Export | Pending |
