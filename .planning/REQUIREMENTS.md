@@ -17,10 +17,10 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 ### CI/CD
 
-- [ ] **CICD-01**: GitHub Actions pipeline runs lint, typecheck, and tests on every push/PR
-- [ ] **CICD-02**: Automated deployment to Cloudflare Workers on merge to main
-- [ ] **CICD-03**: Frontend preview deployments on PRs via Cloudflare Pages
-- [ ] **CICD-04**: D1 migrations run automatically during deployment
+- [x] **CICD-01**: GitHub Actions pipeline runs lint, typecheck, and tests on every push/PR
+- [x] **CICD-02**: Automated deployment to Cloudflare Workers on merge to main
+- [x] **CICD-03**: Frontend preview deployments on PRs via Cloudflare Pages
+- [x] **CICD-04**: D1 migrations run automatically during deployment
 
 ### Email
 
@@ -147,10 +147,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BUG-03 | Phase 1: Bug Fixes and CI/CD | Pending |
 | BUG-04 | Phase 1: Bug Fixes and CI/CD | Pending |
 | BUG-05 | Phase 1: Bug Fixes and CI/CD | Pending |
-| CICD-01 | Phase 1: Bug Fixes and CI/CD | Pending |
-| CICD-02 | Phase 1: Bug Fixes and CI/CD | Pending |
-| CICD-03 | Phase 1: Bug Fixes and CI/CD | Pending |
-| CICD-04 | Phase 1: Bug Fixes and CI/CD | Pending |
+| CICD-01 | Phase 1: Bug Fixes and CI/CD | Complete |
+| CICD-02 | Phase 1: Bug Fixes and CI/CD | Complete |
+| CICD-03 | Phase 1: Bug Fixes and CI/CD | Complete |
+| CICD-04 | Phase 1: Bug Fixes and CI/CD | Complete |
 | MAIL-01 | Phase 2: Email Activation | Pending |
 | MAIL-02 | Phase 2: Email Activation | Pending |
 | MAIL-03 | Phase 2: Email Activation | Pending |
