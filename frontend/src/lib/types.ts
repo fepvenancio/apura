@@ -193,3 +193,18 @@ export interface OrgSettings {
   timezone: string;
   country: string;
 }
+
+// MFA
+export interface MfaSetupResponse {
+  qrCodeDataUrl: string;
+  secret: string;
+}
+
+export interface MfaConfirmResponse {
+  backupCodes: string[];
+}
+
+export interface MfaLoginResponse {
+  mfaRequired: true;
+  mfaToken: string;
+}

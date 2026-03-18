@@ -19,6 +19,8 @@ import type {
   PasswordChange,
   BillingInfo,
   OrgSettings,
+  MfaSetupResponse,
+  MfaConfirmResponse,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.apura.xyz";
@@ -57,6 +59,16 @@ export class ApiError extends Error {
     super(msg);
     this.status = status;
     this.body = body;
+  }
+}
+
+export class MfaRequiredError extends Error {
+  mfaToken: string;
+
+  constructor(mfaToken: string) {
+    super("MFA verification required");
+    this.name = "MfaRequiredError";
+    this.mfaToken = mfaToken;
   }
 }
 
@@ -165,10 +177,14 @@ class ApiClient {
   }
 
   async login(email: string, password: string): Promise<LoginResponse> {
-    const raw = await this.request<RawAuthResponse>("POST", "/auth/login", {
-      email,
-      password,
-    });
+    const raw = await this.request<RawAuthResponse & { mfaRequired?: boolean; mfaToken?: string }>(
+      "POST",
+      "/auth/login",
+      { email, password }
+    );
+    if (raw.mfaRequired && raw.mfaToken) {
+      throw new MfaRequiredError(raw.mfaToken);
+    }
     const result = this.normalizeAuthResponse(raw);
     this.persistAuth(result);
     return result;
@@ -407,6 +423,39 @@ class ApiClient {
   // Report update
   async updateReport(id: string, data: Partial<Report>): Promise<Report> {
     return this.request<Report>("PATCH", `/reports/${id}`, data);
+  }
+
+  // MFA
+  async setupMfa(): Promise<MfaSetupResponse> {
+    return this.request<MfaSetupResponse>("POST", "/api/mfa/setup");
+  }
+
+  async confirmMfa(code: string): Promise<MfaConfirmResponse> {
+    return this.request<MfaConfirmResponse>("POST", "/api/mfa/confirm", { code });
+  }
+
+  async verifyMfa(mfaToken: string, code: string): Promise<LoginResponse> {
+    const raw = await this.request<RawAuthResponse>("POST", "/auth/mfa/verify", {
+      mfaToken,
+      code,
+    });
+    const result = this.normalizeAuthResponse(raw);
+    this.persistAuth(result);
+    return result;
+  }
+
+  async disableMfa(code: string): Promise<void> {
+    return this.request<void>("POST", "/api/mfa/disable", { code });
+  }
+
+  async resetUserMfa(userId: string): Promise<void> {
+    return this.request<void>("DELETE", `/api/mfa/reset/${userId}`);
+  }
+
+  async updateOrgMfaRequired(required: boolean): Promise<OrgSettings> {
+    return this.request<OrgSettings>("PATCH", "/org/settings", {
+      mfa_required: required ? 1 : 0,
+    });
   }
 
   // GDPR
