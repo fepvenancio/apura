@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-03-18T23:55:39.398Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-18T23:56:19.144Z"
 progress:
   total_phases: 10
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -58,6 +58,7 @@ Plan: 2 of 2 (COMPLETE)
 | Phase 05-mfa P02 | 5min | 2 tasks | 7 files |
 | Phase 05-mfa P03 | 3min | 2 tasks | 7 files |
 | Phase 06-security-hardening P02 | 2min | 2 tasks | 5 files |
+| Phase 06-security-hardening P01 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,8 @@ Recent decisions affecting current work:
 - [Phase 05-mfa]: Org enforcement check placed AFTER user.mfa_enabled check so existing MFA users get normal challenge flow
 - [Phase 06-security-hardening]: EphemeralKeySet flag for cross-platform PFX loading (avoids macOS keychain and Linux permission issues)
 - [Phase 06-security-hardening]: SEC-02 implemented by absence -- no ServerCertificateCustomValidationCallback means .NET validates server certs by default
+- [Phase 06-security-hardening]: String comparison for tlsClientAuth fields (certPresented === '1', not truthy) per Cloudflare runtime behavior
+- [Phase 06-security-hardening]: Dual-auth during transition: mTLS preferred, API key fallback for backward compatibility
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T23:55:39.396Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-03-18T23:56:19.143Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
