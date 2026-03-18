@@ -82,11 +82,12 @@ Plans:
   3. User consent for terms and privacy policy is logged with version, IP, and timestamp
   4. DPA page is accessible on the site with current sub-processor list
   5. Stale data (queries older than 12 months, audit logs older than 24 months) is automatically cleaned up
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md -- Backend GDPR infrastructure: D1 migration, erasure service, export service, consent logging, API routes with tests
+- [ ] 04-02-PLAN.md -- DPA page, privacy policy sub-processors, cron-worker data retention cleanup
+- [ ] 04-03-PLAN.md -- Frontend settings: data export and account deletion controls with visual verification
 
 ### Phase 5: MFA
 **Goal**: Users can protect their accounts with TOTP-based multi-factor authentication
@@ -183,7 +184,7 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 | 1. Bug Fixes and CI/CD | 0/2 | Planning complete | - |
 | 2. Email Activation | 1/2 | In Progress|  |
 | 3. Billing | 0/2 | Complete    | 2026-03-18 |
-| 4. GDPR Compliance | 0/? | Not started | - |
+| 4. GDPR Compliance | 0/3 | Planning complete | - |
 | 5. MFA | 0/? | Not started | - |
 | 6. Security Hardening | 0/? | Not started | - |
 | 7. Export | 0/? | Not started | - |
