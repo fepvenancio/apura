@@ -50,11 +50,11 @@ Plans:
   2. New user receives a verification email on signup and can verify their email address
   3. Org admin can invite a user by email and the invitee receives an invitation email
   4. All emails render correctly with proper branding and are delivered via Resend
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md -- Wire api-gateway endpoints to enqueue emails via EMAIL_QUEUE with unit tests
+- [ ] 02-02-PLAN.md -- Create reset-password and verify-email frontend pages
 
 ### Phase 3: Billing
 **Goal**: Organizations can subscribe to paid plans and manage their billing through Stripe
@@ -181,7 +181,7 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Bug Fixes and CI/CD | 0/2 | Planning complete | - |
-| 2. Email Activation | 0/? | Not started | - |
+| 2. Email Activation | 0/2 | Planning complete | - |
 | 3. Billing | 0/? | Not started | - |
 | 4. GDPR Compliance | 0/? | Not started | - |
 | 5. MFA | 0/? | Not started | - |
