@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net.WebSockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using ApuraConnector.Core.Models;
 using ApuraConnector.Core.Serialization;
+using ApuraConnector.Infrastructure.Certificates;
 using ApuraConnector.Infrastructure.Database;
 using Serilog;
 
@@ -61,9 +63,19 @@ public class CloudTunnelService
         _ws.Options.SetRequestHeader("X-Connector-Version", "0.1.0");
         _ws.Options.KeepAliveInterval = TimeSpan.FromSeconds(_config.HeartbeatIntervalSeconds);
 
+        // Add client certificate for mTLS (if configured)
+        var clientCert = CertificateLoader.Load(_config);
+        if (clientCert != null)
+        {
+            _ws.Options.ClientCertificates.Add(clientCert);
+            _logger.Information("Client certificate loaded: {Thumbprint}", clientCert.Thumbprint);
+        }
+
         var uri = new Uri(_config.TunnelEndpoint);
         _logger.Information("Connecting to {Endpoint}...", uri);
 
+        // SEC-02: .NET validates server certificate by default via OS trust store.
+        // DO NOT add ServerCertificateCustomValidationCallback -- it would bypass TLS validation.
         await _ws.ConnectAsync(uri, ct);
         _isConnected = true;
         _logger.Information("Connected to Apura cloud");
