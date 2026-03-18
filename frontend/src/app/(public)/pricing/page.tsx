@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Check } from "lucide-react";
 import { useState } from "react";
+import { api } from "@/lib/api";
 
 const plans = [
   {
@@ -20,6 +20,8 @@ const plans = [
     support: "Email",
     audit: "30 dias",
     popular: false,
+    monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY,
+    annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_ANNUAL,
   },
   {
     name: "Professional",
@@ -36,6 +38,8 @@ const plans = [
     support: "Email (24h)",
     audit: "90 dias",
     popular: true,
+    monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PROFESSIONAL_MONTHLY,
+    annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PROFESSIONAL_ANNUAL,
   },
   {
     name: "Business",
@@ -49,9 +53,11 @@ const plans = [
     schedules: "25",
     ai: "Sonnet",
     overage: "0,06",
-    support: "Prioritário (4h)",
+    support: "Prioritario (4h)",
     audit: "1 ano",
     popular: false,
+    monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_MONTHLY,
+    annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_ANNUAL,
   },
   {
     name: "Enterprise",
@@ -63,16 +69,38 @@ const plans = [
     reports: "Ilimitados",
     dashboards: "Ilimitados",
     schedules: "Ilimitados",
-    ai: "Sonnet + Prioritário",
+    ai: "Sonnet + Prioritario",
     overage: "0,04",
     support: "Dedicado + Onboarding",
     audit: "2 anos",
     popular: false,
+    monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY,
+    annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_ANNUAL,
   },
 ];
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  function isLoggedIn() {
+    if (typeof window === "undefined") return false;
+    return !!localStorage.getItem("accessToken");
+  }
+
+  async function handleCheckout(priceId: string, planName: string) {
+    setLoadingPlan(planName);
+    try {
+      const { url } = await api.createCheckout(priceId);
+      window.location.href = url;
+    } catch {
+      setLoadingPlan(null);
+    }
+  }
+
+  function getPriceId(plan: (typeof plans)[number]) {
+    return annual ? plan.annualPriceId : plan.monthlyPriceId;
+  }
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-16">
@@ -81,7 +109,7 @@ export default function PricingPage() {
           Planos simples e transparentes
         </h1>
         <p className="text-sm text-muted mt-2">
-          Comece com 14 dias grátis. Sem cartão de crédito.
+          Comece com 14 dias gratis. Sem cartao de credito.
         </p>
 
         {/* Toggle */}
@@ -107,88 +135,128 @@ export default function PricingPage() {
       </div>
 
       {/* Plans grid */}
-      <div className="grid grid-cols-4 gap-4">
-        {plans.map((plan) => (
-          <div
-            key={plan.name}
-            className={`rounded-lg border p-5 flex flex-col ${
-              plan.popular
-                ? "border-primary/50 bg-primary/[0.03]"
-                : "border-card-border bg-card"
-            }`}
-          >
-            {plan.popular && (
-              <span className="text-[10px] uppercase tracking-wider font-medium text-primary mb-2">
-                Mais popular
-              </span>
-            )}
-            <h3 className="text-sm font-semibold text-foreground">{plan.name}</h3>
-            <div className="mt-3 flex items-baseline gap-1">
-              <span className="text-3xl font-bold tabular-nums text-foreground">
-                €{annual ? plan.annual : plan.monthly}
-              </span>
-              <span className="text-[13px] text-muted">/mês</span>
-            </div>
-            {annual && (
-              <p className="text-[11px] text-muted mt-1">
-                Facturado anualmente (€{plan.annual * 12}/ano)
-              </p>
-            )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {plans.map((plan) => {
+          const priceId = getPriceId(plan);
+          const loggedIn = isLoggedIn();
+          const isEnterprise = plan.name === "Enterprise";
+          const canCheckout = loggedIn && !isEnterprise && !!priceId;
+          const isLoading = loadingPlan === plan.name;
 
-            <Link
-              href="/signup"
-              className={`mt-5 block rounded-md px-4 py-2 text-center text-[13px] font-medium transition-colors ${
+          return (
+            <div
+              key={plan.name}
+              className={`rounded-lg border p-5 flex flex-col ${
                 plan.popular
-                  ? "bg-primary text-white hover:bg-primary-hover"
-                  : "bg-card border border-card-border text-foreground hover:bg-[#1a1a1a]"
+                  ? "border-primary/50 bg-primary/[0.03]"
+                  : "border-card-border bg-card"
               }`}
             >
-              {plan.name === "Enterprise" ? "Contactar" : "Começar grátis"}
-            </Link>
+              {plan.popular && (
+                <span className="text-[10px] uppercase tracking-wider font-medium text-primary mb-2">
+                  Mais popular
+                </span>
+              )}
+              <h3 className="text-sm font-semibold text-foreground">{plan.name}</h3>
+              <div className="mt-3 flex items-baseline gap-1">
+                <span className="text-3xl font-bold tabular-nums text-foreground">
+                  &euro;{annual ? plan.annual : plan.monthly}
+                </span>
+                <span className="text-[13px] text-muted">/mes</span>
+              </div>
+              {annual && (
+                <p className="text-[11px] text-muted mt-1">
+                  Facturado anualmente (&euro;{plan.annual * 12}/ano)
+                </p>
+              )}
 
-            <div className="mt-5 pt-5 border-t border-card-border space-y-2.5 flex-1">
-              <Row label="Consultas/mês" value={plan.queries} />
-              <Row label="Utilizadores" value={plan.users} />
-              <Row label="Bases de dados" value={plan.connectors} />
-              <Row label="Relatórios guardados" value={plan.reports} />
-              <Row label="Dashboards" value={plan.dashboards} />
-              <Row label="Relatórios agendados" value={plan.schedules} />
-              <Row label="Modelo IA" value={plan.ai} />
-              <Row label="Excedente/consulta" value={`€${plan.overage}`} />
-              <Row label="Suporte" value={plan.support} />
-              <Row label="Registo de auditoria" value={plan.audit} />
+              <p className="text-[11px] text-primary/80 mt-2">
+                14 dias gratis
+              </p>
+
+              {canCheckout ? (
+                <button
+                  onClick={() => handleCheckout(priceId!, plan.name)}
+                  disabled={isLoading}
+                  className={`mt-5 block rounded-md px-4 py-2 text-center text-[13px] font-medium transition-colors cursor-pointer disabled:opacity-50 ${
+                    plan.popular
+                      ? "bg-primary text-white hover:bg-primary-hover"
+                      : "bg-card border border-card-border text-foreground hover:bg-[#1a1a1a]"
+                  }`}
+                >
+                  {isLoading ? "A redirecionar..." : "Fazer upgrade"}
+                </button>
+              ) : loggedIn && !isEnterprise && !priceId ? (
+                <button
+                  disabled
+                  className="mt-5 block rounded-md px-4 py-2 text-center text-[13px] font-medium bg-card border border-card-border text-muted opacity-50 cursor-not-allowed"
+                >
+                  Indisponivel
+                </button>
+              ) : isEnterprise ? (
+                <Link
+                  href="mailto:comercial@apura.pt"
+                  className={`mt-5 block rounded-md px-4 py-2 text-center text-[13px] font-medium transition-colors bg-card border border-card-border text-foreground hover:bg-[#1a1a1a]`}
+                >
+                  Contactar
+                </Link>
+              ) : (
+                <Link
+                  href="/signup"
+                  className={`mt-5 block rounded-md px-4 py-2 text-center text-[13px] font-medium transition-colors ${
+                    plan.popular
+                      ? "bg-primary text-white hover:bg-primary-hover"
+                      : "bg-card border border-card-border text-foreground hover:bg-[#1a1a1a]"
+                  }`}
+                >
+                  Comecar gratis
+                </Link>
+              )}
+
+              <div className="mt-5 pt-5 border-t border-card-border space-y-2.5 flex-1">
+                <Row label="Consultas/mes" value={plan.queries} />
+                <Row label="Utilizadores" value={plan.users} />
+                <Row label="Bases de dados" value={plan.connectors} />
+                <Row label="Relatorios guardados" value={plan.reports} />
+                <Row label="Dashboards" value={plan.dashboards} />
+                <Row label="Relatorios agendados" value={plan.schedules} />
+                <Row label="Modelo IA" value={plan.ai} />
+                <Row label="Excedente/consulta" value={`\u20AC${plan.overage}`} />
+                <Row label="Suporte" value={plan.support} />
+                <Row label="Registo de auditoria" value={plan.audit} />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* FAQ */}
       <section className="mt-20">
         <h2 className="text-lg font-semibold text-foreground mb-6">Perguntas frequentes</h2>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Faq
             q="O que conta como uma consulta?"
-            a="Cada pergunta em linguagem natural que gera e executa uma query SQL conta como uma consulta. Visualizar resultados guardados ou exportar não conta."
+            a="Cada pergunta em linguagem natural que gera e executa uma query SQL conta como uma consulta. Visualizar resultados guardados ou exportar nao conta."
           />
           <Faq
             q="Posso mudar de plano a qualquer momento?"
-            a="Sim. Pode fazer upgrade ou downgrade a qualquer momento. As alterações são aplicadas imediatamente e o valor é ajustado pro-rata."
+            a="Sim. Pode fazer upgrade ou downgrade a qualquer momento. As alteracoes sao aplicadas imediatamente e o valor e ajustado pro-rata."
           />
           <Faq
             q="Os meus dados ficam seguros?"
-            a="As credenciais SQL nunca saem do seu servidor. Os resultados transitam encriptados e não são armazenados na cloud. Apenas SELECT é permitido."
+            a="As credenciais SQL nunca saem do seu servidor. Os resultados transitam encriptados e nao sao armazenados na cloud. Apenas SELECT e permitido."
           />
           <Faq
             q="Preciso de instalar algo?"
-            a="Sim, o Apura Connector — um executável leve que corre como serviço Windows no servidor onde o SQL Server está instalado. Sem dependências externas."
+            a="Sim, o Apura Connector -- um executavel leve que corre como servico Windows no servidor onde o SQL Server esta instalado. Sem dependencias externas."
           />
           <Faq
-            q="Funciona com todas as versões do Primavera?"
-            a="Suportamos Primavera V9, V10 e Evolution. A estrutura da base de dados é standard entre versões."
+            q="Funciona com todas as versoes do Primavera?"
+            a="Suportamos Primavera V9, V10 e Evolution. A estrutura da base de dados e standard entre versoes."
           />
           <Faq
             q="E se ultrapassar o limite de consultas?"
-            a="As consultas adicionais são cobradas ao preço de excedente do seu plano. Sem surpresas — pode ver o consumo em tempo real no dashboard."
+            a="As consultas adicionais sao cobradas ao preco de excedente do seu plano. Sem surpresas -- pode ver o consumo em tempo real no dashboard."
           />
         </div>
       </section>
@@ -203,7 +271,7 @@ function Row({ label, value }: { label: string; value: string | null }) {
       {value ? (
         <span className="text-foreground font-medium">{value}</span>
       ) : (
-        <span className="text-muted/30">—</span>
+        <span className="text-muted/30">&mdash;</span>
       )}
     </div>
   );

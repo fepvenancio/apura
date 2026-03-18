@@ -384,7 +384,15 @@ class ApiClient {
 
   // Billing
   async getBilling(): Promise<BillingInfo> {
-    return this.request<BillingInfo>("GET", "/org/billing");
+    return this.request<BillingInfo>("GET", "/api/billing");
+  }
+
+  async createCheckout(priceId: string): Promise<{ url: string }> {
+    return this.request<{ url: string }>("POST", "/api/billing/checkout", { priceId });
+  }
+
+  async createPortalSession(): Promise<{ url: string }> {
+    return this.request<{ url: string }>("POST", "/api/billing/portal");
   }
 
   // Org settings

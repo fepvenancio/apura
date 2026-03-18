@@ -183,6 +183,7 @@ export interface BillingInfo {
   membersLimit: number;
   billingEmail: string;
   currentPeriodEnd: string;
+  subscriptionStatus: string | null; // 'trialing' | 'active' | 'past_due' | 'canceling' | 'canceled'
 }
 
 // Org settings
