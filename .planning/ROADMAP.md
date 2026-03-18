@@ -66,11 +66,11 @@ Plans:
   3. User can update payment method, view invoices, and cancel subscription via Stripe Customer Portal
   4. Failed payment displays a banner in the UI and account locks only after final retry failure
   5. Cancelled subscription preserves access until the end of the billing period
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md -- Backend billing infrastructure: D1 migration, Stripe service, webhook handler, billing API routes
+- [ ] 03-02-PLAN.md -- Frontend billing UI: pricing page CTAs, billing settings overhaul, payment failure banner
 
 ### Phase 4: GDPR Compliance
 **Goal**: The application meets EU data protection requirements for user data rights and transparency
@@ -182,7 +182,7 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 |-------|----------------|--------|-----------|
 | 1. Bug Fixes and CI/CD | 0/2 | Planning complete | - |
 | 2. Email Activation | 1/2 | In Progress|  |
-| 3. Billing | 0/? | Not started | - |
+| 3. Billing | 0/2 | Planning complete | - |
 | 4. GDPR Compliance | 0/? | Not started | - |
 | 5. MFA | 0/? | Not started | - |
 | 6. Security Hardening | 0/? | Not started | - |
