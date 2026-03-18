@@ -152,6 +152,7 @@ export interface TeamMember {
   email: string;
   role: "owner" | "admin" | "member" | "viewer";
   joinedAt: string;
+  mfa_enabled?: boolean;
 }
 
 export interface Invitation {
@@ -192,6 +193,7 @@ export interface OrgSettings {
   billingEmail: string;
   timezone: string;
   country: string;
+  mfa_required?: boolean;
 }
 
 // MFA

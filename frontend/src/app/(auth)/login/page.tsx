@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
+import { MfaRequiredError } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +24,10 @@ export default function LoginPage() {
       await login(email, password);
       router.push("/home");
     } catch (err) {
+      if (err instanceof MfaRequiredError) {
+        router.push("/login/mfa");
+        return;
+      }
       setError(
         err instanceof Error
           ? err.message

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth-store";
 import type { TeamMember, Invitation } from "@/lib/types";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
-import { Users, Plus, Trash2, X } from "lucide-react";
+import { Users, Plus, Trash2, X, ShieldCheck, ShieldOff } from "lucide-react";
 
 const ROLES = [
   { value: "admin", label: "Admin" },
@@ -25,15 +26,35 @@ export default function TeamPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("member");
   const [inviting, setInviting] = useState(false);
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [togglingMfa, setTogglingMfa] = useState(false);
+  const [resettingMfa, setResettingMfa] = useState<string | null>(null);
+  const userRole = useAuthStore((s) => s.user?.role);
+  const isAdminOrOwner = userRole === "owner" || userRole === "admin";
 
   useEffect(() => {
-    Promise.all([api.getTeamMembers(), api.getInvitations()])
-      .then(([m, i]) => {
+    const load = async () => {
+      try {
+        const [m, i] = await Promise.all([
+          api.getTeamMembers(),
+          api.getInvitations(),
+        ]);
         setMembers(m);
         setInvitations(i);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+        // Load org MFA setting
+        try {
+          const settings = await api.getOrgSettings();
+          setMfaRequired(!!settings.mfa_required);
+        } catch {
+          // Ignore
+        }
+      } catch {
+        // Ignore
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
   const handleInvite = async (e: React.FormEvent) => {
@@ -85,6 +106,39 @@ export default function TeamPage() {
       setInvitations((prev) => prev.filter((i) => i.id !== id));
     } catch {
       // Ignore
+    }
+  };
+
+  const handleToggleMfaRequired = async () => {
+    setTogglingMfa(true);
+    try {
+      await api.updateOrgMfaRequired(!mfaRequired);
+      setMfaRequired(!mfaRequired);
+    } catch {
+      // Ignore
+    } finally {
+      setTogglingMfa(false);
+    }
+  };
+
+  const handleResetMfa = async (userId: string) => {
+    if (
+      !confirm(
+        "Tem certeza que deseja reiniciar o 2FA deste membro?"
+      )
+    ) {
+      return;
+    }
+    setResettingMfa(userId);
+    try {
+      await api.resetUserMfa(userId);
+      // Refresh members to update MFA status
+      const m = await api.getTeamMembers();
+      setMembers(m);
+    } catch {
+      // Ignore
+    } finally {
+      setResettingMfa(null);
     }
   };
 
@@ -158,6 +212,42 @@ export default function TeamPage() {
           </Card>
         )}
 
+        {/* MFA enforcement toggle (admin/owner only) */}
+        {isAdminOrOwner && !loading && (
+          <Card>
+            <CardContent className="py-5">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      Exigir 2FA para todos os membros
+                    </p>
+                    <p className="text-xs text-muted mt-0.5">
+                      Todos os membros terao de configurar autenticacao de dois fatores.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleToggleMfaRequired}
+                  disabled={togglingMfa}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer ${
+                    mfaRequired ? "bg-primary" : "bg-card-border"
+                  } ${togglingMfa ? "opacity-50" : ""}`}
+                  role="switch"
+                  aria-checked={mfaRequired}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      mfaRequired ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted">
             <p className="text-sm">A carregar...</p>
@@ -187,6 +277,9 @@ export default function TeamPage() {
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
                           Funcao
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                          2FA
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
                           Desde
@@ -227,19 +320,40 @@ export default function TeamPage() {
                               </select>
                             )}
                           </td>
+                          <td className="px-6 py-3">
+                            {member.mfa_enabled ? (
+                              <ShieldCheck className="h-4 w-4 text-success" />
+                            ) : (
+                              <ShieldOff className="h-4 w-4 text-muted/40" />
+                            )}
+                          </td>
                           <td className="px-6 py-3 text-xs text-muted">
                             {formatDate(member.joinedAt)}
                           </td>
                           <td className="px-6 py-3 text-right">
-                            {member.role !== "owner" && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveMember(member.id)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5 text-danger" />
-                              </Button>
-                            )}
+                            <div className="flex items-center justify-end gap-1">
+                              {isAdminOrOwner &&
+                                member.role !== "owner" &&
+                                member.mfa_enabled && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleResetMfa(member.id)}
+                                    disabled={resettingMfa === member.id}
+                                  >
+                                    <ShieldOff className="h-3.5 w-3.5 text-warning" />
+                                  </Button>
+                                )}
+                              {member.role !== "owner" && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveMember(member.id)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 text-danger" />
+                                </Button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
