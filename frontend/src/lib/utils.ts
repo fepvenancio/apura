@@ -16,19 +16,24 @@ export function formatCurrency(value: number, locale: string = "pt-PT"): string 
   }).format(value);
 }
 
-export function formatDate(date: string | Date, locale: string = "pt-PT"): string {
+export function formatDate(date: string | Date | null | undefined, locale: string = "pt-PT"): string {
+  if (!date) return "\u2014";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "\u2014";
   return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(date));
+  }).format(d);
 }
 
-export function formatRelativeDate(date: string | Date, locale: string = "pt-PT"): string {
+export function formatRelativeDate(date: string | Date | null | undefined, locale: string = "pt-PT"): string {
+  if (!date) return "\u2014";
   const now = new Date();
   const d = new Date(date);
+  if (isNaN(d.getTime())) return "\u2014";
   const diffMs = now.getTime() - d.getTime();
   const diffSec = Math.floor(diffMs / 1000);
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
