@@ -131,7 +131,10 @@ export default function ConnectorPage() {
             <h3 className="text-sm font-semibold">{t("download")}</h3>
           </CardHeader>
           <CardContent>
-            <Button variant="primary">
+            <Button
+              variant="primary"
+              onClick={() => window.open("https://api.apura.xyz/connector/download/ApuraConnector-1.0.0.msi", "_blank")}
+            >
               <Download className="h-4 w-4" />
               {t("downloadButton")}
             </Button>
