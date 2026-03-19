@@ -223,10 +223,9 @@ class ApiClient {
     });
 
     if (!res.ok) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
-      localStorage.removeItem("org");
+      // Don't clear localStorage here — transient failures (KV lag,
+      // network blips) would destroy a valid session. Let the dashboard
+      // layout handle redirect when tokens are truly gone.
       throw new ApiError(401, { message: "Refresh failed" });
     }
 

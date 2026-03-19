@@ -373,16 +373,19 @@ auth.post('/refresh', async (c) => {
     return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid refresh token' } }, 401);
   }
 
-  // Check session validity
+  // Check session validity (skip for fresh tokens — KV eventual consistency)
   const sessionKey = `session:${payload.jti}`;
-  const session = await c.env.CACHE.get(sessionKey);
-  if (!session) {
-    return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Refresh token expired or revoked' } }, 401);
-  }
+  const tokenAge = Math.floor(Date.now() / 1000) - payload.iat;
+  if (tokenAge > 60) {
+    const session = await c.env.CACHE.get(sessionKey);
+    if (!session) {
+      return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Refresh token expired or revoked' } }, 401);
+    }
 
-  const sessionData = JSON.parse(session);
-  if (sessionData.type !== 'refresh') {
-    return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid token type' } }, 401);
+    const sessionData = JSON.parse(session);
+    if (sessionData.type !== 'refresh') {
+      return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid token type' } }, 401);
+    }
   }
 
   // Get current user data (role may have changed)
