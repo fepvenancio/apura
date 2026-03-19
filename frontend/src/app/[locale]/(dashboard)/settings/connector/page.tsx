@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
-import { Copy, Check, Download } from "lucide-react";
+import { Copy, Check, Download, RefreshCw } from "lucide-react";
+import { api } from "@/lib/api";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 
@@ -20,20 +21,37 @@ export default function ConnectorPage() {
     useConnectorStore();
   const [copied, setCopied] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [fullKey, setFullKey] = useState<string | null>(null);
 
   useEffect(() => {
     checkStatus();
   }, [checkStatus]);
 
-  const maskedKey = agentApiKey
-    ? `${agentApiKey.slice(0, 8)}${"*".repeat(24)}${agentApiKey.slice(-4)}`
+  const displayKey = fullKey || agentApiKey;
+  const maskedKey = displayKey
+    ? `${displayKey.slice(0, 16)}${"*".repeat(Math.max(0, displayKey.length - 20))}${displayKey.slice(-4)}`
     : "\u2014";
 
   const handleCopyKey = async () => {
-    if (!agentApiKey) return;
-    await navigator.clipboard.writeText(agentApiKey);
+    if (!displayKey) return;
+    await navigator.clipboard.writeText(displayKey);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleRegenerate = async () => {
+    if (!confirm(t("regenerateConfirm"))) return;
+    setRegenerating(true);
+    try {
+      const result = await api.regenerateApiKey();
+      setFullKey(result.agentApiKey);
+      setShowKey(true);
+    } catch {
+      // Ignore
+    } finally {
+      setRegenerating(false);
+    }
   };
 
   return (
@@ -71,7 +89,7 @@ export default function ConnectorPage() {
           <CardContent>
             <div className="flex items-center gap-2">
               <code className="flex-1 rounded-lg bg-[#0d0d0d] border border-card-border px-3 py-2 text-sm font-mono text-foreground">
-                {showKey ? agentApiKey || "\u2014" : maskedKey}
+                {showKey ? displayKey || "\u2014" : maskedKey}
               </code>
               <Button
                 variant="secondary"
@@ -86,6 +104,22 @@ export default function ConnectorPage() {
                 ) : (
                   <Copy className="h-3.5 w-3.5" />
                 )}
+              </Button>
+            </div>
+            {fullKey && (
+              <p className="text-xs text-warning mt-2">
+                {t("regenerateWarning")}
+              </p>
+            )}
+            <div className="mt-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleRegenerate}
+                isLoading={regenerating}
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                {t("regenerate")}
               </Button>
             </div>
           </CardContent>

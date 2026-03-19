@@ -7,6 +7,7 @@ import { rateLimitMiddleware } from '../middleware/rate-limit';
 import { OrgDatabase } from '../services/org-db';
 import { hashPassword } from '../utils/password';
 import { generateJti } from '../utils/jwt';
+import { generateApiKey } from '../utils/api-key';
 
 const org = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -154,6 +155,31 @@ org.get('/connector-status', async (c) => {
       data: { status: 'disconnected', lastSeen: null, agentApiKey },
     });
   }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/org/regenerate-api-key — Generate a new agent API key
+// ---------------------------------------------------------------------------
+org.post('/regenerate-api-key', requireRole('owner'), async (c) => {
+  const orgId = c.get('orgId');
+  const orgDb = new OrgDatabase(c.env.DB, orgId);
+
+  const apiKey = await generateApiKey();
+
+  await c.env.DB
+    .prepare('UPDATE organizations SET agent_api_key = ?, agent_api_key_hash = ?, updated_at = ? WHERE id = ?')
+    .bind(apiKey.prefix, apiKey.hash, new Date().toISOString(), orgId)
+    .run();
+
+  await orgDb.logAudit('api_key.regenerate', 'organization', orgId, undefined, c.req.header('CF-Connecting-IP'));
+
+  return c.json({
+    success: true,
+    data: {
+      agentApiKey: apiKey.key,
+      agentApiKeyPrefix: apiKey.prefix,
+    },
+  });
 });
 
 // ---------------------------------------------------------------------------

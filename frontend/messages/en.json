@@ -386,7 +386,10 @@
     "step1": "Download the Apura Connector using the button above.",
     "step2": "Install on the Windows Server where SQL Server is running. The installer creates an automatic Windows service.",
     "step3": "During setup, enter the API key shown above.",
-    "step4": "After installation, the connector will appear as \"Connected\" on this page."
+    "step4": "After installation, the connector will appear as \"Connected\" on this page.",
+    "regenerate": "Regenerate key",
+    "regenerateConfirm": "Are you sure? The current key will be invalidated and the connector will need to be reconfigured.",
+    "regenerateWarning": "Copy this key now — it won't be shown again. The previous connector will stop working."
   },
   "billing": {
     "title": "Billing",

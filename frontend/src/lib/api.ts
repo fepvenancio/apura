@@ -294,6 +294,10 @@ class ApiClient {
     return this.request<ConnectorStatus>("GET", "/api/org/connector-status");
   }
 
+  async regenerateApiKey(): Promise<{ agentApiKey: string; agentApiKeyPrefix: string }> {
+    return this.request<{ agentApiKey: string; agentApiKeyPrefix: string }>("POST", "/api/org/regenerate-api-key");
+  }
+
   // Dashboards
   async getDashboards(): Promise<Dashboard[]> {
     const res = await this.request<{ items: Dashboard[] }>("GET", "/api/dashboards");

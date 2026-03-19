@@ -386,7 +386,10 @@
     "step1": "Descarregue o Apura Connector usando o botao acima.",
     "step2": "Instale no Windows Server onde o SQL Server esta a correr. O instalador cria um servico Windows automatico.",
     "step3": "Durante a configuracao, introduza a chave de API mostrada acima.",
-    "step4": "Apos instalacao, o conector aparecera como \"Ligado\" nesta pagina."
+    "step4": "Apos instalacao, o conector aparecera como \"Ligado\" nesta pagina.",
+    "regenerate": "Regenerar chave",
+    "regenerateConfirm": "Tem certeza? A chave atual sera invalidada e o conector tera de ser reconfigurado.",
+    "regenerateWarning": "Copie esta chave agora — nao sera mostrada novamente. O conector anterior deixara de funcionar."
   },
   "billing": {
     "title": "Faturacao",
