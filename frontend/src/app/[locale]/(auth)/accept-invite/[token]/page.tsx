@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function AcceptInvitePage() {
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const params = useParams();
   const router = useRouter();
   const token = params.token as string;
@@ -22,11 +25,11 @@ export default function AcceptInvitePage() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("As palavras-passe nao coincidem.");
+      setError(t("resetPasswordMismatch"));
       return;
     }
     if (password.length < 8) {
-      setError("A palavra-passe deve ter pelo menos 8 caracteres.");
+      setError(t("resetPasswordTooShort"));
       return;
     }
 
@@ -38,12 +41,12 @@ export default function AcceptInvitePage() {
         org: result.org,
         isAuthenticated: true,
       });
-      router.push("/home");
+      router.push(`/${locale}/home`);
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Erro ao aceitar convite. O link pode ter expirado."
+          : t("acceptInviteError")
       );
     } finally {
       setLoading(false);
@@ -57,14 +60,13 @@ export default function AcceptInvitePage() {
           apura<span className="text-primary">.</span>
         </div>
         <p className="text-[13px] text-muted mt-1.5">
-          Aceitar convite
+          {t("acceptInviteTitle")}
         </p>
       </div>
 
       <div className="rounded-lg border border-card-border bg-card p-6">
         <p className="text-sm text-muted mb-4">
-          Foi convidado para uma organizacao. Preencha os dados abaixo
-          para criar a sua conta.
+          {t("acceptInviteText")}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -75,29 +77,29 @@ export default function AcceptInvitePage() {
           )}
 
           <Input
-            label="Nome"
+            label={t("acceptInviteName")}
             type="text"
-            placeholder="Joao Silva"
+            placeholder={t("acceptInviteNamePlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
 
           <Input
-            label="Palavra-passe"
+            label={t("acceptInvitePassword")}
             type="password"
-            placeholder="Minimo 8 caracteres"
+            placeholder={t("acceptInvitePasswordPlaceholder")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="new-password"
-            description="Minimo 8 caracteres"
+            description={t("acceptInvitePasswordHint")}
           />
 
           <Input
-            label="Confirmar palavra-passe"
+            label={t("acceptInviteConfirm")}
             type="password"
-            placeholder="Repita a palavra-passe"
+            placeholder={t("acceptInviteConfirmPlaceholder")}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
@@ -110,7 +112,7 @@ export default function AcceptInvitePage() {
             className="w-full"
             size="md"
           >
-            Aceitar convite e criar conta
+            {t("acceptInviteSubmit")}
           </Button>
         </form>
       </div>

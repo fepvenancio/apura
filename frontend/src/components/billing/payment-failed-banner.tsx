@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { AlertTriangle, X } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -9,6 +10,7 @@ import { api } from "@/lib/api";
  * Rendered conditionally by billing page based on subscription status.
  */
 export function PaymentFailedBanner() {
+  const t = useTranslations("billing");
   const [dismissed, setDismissed] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -30,8 +32,7 @@ export function PaymentFailedBanner() {
         <div className="flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 shrink-0 text-amber-400 mt-0.5" />
           <p className="text-sm text-amber-400">
-            Pagamento falhado. Atualize o seu metodo de pagamento para evitar a
-            suspensao da conta.
+            {t("paymentFailed")}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -40,12 +41,12 @@ export function PaymentFailedBanner() {
             disabled={loading}
             className="rounded-md bg-amber-500/20 px-3 py-1.5 text-xs font-medium text-amber-400 hover:bg-amber-500/30 transition-colors disabled:opacity-50 cursor-pointer"
           >
-            {loading ? "A redirecionar..." : "Atualizar pagamento"}
+            {loading ? t("redirecting") : t("updatePayment")}
           </button>
           <button
             onClick={() => setDismissed(true)}
             className="rounded-md p-1 text-amber-400/60 hover:text-amber-400 hover:bg-amber-500/20 transition-colors cursor-pointer"
-            aria-label="Fechar"
+            aria-label={t("updatePayment")}
           >
             <X className="h-4 w-4" />
           </button>

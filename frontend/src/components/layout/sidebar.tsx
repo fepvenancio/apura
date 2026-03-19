@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useConnectorStore } from "@/stores/connector-store";
 import {
@@ -21,26 +22,28 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-const navItems = [
-  { href: "/home", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/query", label: "Consultas", icon: Search },
-  { href: "/history", label: "Histórico", icon: History },
-  { href: "/reports", label: "Relatórios", icon: FileBarChart },
-  { href: "/dashboards", label: "Dashboards", icon: BarChart3 },
-  { href: "/schema", label: "Esquema", icon: Database },
-  { href: "/schedules", label: "Agendamentos", icon: Clock },
+const navKeys = [
+  { path: "/home", key: "dashboard", icon: LayoutDashboard },
+  { path: "/query", key: "queries", icon: Search },
+  { path: "/history", key: "history", icon: History },
+  { path: "/reports", key: "reports", icon: FileBarChart },
+  { path: "/dashboards", key: "dashboards", icon: BarChart3 },
+  { path: "/schema", key: "schema", icon: Database },
+  { path: "/schedules", key: "schedules", icon: Clock },
 ];
 
-const settingsItems = [
-  { href: "/settings/team", label: "Equipa", icon: Users },
-  { href: "/settings/connector", label: "Conector", icon: Plug },
-  { href: "/settings/billing", label: "Faturação", icon: CreditCard },
-  { href: "/settings/profile", label: "Perfil", icon: User },
+const settingsKeys = [
+  { path: "/settings/team", key: "team", icon: Users },
+  { path: "/settings/connector", key: "connector", icon: Plug },
+  { path: "/settings/billing", key: "billing", icon: CreditCard },
+  { path: "/settings/profile", key: "profile", icon: User },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const t = useTranslations("nav");
+  const locale = useLocale();
   const connectorStatus = useConnectorStore((s) => s.status);
 
   return (
@@ -55,7 +58,7 @@ export function Sidebar() {
         {/* Logo */}
         <div className="flex h-14 items-center justify-between border-b border-card-border px-4">
           {!collapsed && (
-            <Link href="/" className="text-lg font-bold text-primary">
+            <Link href={`/${locale}`} className="text-lg font-bold text-primary">
               Apura
             </Link>
           )}
@@ -74,24 +77,26 @@ export function Sidebar() {
         {/* Main nav */}
         <nav className="flex-1 overflow-y-auto px-2 py-3">
           <div className="space-y-0.5">
-            {navItems.map((item) => {
+            {navKeys.map((item) => {
+              const href = `/${locale}${item.path}`;
+              const label = t(item.key);
               const isActive =
-                pathname === item.href ||
-                (item.href !== "/" && pathname.startsWith(item.href));
+                pathname === href ||
+                (item.path !== "/" && pathname.startsWith(href));
               return (
                 <Link
-                  key={item.href}
-                  href={item.href}
+                  key={item.path}
+                  href={href}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary/10 text-primary"
                       : "text-muted hover:bg-[#1a1a1a] hover:text-foreground"
                   )}
-                  title={collapsed ? item.label : undefined}
+                  title={collapsed ? label : undefined}
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
-                  {!collapsed && <span>{item.label}</span>}
+                  {!collapsed && <span>{label}</span>}
                 </Link>
               );
             })}
@@ -101,26 +106,28 @@ export function Sidebar() {
           <div className="mt-6">
             {!collapsed && (
               <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted">
-                Definições
+                {t("settings")}
               </p>
             )}
             <div className="space-y-0.5">
-              {settingsItems.map((item) => {
-                const isActive = pathname.startsWith(item.href);
+              {settingsKeys.map((item) => {
+                const href = `/${locale}${item.path}`;
+                const label = t(item.key);
+                const isActive = pathname.startsWith(href);
                 return (
                   <Link
-                    key={item.href}
-                    href={item.href}
+                    key={item.path}
+                    href={href}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "text-muted hover:bg-[#1a1a1a] hover:text-foreground"
                     )}
-                    title={collapsed ? item.label : undefined}
+                    title={collapsed ? label : undefined}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
-                    {!collapsed && <span>{item.label}</span>}
+                    {!collapsed && <span>{label}</span>}
                   </Link>
                 );
               })}
@@ -144,10 +151,10 @@ export function Sidebar() {
             {!collapsed && (
               <span className="text-xs text-muted">
                 {connectorStatus === "connected"
-                  ? "Conector ligado"
+                  ? t("connectorConnected")
                   : connectorStatus === "checking"
-                  ? "A verificar..."
-                  : "Conector desligado"}
+                  ? t("connectorChecking")
+                  : t("connectorDisconnected")}
               </span>
             )}
           </div>

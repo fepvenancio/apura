@@ -3,12 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { MfaRequiredError } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -24,19 +27,19 @@ export default function LoginPage() {
       await login(email, password);
       // Check if org requires MFA setup — redirect to security settings
       if (useAuthStore.getState().mfaSetupRequired) {
-        router.push("/settings/security");
+        router.push(`/${locale}/settings/security`);
         return;
       }
-      router.push("/home");
+      router.push(`/${locale}/home`);
     } catch (err) {
       if (err instanceof MfaRequiredError) {
-        router.push("/login/mfa");
+        router.push(`/${locale}/login/mfa`);
         return;
       }
       setError(
         err instanceof Error
           ? err.message
-          : "Email ou palavra-passe incorretos."
+          : t("loginError")
       );
     } finally {
       setLoading(false);
@@ -50,7 +53,7 @@ export default function LoginPage() {
           apura<span className="text-primary">.</span>
         </div>
         <p className="text-[13px] text-muted mt-1.5">
-          Inicie sessão na sua conta
+          {t("loginTitle")}
         </p>
       </div>
 
@@ -63,9 +66,9 @@ export default function LoginPage() {
           )}
 
           <Input
-            label="Email"
+            label={t("loginEmail")}
             type="email"
-            placeholder="nome@empresa.pt"
+            placeholder={t("loginEmailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -73,9 +76,9 @@ export default function LoginPage() {
           />
 
           <Input
-            label="Palavra-passe"
+            label={t("loginPassword")}
             type="password"
-            placeholder="A sua palavra-passe"
+            placeholder={t("loginPasswordPlaceholder")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -88,18 +91,18 @@ export default function LoginPage() {
             className="w-full"
             size="md"
           >
-            Entrar
+            {t("loginSubmit")}
           </Button>
         </form>
       </div>
 
       <p className="text-center text-[13px] text-muted mt-5">
-        Não tem conta?{" "}
+        {t("noAccount")}{" "}
         <Link
-          href="/signup"
+          href={`/${locale}/signup`}
           className="text-foreground hover:text-primary transition-colors"
         >
-          Criar conta
+          {t("createAccount")}
         </Link>
       </p>
     </div>

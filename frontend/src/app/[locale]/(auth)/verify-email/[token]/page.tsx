@@ -3,9 +3,12 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import { api } from "@/lib/api";
 
 export default function VerifyEmailPage() {
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const params = useParams();
   const token = params.token as string;
   const [loading, setLoading] = useState(true);
@@ -20,7 +23,7 @@ export default function VerifyEmailPage() {
         await api.verifyEmail(token);
         if (!cancelled) setSuccess(true);
       } catch {
-        if (!cancelled) setError("Link de verificacao invalido ou expirado.");
+        if (!cancelled) setError(t("verifyEmailError"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -30,7 +33,7 @@ export default function VerifyEmailPage() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, t]);
 
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -39,7 +42,7 @@ export default function VerifyEmailPage() {
           apura<span className="text-primary">.</span>
         </div>
         <p className="text-[13px] text-muted mt-1.5">
-          Verificacao de email
+          {t("verifyEmailTitle")}
         </p>
       </div>
 
@@ -47,7 +50,7 @@ export default function VerifyEmailPage() {
         {loading && (
           <div className="text-center py-4">
             <p className="text-sm text-muted">
-              A verificar o seu email...
+              {t("verifyEmailLoading")}
             </p>
           </div>
         )}
@@ -55,10 +58,10 @@ export default function VerifyEmailPage() {
         {success && (
           <div className="text-center py-4">
             <div className="rounded-md bg-success/10 border border-success/20 px-3 py-2.5 text-[13px] text-success mb-4">
-              Email verificado com sucesso!
+              {t("verifyEmailSuccess")}
             </div>
             <p className="text-sm text-muted">
-              A sua conta esta agora verificada. Pode iniciar sessao.
+              {t("verifyEmailSuccessText")}
             </p>
           </div>
         )}
@@ -69,7 +72,7 @@ export default function VerifyEmailPage() {
               {error}
             </div>
             <p className="text-sm text-muted">
-              Tente solicitar um novo link de verificacao.
+              {t("verifyEmailErrorText")}
             </p>
           </div>
         )}
@@ -77,10 +80,10 @@ export default function VerifyEmailPage() {
 
       <p className="text-center text-[13px] text-muted mt-5">
         <Link
-          href="/login"
+          href={`/${locale}/login`}
           className="text-foreground hover:text-primary transition-colors"
         >
-          Voltar ao login
+          {t("backToLogin")}
         </Link>
       </p>
     </div>

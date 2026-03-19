@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { ApiError } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function MfaVerifyPage() {
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,9 +22,9 @@ export default function MfaVerifyPage() {
 
   useEffect(() => {
     if (!pendingMfaToken) {
-      router.push("/login");
+      router.push(`/${locale}/login`);
     }
-  }, [pendingMfaToken, router]);
+  }, [pendingMfaToken, router, locale]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,20 +33,20 @@ export default function MfaVerifyPage() {
     setLoading(true);
     try {
       await verifyMfa(code.trim());
-      router.push("/home");
+      router.push(`/${locale}/home`);
     } catch (err) {
       if (err instanceof ApiError) {
         const body = err.body;
         if (typeof body === "string" && body.includes("MFA_LOCKED")) {
           setLocked(true);
-          setError("Demasiadas tentativas. Inicie sessao novamente.");
+          setError(t("mfaLocked"));
           return;
         }
       }
       setError(
         err instanceof Error
           ? err.message
-          : "Codigo invalido. Tente novamente."
+          : t("mfaInvalid")
       );
     } finally {
       setLoading(false);
@@ -53,7 +55,7 @@ export default function MfaVerifyPage() {
 
   const handleBackToLogin = () => {
     clearMfaPending();
-    router.push("/login");
+    router.push(`/${locale}/login`);
   };
 
   if (!pendingMfaToken) return null;
@@ -65,14 +67,13 @@ export default function MfaVerifyPage() {
           apura<span className="text-primary">.</span>
         </div>
         <p className="text-[13px] text-muted mt-1.5">
-          Verificacao em duas etapas
+          {t("mfaTitle")}
         </p>
       </div>
 
       <div className="rounded-lg border border-card-border bg-card p-6">
         <p className="text-sm text-muted mb-4">
-          Insira o codigo de 6 digitos da sua app de autenticacao ou um codigo
-          de recuperacao.
+          {t("mfaText")}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -83,9 +84,9 @@ export default function MfaVerifyPage() {
           )}
 
           <Input
-            label="Codigo"
+            label={t("mfaCode")}
             type="text"
-            placeholder="000000"
+            placeholder={t("mfaCodePlaceholder")}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             required
@@ -102,7 +103,7 @@ export default function MfaVerifyPage() {
               size="md"
               onClick={handleBackToLogin}
             >
-              Voltar ao login
+              {t("backToLogin")}
             </Button>
           ) : (
             <Button
@@ -111,7 +112,7 @@ export default function MfaVerifyPage() {
               className="w-full"
               size="md"
             >
-              Verificar
+              {t("mfaVerify")}
             </Button>
           )}
         </form>
@@ -119,13 +120,13 @@ export default function MfaVerifyPage() {
 
       <div className="mt-5 space-y-2 text-center">
         <p className="text-[13px] text-muted">
-          Perdeu acesso ao autenticador? Use um codigo de recuperacao.
+          {t("mfaLostAccess")}
         </p>
         <button
           onClick={handleBackToLogin}
           className="text-[13px] text-foreground hover:text-primary transition-colors"
         >
-          Voltar ao login
+          {t("backToLogin")}
         </button>
       </div>
     </div>

@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { slugify } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function SignupPage() {
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,10 +35,10 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signup({ name, email, password, orgName, slug });
-      router.push("/home");
+      router.push(`/${locale}/home`);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Erro ao criar conta."
+        err instanceof Error ? err.message : t("signupError")
       );
     } finally {
       setLoading(false);
@@ -49,7 +52,7 @@ export default function SignupPage() {
           apura<span className="text-primary">.</span>
         </div>
         <p className="text-[13px] text-muted mt-1.5">
-          Criar uma nova conta
+          {t("signupTitle")}
         </p>
       </div>
 
@@ -62,18 +65,18 @@ export default function SignupPage() {
           )}
 
           <Input
-            label="Nome"
+            label={t("signupName")}
             type="text"
-            placeholder="João Silva"
+            placeholder={t("signupNamePlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
 
           <Input
-            label="Email"
+            label={t("signupEmail")}
             type="email"
-            placeholder="nome@empresa.pt"
+            placeholder={t("signupEmailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -81,36 +84,36 @@ export default function SignupPage() {
           />
 
           <Input
-            label="Palavra-passe"
+            label={t("signupPassword")}
             type="password"
-            placeholder="Mínimo 8 caracteres"
+            placeholder={t("signupPasswordPlaceholder")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="new-password"
-            description="Mínimo 8 caracteres"
+            description={t("signupPasswordHint")}
           />
 
           <Input
-            label="Organização"
+            label={t("signupOrg")}
             type="text"
-            placeholder="Empresa Lda."
+            placeholder={t("signupOrgPlaceholder")}
             value={orgName}
             onChange={(e) => setOrgName(e.target.value)}
             required
           />
 
           <Input
-            label="Identificador"
+            label={t("signupSlug")}
             type="text"
-            placeholder="empresa-lda"
+            placeholder={t("signupSlugPlaceholder")}
             value={slug}
             onChange={(e) => {
               setSlug(e.target.value);
               setSlugManual(true);
             }}
             required
-            description="URL: apura.xyz/org/{slug}"
+            description={t("signupSlugHint", { slug })}
           />
 
           <Button
@@ -119,18 +122,18 @@ export default function SignupPage() {
             className="w-full"
             size="md"
           >
-            Criar conta
+            {t("signupSubmit")}
           </Button>
         </form>
       </div>
 
       <p className="text-center text-[13px] text-muted mt-5">
-        Já tem conta?{" "}
+        {t("hasAccount")}{" "}
         <Link
-          href="/login"
+          href={`/${locale}/login`}
           className="text-foreground hover:text-primary transition-colors"
         >
-          Entrar
+          {t("login")}
         </Link>
       </p>
     </div>

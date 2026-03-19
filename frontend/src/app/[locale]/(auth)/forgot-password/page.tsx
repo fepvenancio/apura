@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -20,7 +23,7 @@ export default function ForgotPasswordPage() {
       await api.forgotPassword(email);
       setSent(true);
     } catch {
-      setError("Erro ao enviar email de recuperacao.");
+      setError(t("forgotPasswordError"));
     } finally {
       setLoading(false);
     }
@@ -33,7 +36,7 @@ export default function ForgotPasswordPage() {
           apura<span className="text-primary">.</span>
         </div>
         <p className="text-[13px] text-muted mt-1.5">
-          Recuperar palavra-passe
+          {t("forgotPasswordTitle")}
         </p>
       </div>
 
@@ -41,11 +44,10 @@ export default function ForgotPasswordPage() {
         {sent ? (
           <div className="text-center py-4">
             <div className="rounded-md bg-success/10 border border-success/20 px-3 py-2.5 text-[13px] text-success mb-4">
-              Email de recuperacao enviado com sucesso.
+              {t("forgotPasswordSuccess")}
             </div>
             <p className="text-sm text-muted">
-              Verifique a sua caixa de entrada e siga as instrucoes
-              para redefinir a sua palavra-passe.
+              {t("forgotPasswordSuccessText")}
             </p>
           </div>
         ) : (
@@ -57,14 +59,13 @@ export default function ForgotPasswordPage() {
             )}
 
             <p className="text-sm text-muted">
-              Introduza o seu email e enviaremos um link para redefinir
-              a sua palavra-passe.
+              {t("forgotPasswordText")}
             </p>
 
             <Input
-              label="Email"
+              label={t("loginEmail")}
               type="email"
-              placeholder="nome@empresa.pt"
+              placeholder={t("loginEmailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -77,7 +78,7 @@ export default function ForgotPasswordPage() {
               className="w-full"
               size="md"
             >
-              Enviar email de recuperacao
+              {t("forgotPasswordSubmit")}
             </Button>
           </form>
         )}
@@ -85,10 +86,10 @@ export default function ForgotPasswordPage() {
 
       <p className="text-center text-[13px] text-muted mt-5">
         <Link
-          href="/login"
+          href={`/${locale}/login`}
           className="text-foreground hover:text-primary transition-colors"
         >
-          Voltar ao login
+          {t("backToLogin")}
         </Link>
       </p>
     </div>

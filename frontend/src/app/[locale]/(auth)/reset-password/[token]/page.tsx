@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const params = useParams();
   const token = params.token as string;
   const [password, setPassword] = useState("");
@@ -21,11 +24,11 @@ export default function ResetPasswordPage() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("As palavras-passe nao coincidem.");
+      setError(t("resetPasswordMismatch"));
       return;
     }
     if (password.length < 8) {
-      setError("A palavra-passe deve ter pelo menos 8 caracteres.");
+      setError(t("resetPasswordTooShort"));
       return;
     }
 
@@ -34,7 +37,7 @@ export default function ResetPasswordPage() {
       await api.resetPassword(token, password);
       setSuccess(true);
     } catch {
-      setError("Token invalido ou expirado. Solicite um novo link.");
+      setError(t("resetPasswordError"));
     } finally {
       setLoading(false);
     }
@@ -47,7 +50,7 @@ export default function ResetPasswordPage() {
           apura<span className="text-primary">.</span>
         </div>
         <p className="text-[13px] text-muted mt-1.5">
-          Redefinir palavra-passe
+          {t("resetPasswordTitle")}
         </p>
       </div>
 
@@ -55,10 +58,10 @@ export default function ResetPasswordPage() {
         {success ? (
           <div className="text-center py-4">
             <div className="rounded-md bg-success/10 border border-success/20 px-3 py-2.5 text-[13px] text-success mb-4">
-              Palavra-passe redefinida com sucesso.
+              {t("resetPasswordSuccess")}
             </div>
             <p className="text-sm text-muted">
-              Pode agora iniciar sessao com a sua nova palavra-passe.
+              {t("resetPasswordSuccessText")}
             </p>
           </div>
         ) : (
@@ -70,24 +73,24 @@ export default function ResetPasswordPage() {
             )}
 
             <p className="text-sm text-muted">
-              Introduza a sua nova palavra-passe.
+              {t("resetPasswordText")}
             </p>
 
             <Input
-              label="Nova palavra-passe"
+              label={t("resetPasswordNew")}
               type="password"
-              placeholder="Minimo 8 caracteres"
+              placeholder={t("resetPasswordNewPlaceholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="new-password"
-              description="Minimo 8 caracteres"
+              description={t("resetPasswordNewHint")}
             />
 
             <Input
-              label="Confirmar palavra-passe"
+              label={t("resetPasswordConfirm")}
               type="password"
-              placeholder="Repita a palavra-passe"
+              placeholder={t("resetPasswordConfirmPlaceholder")}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -100,7 +103,7 @@ export default function ResetPasswordPage() {
               className="w-full"
               size="md"
             >
-              Redefinir palavra-passe
+              {t("resetPasswordSubmit")}
             </Button>
           </form>
         )}
@@ -108,10 +111,10 @@ export default function ResetPasswordPage() {
 
       <p className="text-center text-[13px] text-muted mt-5">
         <Link
-          href="/login"
+          href={`/${locale}/login`}
           className="text-foreground hover:text-primary transition-colors"
         >
-          Voltar ao login
+          {t("backToLogin")}
         </Link>
       </p>
     </div>

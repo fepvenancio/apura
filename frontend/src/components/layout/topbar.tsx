@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { useRouter } from "next/navigation";
 import { LogOut, Settings, User } from "lucide-react";
@@ -12,6 +13,8 @@ interface TopbarProps {
 }
 
 export function Topbar({ title, queriesUsed, queriesLimit }: TopbarProps) {
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
@@ -30,7 +33,7 @@ export function Topbar({ title, queriesUsed, queriesLimit }: TopbarProps) {
 
   const handleLogout = () => {
     logout();
-    router.push("/login");
+    router.push(`/${locale}/login`);
   };
 
   const usagePercent =
@@ -67,7 +70,7 @@ export function Topbar({ title, queriesUsed, queriesLimit }: TopbarProps) {
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-semibold">
               {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
-            <span className="hidden sm:inline">{user?.name || "Utilizador"}</span>
+            <span className="hidden sm:inline">{user?.name || t("profileMenu")}</span>
           </button>
 
           {menuOpen && (
@@ -75,22 +78,22 @@ export function Topbar({ title, queriesUsed, queriesLimit }: TopbarProps) {
               <button
                 onClick={() => {
                   setMenuOpen(false);
-                  router.push("/settings/profile");
+                  router.push(`/${locale}/settings/profile`);
                 }}
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted hover:bg-[#1a1a1a] hover:text-foreground transition-colors cursor-pointer"
               >
                 <User className="h-4 w-4" />
-                Perfil
+                {t("profileMenu")}
               </button>
               <button
                 onClick={() => {
                   setMenuOpen(false);
-                  router.push("/settings/connector");
+                  router.push(`/${locale}/settings/connector`);
                 }}
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted hover:bg-[#1a1a1a] hover:text-foreground transition-colors cursor-pointer"
               >
                 <Settings className="h-4 w-4" />
-                Definições
+                {t("settingsMenu")}
               </button>
               <div className="my-1 border-t border-card-border" />
               <button
@@ -98,7 +101,7 @@ export function Topbar({ title, queriesUsed, queriesLimit }: TopbarProps) {
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/10 transition-colors cursor-pointer"
               >
                 <LogOut className="h-4 w-4" />
-                Sair
+                {t("logout")}
               </button>
             </div>
           )}
