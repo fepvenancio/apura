@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ResultPanel } from "@/components/query/result-panel";
 import { formatRelativeDate } from "@/lib/utils";
-import { Play, Save, Download, Pencil, X } from "lucide-react";
+import { downloadCsv } from "@/lib/csv";
+import { Play, Save, Download, Pencil, X, Printer } from "lucide-react";
 
 export default function ReportDetailPage() {
   const params = useParams();
@@ -64,29 +65,6 @@ export default function ReportDetailPage() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleExportCsv = () => {
-    if (!result) return;
-    const headers = result.columns.map((c) => c.name).join(",");
-    const rows = result.rows
-      .map((row) =>
-        result.columns
-          .map((c) => {
-            const val = row[c.name];
-            return typeof val === "string" ? `"${val.replace(/"/g, '""')}"` : val;
-          })
-          .join(",")
-      )
-      .join("\n");
-    const csv = `${headers}\n${rows}`;
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${report?.name || "report"}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -177,10 +155,16 @@ export default function ReportDetailPage() {
             Executar relatorio
           </Button>
           {result && (
-            <Button variant="secondary" onClick={handleExportCsv}>
-              <Download className="h-4 w-4" />
-              Exportar CSV
-            </Button>
+            <>
+              <Button variant="secondary" onClick={() => downloadCsv(result.columns, result.rows, `${report?.name || "report"}.csv`)}>
+                <Download className="h-4 w-4" />
+                Exportar CSV
+              </Button>
+              <Button variant="secondary" onClick={() => window.open(`/reports/${id}/print`, '_blank')}>
+                <Printer className="h-4 w-4" />
+                Imprimir
+              </Button>
+            </>
           )}
         </div>
 

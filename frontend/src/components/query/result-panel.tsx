@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { QueryResult } from "@/lib/types";
+import { downloadCsv } from "@/lib/csv";
 import { ResultTable } from "./result-table";
 import { ResultChart } from "./result-chart";
 import { ResultSql } from "./result-sql";
@@ -25,34 +26,6 @@ const tabs: { id: TabId; label: string }[] = [
 
 export function ResultPanel({ result }: ResultPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>("tabela");
-
-  const handleExportCSV = useCallback(() => {
-    if (!result.columns.length || !result.rows.length) return;
-
-    const header = result.columns.map((c) => c.name).join(",");
-    const rows = result.rows.map((row) =>
-      result.columns
-        .map((col) => {
-          const val = row[col.name];
-          if (val == null) return "";
-          const str = String(val);
-          if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-            return `"${str.replace(/"/g, '""')}"`;
-          }
-          return str;
-        })
-        .join(",")
-    );
-
-    const csv = [header, ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `apura-resultado-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }, [result]);
 
   return (
     <Card className="mt-6">
@@ -79,7 +52,7 @@ export function ResultPanel({ result }: ResultPanelProps) {
             <Save className="h-3.5 w-3.5" />
             Guardar como Relatório
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleExportCSV}>
+          <Button variant="ghost" size="sm" onClick={() => downloadCsv(result.columns, result.rows, `apura-resultado-${new Date().toISOString().slice(0, 10)}.csv`)}>
             <Download className="h-3.5 w-3.5" />
             Exportar CSV
           </Button>
