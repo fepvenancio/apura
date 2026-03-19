@@ -75,8 +75,8 @@ export class OrgDatabase {
 
     await this.db
       .prepare(
-        `INSERT INTO queries (id, org_id, user_id, natural_language, generated_sql, explanation, status, row_count, execution_time_ms, error_message, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO queries (id, org_id, user_id, natural_language, generated_sql, explanation, status, row_count, execution_time_ms, error_message, ai_model, ai_tokens_used, result_preview, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
@@ -89,7 +89,9 @@ export class OrgDatabase {
         query.row_count ?? null,
         query.execution_time_ms ?? null,
         query.error_message ?? null,
-        now,
+        (query as Record<string, unknown>).ai_model ?? null,
+        (query as Record<string, unknown>).ai_tokens_used ?? null,
+        (query as Record<string, unknown>).result_preview ?? null,
         now,
       )
       .run();
@@ -136,8 +138,6 @@ export class OrgDatabase {
 
     if (fields.length === 0) return;
 
-    fields.push('updated_at = ?');
-    values.push(new Date().toISOString());
     values.push(queryId);
     values.push(this.orgId);
 
