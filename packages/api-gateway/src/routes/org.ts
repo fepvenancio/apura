@@ -118,6 +118,12 @@ org.get('/usage', async (c) => {
 // ---------------------------------------------------------------------------
 org.get('/connector-status', async (c) => {
   const orgId = c.get('orgId');
+  // Get the API key prefix to show on the connector page
+  const keyRow = await c.env.DB
+    .prepare('SELECT agent_api_key FROM organizations WHERE id = ?')
+    .bind(orgId)
+    .first<{ agent_api_key: string | null }>();
+  const agentApiKey = keyRow?.agent_api_key ?? null;
 
   try {
     const response = await c.env.WS_GATEWAY.fetch(
@@ -130,7 +136,7 @@ org.get('/connector-status', async (c) => {
     if (!response.ok) {
       return c.json({
         success: true,
-        data: { status: 'disconnected', lastSeen: null },
+        data: { status: 'disconnected', lastSeen: null, agentApiKey },
       });
     }
 
@@ -141,11 +147,11 @@ org.get('/connector-status', async (c) => {
       version?: string;
     }>();
 
-    return c.json({ success: true, data: status });
+    return c.json({ success: true, data: { ...status, agentApiKey } });
   } catch {
     return c.json({
       success: true,
-      data: { status: 'disconnected', lastSeen: null },
+      data: { status: 'disconnected', lastSeen: null, agentApiKey },
     });
   }
 });
