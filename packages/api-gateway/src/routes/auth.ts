@@ -22,8 +22,9 @@ const REFRESH_TOKEN_TTL = 7 * 24 * 3600;
 auth.post('/signup', async (c) => {
   const body = await c.req.json<SignupRequest>();
 
-  // Validate input
-  if (!body.email || !body.password || !body.organizationName || !body.slug) {
+  // Validate input — accept both orgName and organizationName for backward compatibility
+  const organizationName = body.organizationName || (body as any).orgName;
+  if (!body.email || !body.password || !organizationName || !body.slug) {
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Missing required fields: email, password, organizationName, slug' } }, 400);
   }
 
@@ -73,8 +74,7 @@ auth.post('/signup', async (c) => {
   const trialLimits = PLAN_LIMITS.trial;
 
   // Create org + user in D1 (batch for atomicity)
-  const orgName = body.organizationName || (body as any).orgName || 'My Organization';
-  if (orgName.length > 100) {
+  if (organizationName.length > 100) {
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Organization name too long (max 100 chars)' } }, 400);
   }
 
@@ -84,7 +84,7 @@ auth.post('/signup', async (c) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(
       orgId,
-      orgName,
+      organizationName,
       body.slug,
       'trial',
       'V10',
@@ -174,7 +174,7 @@ auth.post('/signup', async (c) => {
       expiresIn: ACCESS_TOKEN_TTL,
       org: {
         id: orgId,
-        name: body.organizationName,
+        name: organizationName,
         slug: body.slug,
         plan: 'trial',
         agentApiKey: apiKey.key, // Show full key only on signup

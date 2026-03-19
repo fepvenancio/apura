@@ -8,15 +8,16 @@
 set -euo pipefail
 
 ENV="${1:-dev}"
-DB_NAME="apura-${ENV}"
+DB_NAME="apura-main"
 MIGRATIONS_DIR="$(cd "$(dirname "$0")/../migrations" && pwd)"
+WRANGLER_CONFIG="$(cd "$(dirname "$0")/../packages/api-gateway" && pwd)/wrangler.toml"
 
 echo "==> Migrating D1 database: ${DB_NAME} (env: ${ENV})"
 echo "==> Migrations directory: ${MIGRATIONS_DIR}"
 
 # Ensure the _migrations tracking table exists
 echo "==> Ensuring _migrations table exists..."
-npx wrangler d1 execute "${DB_NAME}" --command "CREATE TABLE IF NOT EXISTS _migrations (
+npx wrangler d1 execute "${DB_NAME}" --config "${WRANGLER_CONFIG}" --command "CREATE TABLE IF NOT EXISTS _migrations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
   applied_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -24,7 +25,7 @@ npx wrangler d1 execute "${DB_NAME}" --command "CREATE TABLE IF NOT EXISTS _migr
 
 # Get list of already-applied migrations
 echo "==> Checking applied migrations..."
-APPLIED=$(npx wrangler d1 execute "${DB_NAME}" --command "SELECT name FROM _migrations ORDER BY id;" --json 2>/dev/null | \
+APPLIED=$(npx wrangler d1 execute "${DB_NAME}" --config "${WRANGLER_CONFIG}" --command "SELECT name FROM _migrations ORDER BY id;" --json 2>/dev/null | \
   node -e "
     const input = require('fs').readFileSync('/dev/stdin','utf8');
     try {
@@ -58,16 +59,16 @@ for MIGRATION_FILE in "${MIGRATIONS_DIR}"/*.sql; do
   if ! grep -qvE '^\s*(--|$)' "${MIGRATION_FILE}"; then
     echo "    [skip] ${MIGRATION_NAME} (empty / comments only)"
     # Still record it so we don't check again
-    npx wrangler d1 execute "${DB_NAME}" --command "INSERT INTO _migrations (name) VALUES ('${MIGRATION_NAME}');"
+    npx wrangler d1 execute "${DB_NAME}" --config "${WRANGLER_CONFIG}" --command "INSERT INTO _migrations (name) VALUES ('${MIGRATION_NAME}');"
     SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
     continue
   fi
 
   echo "    [apply] ${MIGRATION_NAME}..."
-  npx wrangler d1 execute "${DB_NAME}" --file "${MIGRATION_FILE}"
+  npx wrangler d1 execute "${DB_NAME}" --config "${WRANGLER_CONFIG}" --file "${MIGRATION_FILE}"
 
   # Record successful migration
-  npx wrangler d1 execute "${DB_NAME}" --command "INSERT INTO _migrations (name) VALUES ('${MIGRATION_NAME}');"
+  npx wrangler d1 execute "${DB_NAME}" --config "${WRANGLER_CONFIG}" --command "INSERT INTO _migrations (name) VALUES ('${MIGRATION_NAME}');"
 
   APPLIED_NOW=$((APPLIED_NOW + 1))
   echo "    [done] ${MIGRATION_NAME}"
