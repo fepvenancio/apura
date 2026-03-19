@@ -2,41 +2,54 @@
 
 import Link from "next/link";
 import { Database, Shield, Zap, BarChart3, Clock, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 export default function HomePage() {
+  const t = useTranslations("landing");
+  const locale = useLocale();
+
+  const features = [
+    { icon: Database, title: t("featureReadOnly"), desc: t("featureReadOnlyDesc") },
+    { icon: Shield, title: t("featureLocalData"), desc: t("featureLocalDataDesc") },
+    { icon: Zap, title: t("featureFastResponses"), desc: t("featureFastResponsesDesc") },
+    { icon: BarChart3, title: t("featureAutoCharts"), desc: t("featureAutoChartsDesc") },
+    { icon: Clock, title: t("featureScheduledReports"), desc: t("featureScheduledReportsDesc") },
+    { icon: Users, title: t("featureTeamPermissions"), desc: t("featureTeamPermissionsDesc") },
+  ];
+
   return (
     <main>
       {/* Hero */}
       <section className="mx-auto max-w-5xl px-6 pt-20 pb-16">
         <div className="max-w-2xl">
           <p className="text-[13px] font-medium text-primary mb-4">
-            Para utilizadores de Primavera ERP
+            {t("heroSubtitle")}
           </p>
           <h1 className="text-4xl font-bold tracking-tight text-foreground leading-tight">
-            Pergunte em português.
+            {t("heroTitle")}
             <br />
-            <span className="text-muted">Receba relatórios instantâneos.</span>
+            <span className="text-muted">{t("heroTitleHighlight")}</span>
           </h1>
           <p className="mt-5 text-base text-muted leading-relaxed max-w-lg">
-            Conecte a sua base de dados Primavera e faça perguntas em linguagem natural.
-            A IA gera as queries SQL, executa-as em segurança e devolve gráficos e tabelas em segundos.
+            {t("heroDescription")}
           </p>
           <div className="mt-8 flex items-center gap-3">
             <Link
-              href="/signup"
+              href={`/${locale}/signup`}
               className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
             >
-              Começar grátis
+              {t("heroCta")}
             </Link>
             <Link
-              href="/pricing"
+              href={`/${locale}/pricing`}
               className="rounded-md border border-card-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-card transition-colors"
             >
-              Ver preços
+              {t("heroPricing")}
             </Link>
           </div>
           <p className="mt-4 text-[12px] text-muted/60">
-            14 dias grátis. Sem cartão de crédito.
+            {t("heroTrialText")}
           </p>
         </div>
       </section>
@@ -58,12 +71,12 @@ export default function HomePage() {
           {/* Query demo */}
           <div className="p-5">
             <div className="rounded-md border border-card-border bg-background px-4 py-3 text-sm text-foreground/80">
-              Top 10 clientes por faturação em 2025
+              {t("demoQuery")}
             </div>
             <div className="mt-4 flex items-center gap-3 text-[12px] text-muted">
               <span className="flex items-center gap-1">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
-                25 resultados
+                {t("demoResults")}
               </span>
               <span>·</span>
               <span>230ms</span>
@@ -76,23 +89,23 @@ export default function HomePage() {
                 <thead>
                   <tr className="border-b border-card-border bg-background">
                     <th className="px-4 py-2 text-left font-medium text-muted">#</th>
-                    <th className="px-4 py-2 text-left font-medium text-muted">Cliente</th>
-                    <th className="px-4 py-2 text-right font-medium text-muted">Faturação</th>
-                    <th className="px-4 py-2 text-right font-medium text-muted">Nº Docs</th>
+                    <th className="px-4 py-2 text-left font-medium text-muted">{t("demoTableClient")}</th>
+                    <th className="px-4 py-2 text-right font-medium text-muted">{t("demoTableBilling")}</th>
+                    <th className="px-4 py-2 text-right font-medium text-muted">{t("demoTableDocs")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-card-border">
                   {[
-                    { n: 1, name: "Construções Atlântico Lda", val: "1.245.000", docs: 342 },
+                    { n: 1, name: "Construcoes Atlantico Lda", val: "1.245.000", docs: 342 },
                     { n: 2, name: "TechPort Solutions SA", val: "987.500", docs: 198 },
-                    { n: 3, name: "Distribuição Global SARL", val: "756.200", docs: 267 },
-                    { n: 4, name: "Metalúrgica do Norte Lda", val: "623.800", docs: 145 },
-                    { n: 5, name: "Agro-Indústria Sul SA", val: "512.300", docs: 189 },
+                    { n: 3, name: "Distribuicao Global SARL", val: "756.200", docs: 267 },
+                    { n: 4, name: "Metalurgica do Norte Lda", val: "623.800", docs: 145 },
+                    { n: 5, name: "Agro-Industria Sul SA", val: "512.300", docs: 189 },
                   ].map((row) => (
                     <tr key={row.n} className="hover:bg-[#111]">
                       <td className="px-4 py-2 text-muted tabular-nums">{row.n}</td>
                       <td className="px-4 py-2 text-foreground">{row.name}</td>
-                      <td className="px-4 py-2 text-right text-foreground font-mono tabular-nums">{row.val} €</td>
+                      <td className="px-4 py-2 text-right text-foreground font-mono tabular-nums">{row.val} EUR</td>
                       <td className="px-4 py-2 text-right text-muted tabular-nums">{row.docs}</td>
                     </tr>
                   ))}
@@ -106,32 +119,29 @@ export default function HomePage() {
       {/* How it works */}
       <section className="border-t border-card-border py-20">
         <div className="mx-auto max-w-5xl px-6">
-          <h2 className="text-xl font-semibold text-foreground mb-2">Como funciona</h2>
-          <p className="text-sm text-muted mb-10">Três passos para começar a analisar os seus dados.</p>
+          <h2 className="text-xl font-semibold text-foreground mb-2">{t("howItWorksTitle")}</h2>
+          <p className="text-sm text-muted mb-10">{t("howItWorksSubtitle")}</p>
 
           <div className="grid grid-cols-3 gap-6">
             <div className="rounded-lg border border-card-border p-5">
-              <div className="text-[11px] uppercase tracking-wider text-primary font-medium mb-3">1. Instalar</div>
-              <h3 className="text-sm font-medium text-foreground mb-1.5">Connector no servidor</h3>
+              <div className="text-[11px] uppercase tracking-wider text-primary font-medium mb-3">{t("step1Label")}</div>
+              <h3 className="text-sm font-medium text-foreground mb-1.5">{t("step1Title")}</h3>
               <p className="text-[13px] text-muted leading-relaxed">
-                Instale o Apura Connector no servidor Windows onde o SQL Server corre.
-                Um executável, sem dependências.
+                {t("step1Text")}
               </p>
             </div>
             <div className="rounded-lg border border-card-border p-5">
-              <div className="text-[11px] uppercase tracking-wider text-primary font-medium mb-3">2. Conectar</div>
-              <h3 className="text-sm font-medium text-foreground mb-1.5">Ligação segura automática</h3>
+              <div className="text-[11px] uppercase tracking-wider text-primary font-medium mb-3">{t("step2Label")}</div>
+              <h3 className="text-sm font-medium text-foreground mb-1.5">{t("step2Title")}</h3>
               <p className="text-[13px] text-muted leading-relaxed">
-                O Connector estabelece um túnel encriptado para a cloud. Sem abrir portas,
-                sem configurar firewalls.
+                {t("step2Text")}
               </p>
             </div>
             <div className="rounded-lg border border-card-border p-5">
-              <div className="text-[11px] uppercase tracking-wider text-primary font-medium mb-3">3. Perguntar</div>
-              <h3 className="text-sm font-medium text-foreground mb-1.5">Pergunte em português</h3>
+              <div className="text-[11px] uppercase tracking-wider text-primary font-medium mb-3">{t("step3Label")}</div>
+              <h3 className="text-sm font-medium text-foreground mb-1.5">{t("step3Title")}</h3>
               <p className="text-[13px] text-muted leading-relaxed">
-                Escreva a pergunta no browser. A IA gera o SQL, executa na sua base de dados
-                e devolve o resultado com gráficos.
+                {t("step3Text")}
               </p>
             </div>
           </div>
@@ -141,18 +151,11 @@ export default function HomePage() {
       {/* Features */}
       <section className="border-t border-card-border py-20">
         <div className="mx-auto max-w-5xl px-6">
-          <h2 className="text-xl font-semibold text-foreground mb-2">Feito para Primavera</h2>
-          <p className="text-sm text-muted mb-10">A IA conhece todas as tabelas do Primavera. Vendas, compras, contabilidade, RH, stocks.</p>
+          <h2 className="text-xl font-semibold text-foreground mb-2">{t("featuresTitle")}</h2>
+          <p className="text-sm text-muted mb-10">{t("featuresSubtitle")}</p>
 
           <div className="grid grid-cols-3 gap-4">
-            {[
-              { icon: Database, title: "Acesso só de leitura", desc: "A base de dados nunca é alterada. Apenas SELECT, validado por 3 camadas de segurança." },
-              { icon: Shield, title: "Dados ficam locais", desc: "As credenciais SQL nunca saem do servidor. Os resultados transitam encriptados e não são armazenados." },
-              { icon: Zap, title: "Respostas em segundos", desc: "A IA gera o SQL optimizado com NOLOCK e TOP. Sem esperar por relatórios manuais." },
-              { icon: BarChart3, title: "Gráficos automáticos", desc: "O sistema detecta o melhor gráfico para cada resultado. Barras, linhas, tabelas." },
-              { icon: Clock, title: "Relatórios agendados", desc: "Programe relatórios recorrentes. Receba por email em PDF ou CSV todas as semanas." },
-              { icon: Users, title: "Equipa com permissões", desc: "Convide analistas com acesso limitado. Controle quem pode executar queries e ver relatórios." },
-            ].map((feature) => (
+            {features.map((feature) => (
               <div key={feature.title} className="flex gap-3 p-4 rounded-lg border border-card-border">
                 <feature.icon className="h-4 w-4 text-muted shrink-0 mt-0.5" />
                 <div>
@@ -169,16 +172,16 @@ export default function HomePage() {
       <section className="border-t border-card-border py-20">
         <div className="mx-auto max-w-5xl px-6 text-center">
           <h2 className="text-xl font-semibold text-foreground mb-2">
-            Comece a analisar os seus dados hoje
+            {t("ctaTitle")}
           </h2>
           <p className="text-sm text-muted mb-6">
-            14 dias grátis. Sem cartão de crédito. Configuração em 5 minutos.
+            {t("ctaSubtitle")}
           </p>
           <Link
-            href="/signup"
+            href={`/${locale}/signup`}
             className="inline-block rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
           >
-            Criar conta grátis
+            {t("ctaButton")}
           </Link>
         </div>
       </section>

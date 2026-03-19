@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 const plans = [
   {
@@ -17,8 +19,8 @@ const plans = [
     schedules: null,
     ai: "Haiku",
     overage: "0,15",
-    support: "Email",
-    audit: "30 dias",
+    supportKey: "Email",
+    audit: "30d",
     popular: false,
     monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY,
     annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_ANNUAL,
@@ -35,8 +37,8 @@ const plans = [
     schedules: "5",
     ai: "Haiku + Sonnet",
     overage: "0,10",
-    support: "Email (24h)",
-    audit: "90 dias",
+    supportKey: "Email (24h)",
+    audit: "90d",
     popular: true,
     monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PROFESSIONAL_MONTHLY,
     annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PROFESSIONAL_ANNUAL,
@@ -48,13 +50,13 @@ const plans = [
     queries: "5.000",
     users: "25",
     connectors: "3",
-    reports: "Ilimitados",
-    dashboards: "Ilimitados",
+    reports: null,
+    dashboards: null,
     schedules: "25",
     ai: "Sonnet",
     overage: "0,06",
-    support: "Prioritario (4h)",
-    audit: "1 ano",
+    supportKey: "Priority (4h)",
+    audit: "1y",
     popular: false,
     monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_MONTHLY,
     annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS_ANNUAL,
@@ -64,15 +66,15 @@ const plans = [
     monthly: 399,
     annual: 319,
     queries: "20.000",
-    users: "Ilimitados",
+    users: null,
     connectors: "10",
-    reports: "Ilimitados",
-    dashboards: "Ilimitados",
-    schedules: "Ilimitados",
-    ai: "Sonnet + Prioritario",
+    reports: null,
+    dashboards: null,
+    schedules: null,
+    ai: "Sonnet + Priority",
     overage: "0,04",
-    support: "Dedicado + Onboarding",
-    audit: "2 anos",
+    supportKey: "Dedicated + Onboarding",
+    audit: "2y",
     popular: false,
     monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_MONTHLY,
     annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_ANNUAL,
@@ -80,6 +82,8 @@ const plans = [
 ];
 
 export default function PricingPage() {
+  const t = useTranslations("pricing");
+  const locale = useLocale();
   const [annual, setAnnual] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
@@ -106,10 +110,10 @@ export default function PricingPage() {
     <main className="mx-auto max-w-5xl px-6 py-16">
       <div className="text-center mb-12">
         <h1 className="text-2xl font-bold text-foreground">
-          Planos simples e transparentes
+          {t("title")}
         </h1>
         <p className="text-sm text-muted mt-2">
-          Comece com 14 dias gratis. Sem cartao de credito.
+          {t("subtitle")}
         </p>
 
         {/* Toggle */}
@@ -120,7 +124,7 @@ export default function PricingPage() {
               !annual ? "bg-card text-foreground" : "text-muted hover:text-foreground"
             }`}
           >
-            Mensal
+            {t("monthly")}
           </button>
           <button
             onClick={() => setAnnual(true)}
@@ -128,8 +132,8 @@ export default function PricingPage() {
               annual ? "bg-card text-foreground" : "text-muted hover:text-foreground"
             }`}
           >
-            Anual
-            <span className="ml-1.5 text-[11px] text-primary">-20%</span>
+            {t("annual")}
+            <span className="ml-1.5 text-[11px] text-primary">{t("annualDiscount")}</span>
           </button>
         </div>
       </div>
@@ -154,7 +158,7 @@ export default function PricingPage() {
             >
               {plan.popular && (
                 <span className="text-[10px] uppercase tracking-wider font-medium text-primary mb-2">
-                  Mais popular
+                  {t("mostPopular")}
                 </span>
               )}
               <h3 className="text-sm font-semibold text-foreground">{plan.name}</h3>
@@ -162,16 +166,16 @@ export default function PricingPage() {
                 <span className="text-3xl font-bold tabular-nums text-foreground">
                   &euro;{annual ? plan.annual : plan.monthly}
                 </span>
-                <span className="text-[13px] text-muted">/mes</span>
+                <span className="text-[13px] text-muted">{t("perMonth")}</span>
               </div>
               {annual && (
                 <p className="text-[11px] text-muted mt-1">
-                  Facturado anualmente (&euro;{plan.annual * 12}/ano)
+                  {t("billedAnnually", { amount: `\u20AC${plan.annual * 12}` })}
                 </p>
               )}
 
               <p className="text-[11px] text-primary/80 mt-2">
-                14 dias gratis
+                {t("trialText")}
               </p>
 
               {canCheckout ? (
@@ -184,46 +188,46 @@ export default function PricingPage() {
                       : "bg-card border border-card-border text-foreground hover:bg-[#1a1a1a]"
                   }`}
                 >
-                  {isLoading ? "A redirecionar..." : "Fazer upgrade"}
+                  {isLoading ? t("redirecting") : t("upgrade")}
                 </button>
               ) : loggedIn && !isEnterprise && !priceId ? (
                 <button
                   disabled
                   className="mt-5 block rounded-md px-4 py-2 text-center text-[13px] font-medium bg-card border border-card-border text-muted opacity-50 cursor-not-allowed"
                 >
-                  Indisponivel
+                  {t("unavailable")}
                 </button>
               ) : isEnterprise ? (
                 <Link
                   href="mailto:comercial@apura.pt"
                   className={`mt-5 block rounded-md px-4 py-2 text-center text-[13px] font-medium transition-colors bg-card border border-card-border text-foreground hover:bg-[#1a1a1a]`}
                 >
-                  Contactar
+                  {t("contact")}
                 </Link>
               ) : (
                 <Link
-                  href="/signup"
+                  href={`/${locale}/signup`}
                   className={`mt-5 block rounded-md px-4 py-2 text-center text-[13px] font-medium transition-colors ${
                     plan.popular
                       ? "bg-primary text-white hover:bg-primary-hover"
                       : "bg-card border border-card-border text-foreground hover:bg-[#1a1a1a]"
                   }`}
                 >
-                  Comecar gratis
+                  {t("startFree")}
                 </Link>
               )}
 
               <div className="mt-5 pt-5 border-t border-card-border space-y-2.5 flex-1">
-                <Row label="Consultas/mes" value={plan.queries} />
-                <Row label="Utilizadores" value={plan.users} />
-                <Row label="Bases de dados" value={plan.connectors} />
-                <Row label="Relatorios guardados" value={plan.reports} />
-                <Row label="Dashboards" value={plan.dashboards} />
-                <Row label="Relatorios agendados" value={plan.schedules} />
-                <Row label="Modelo IA" value={plan.ai} />
-                <Row label="Excedente/consulta" value={`\u20AC${plan.overage}`} />
-                <Row label="Suporte" value={plan.support} />
-                <Row label="Registo de auditoria" value={plan.audit} />
+                <Row label={t("queriesPerMonth")} value={plan.queries} />
+                <Row label={t("users")} value={plan.users} unlimitedLabel={t("unlimited")} />
+                <Row label={t("databases")} value={plan.connectors} />
+                <Row label={t("savedReports")} value={plan.reports} unlimitedLabel={t("unlimited")} />
+                <Row label={t("dashboardsLabel")} value={plan.dashboards} unlimitedLabel={t("unlimited")} />
+                <Row label={t("scheduledReports")} value={plan.schedules} unlimitedLabel={t("unlimited")} />
+                <Row label={t("aiModel")} value={plan.ai} />
+                <Row label={t("overage")} value={`\u20AC${plan.overage}`} />
+                <Row label={t("support")} value={plan.supportKey} />
+                <Row label={t("auditLog")} value={plan.audit} />
               </div>
             </div>
           );
@@ -232,44 +236,28 @@ export default function PricingPage() {
 
       {/* FAQ */}
       <section className="mt-20">
-        <h2 className="text-lg font-semibold text-foreground mb-6">Perguntas frequentes</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-6">{t("faqTitle")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Faq
-            q="O que conta como uma consulta?"
-            a="Cada pergunta em linguagem natural que gera e executa uma query SQL conta como uma consulta. Visualizar resultados guardados ou exportar nao conta."
-          />
-          <Faq
-            q="Posso mudar de plano a qualquer momento?"
-            a="Sim. Pode fazer upgrade ou downgrade a qualquer momento. As alteracoes sao aplicadas imediatamente e o valor e ajustado pro-rata."
-          />
-          <Faq
-            q="Os meus dados ficam seguros?"
-            a="As credenciais SQL nunca saem do seu servidor. Os resultados transitam encriptados e nao sao armazenados na cloud. Apenas SELECT e permitido."
-          />
-          <Faq
-            q="Preciso de instalar algo?"
-            a="Sim, o Apura Connector -- um executavel leve que corre como servico Windows no servidor onde o SQL Server esta instalado. Sem dependencias externas."
-          />
-          <Faq
-            q="Funciona com todas as versoes do Primavera?"
-            a="Suportamos Primavera V9, V10 e Evolution. A estrutura da base de dados e standard entre versoes."
-          />
-          <Faq
-            q="E se ultrapassar o limite de consultas?"
-            a="As consultas adicionais sao cobradas ao preco de excedente do seu plano. Sem surpresas -- pode ver o consumo em tempo real no dashboard."
-          />
+          <Faq q={t("faqQueryTitle")} a={t("faqQueryAnswer")} />
+          <Faq q={t("faqChangePlanTitle")} a={t("faqChangePlanAnswer")} />
+          <Faq q={t("faqSecurityTitle")} a={t("faqSecurityAnswer")} />
+          <Faq q={t("faqInstallTitle")} a={t("faqInstallAnswer")} />
+          <Faq q={t("faqVersionTitle")} a={t("faqVersionAnswer")} />
+          <Faq q={t("faqOverageTitle")} a={t("faqOverageAnswer")} />
         </div>
       </section>
     </main>
   );
 }
 
-function Row({ label, value }: { label: string; value: string | null }) {
+function Row({ label, value, unlimitedLabel }: { label: string; value: string | null; unlimitedLabel?: string }) {
   return (
     <div className="flex items-center justify-between text-[12px]">
       <span className="text-muted">{label}</span>
       {value ? (
         <span className="text-foreground font-medium">{value}</span>
+      ) : unlimitedLabel ? (
+        <span className="text-foreground font-medium">{unlimitedLabel}</span>
       ) : (
         <span className="text-muted/30">&mdash;</span>
       )}
