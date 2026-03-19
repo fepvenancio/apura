@@ -5,6 +5,58 @@ import { rateLimitMiddleware } from '../middleware/rate-limit';
 import { OrgDatabase } from '../services/org-db';
 import { validateEmail } from '@apura/shared';
 
+// ---------------------------------------------------------------------------
+// Simple cron next-run calculator
+// ---------------------------------------------------------------------------
+
+function computeNextRun(cron: string, from: Date): Date {
+  const parts = cron.trim().split(/\s+/);
+  if (parts.length < 5) {
+    return new Date(from.getTime() + 3600_000); // fallback: 1 hour
+  }
+
+  const [minute, hour, dayOfMonth] = parts;
+
+  // Every minute: * * * * *
+  if (minute === '*' && hour === '*') {
+    return new Date(from.getTime() + 60_000);
+  }
+
+  // Every N minutes: */N * * * *
+  if (minute.startsWith('*/') && hour === '*') {
+    const interval = parseInt(minute.slice(2), 10) || 1;
+    return new Date(from.getTime() + interval * 60_000);
+  }
+
+  // Specific minute every hour: N * * * *
+  if (/^\d+$/.test(minute) && hour === '*') {
+    const next = new Date(from);
+    next.setMinutes(parseInt(minute, 10), 0, 0);
+    if (next <= from) next.setHours(next.getHours() + 1);
+    return next;
+  }
+
+  // Specific hour and minute: N N * * *
+  if (/^\d+$/.test(minute) && /^\d+$/.test(hour) && dayOfMonth === '*') {
+    const next = new Date(from);
+    next.setHours(parseInt(hour, 10), parseInt(minute, 10), 0, 0);
+    if (next <= from) next.setDate(next.getDate() + 1);
+    return next;
+  }
+
+  // Specific day of month: N N N * *
+  if (/^\d+$/.test(minute) && /^\d+$/.test(hour) && /^\d+$/.test(dayOfMonth)) {
+    const next = new Date(from);
+    next.setDate(parseInt(dayOfMonth, 10));
+    next.setHours(parseInt(hour, 10), parseInt(minute, 10), 0, 0);
+    if (next <= from) next.setMonth(next.getMonth() + 1);
+    return next;
+  }
+
+  // Fallback: 1 hour
+  return new Date(from.getTime() + 3600_000);
+}
+
 const schedules = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
 schedules.use('*', rateLimitMiddleware);
@@ -61,6 +113,10 @@ schedules.post('/', requireRole('owner', 'admin', 'analyst'), async (c) => {
     body_template: body.bodyTemplate ?? null,
     is_active: 1,
   });
+
+  // Compute and set next_run_at
+  const nextRunAt = computeNextRun(body.cronExpression.trim(), new Date());
+  await orgDb.updateSchedule(id, { next_run_at: nextRunAt.toISOString() } as any);
 
   await orgDb.logAudit('schedule.create', 'schedule', id, { reportId: body.reportId }, c.req.header('CF-Connecting-IP'));
 
@@ -171,10 +227,6 @@ schedules.post('/:id/trigger', requireRole('owner', 'admin', 'analyst'), async (
     return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'Associated report not found' } }, 404);
   }
 
-  // Get the query SQL from the associated query
-  const query = report.query_id ? await orgDb.getQuery(report.query_id) : null;
-  const sqlQuery = query?.generated_sql ?? '';
-
   let recipients: string[] = [];
   try {
     recipients = JSON.parse(schedule.recipients);
@@ -182,21 +234,20 @@ schedules.post('/:id/trigger', requireRole('owner', 'admin', 'analyst'), async (
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid recipients data' } }, 400);
   }
 
+  const userId = c.get('userId');
   const runId = crypto.randomUUID();
   const now = new Date().toISOString();
 
-  // Publish to report-generation queue
+  // Publish to report-generation queue (matches ReportMessage interface)
   await c.env.REPORT_QUEUE.send({
-    runId,
+    scheduleRunId: runId,
     scheduleId: schedule.id,
     orgId,
     reportId: schedule.report_id,
+    userId,
     reportName: report.name,
-    sqlQuery,
     outputFormat: schedule.output_format,
     recipients,
-    triggeredAt: now,
-    manual: true,
   });
 
   // Log the run
@@ -205,7 +256,8 @@ schedules.post('/:id/trigger', requireRole('owner', 'admin', 'analyst'), async (
       `INSERT INTO schedule_runs (id, schedule_id, org_id, status, started_at)
        VALUES (?, ?, ?, ?, ?)`
     )
-    .bind(runId, scheduleId, orgId, 'queued', now);
+    .bind(runId, scheduleId, orgId, 'queued', now)
+    .run();
 
   await orgDb.logAudit('schedule.trigger', 'schedule', scheduleId, { manual: true }, c.req.header('CF-Connecting-IP'));
 

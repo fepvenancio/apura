@@ -158,7 +158,7 @@ export class OrgDatabase {
 
     await this.db
       .prepare(
-        `INSERT INTO reports (id, org_id, user_id, name, description, query_id, chart_config, layout_config, is_public, created_at, updated_at)
+        `INSERT INTO reports (id, org_id, user_id, name, description, query_id, chart_config, layout_config, is_shared, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
@@ -170,7 +170,7 @@ export class OrgDatabase {
         report.query_id ?? null,
         report.chart_config ?? null,
         report.layout_config ?? null,
-        report.is_public ? 1 : 0,
+        report.is_shared ? 1 : 0,
         now,
         now,
       )

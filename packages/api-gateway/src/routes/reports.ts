@@ -24,7 +24,7 @@ reports.post('/', requireRole('owner', 'admin', 'analyst'), async (c) => {
     queryId: string;
     chartConfig?: unknown;
     layoutConfig?: unknown;
-    isPublic?: boolean;
+    isShared?: boolean;
   }>();
 
   if (!body.name || !body.queryId) {
@@ -44,7 +44,7 @@ reports.post('/', requireRole('owner', 'admin', 'analyst'), async (c) => {
     query_id: body.queryId,
     chart_config: body.chartConfig ? JSON.stringify(body.chartConfig) : null,
     layout_config: body.layoutConfig ? JSON.stringify(body.layoutConfig) : null,
-    is_public: body.isPublic ?? false,
+    is_shared: body.isShared ?? false,
   });
 
   await orgDb.logAudit('report.create', 'report', reportId, { name: body.name }, c.req.header('CF-Connecting-IP'));
@@ -100,7 +100,7 @@ reports.put('/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
     description?: string;
     chartConfig?: unknown;
     layoutConfig?: unknown;
-    isPublic?: boolean;
+    isShared?: boolean;
   }>();
 
   const updates: Record<string, unknown> = {};
@@ -108,7 +108,7 @@ reports.put('/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
   if (body.description !== undefined) updates.description = body.description;
   if (body.chartConfig !== undefined) updates.chart_config = JSON.stringify(body.chartConfig);
   if (body.layoutConfig !== undefined) updates.layout_config = JSON.stringify(body.layoutConfig);
-  if (body.isPublic !== undefined) updates.is_public = body.isPublic ? 1 : 0;
+  if (body.isShared !== undefined) updates.is_shared = body.isShared ? 1 : 0;
 
   await orgDb.updateReport(reportId, updates as any);
   await orgDb.logAudit('report.update', 'report', reportId, updates, c.req.header('CF-Connecting-IP'));

@@ -29,6 +29,10 @@ binding = "WS_GATEWAY"
 service = "apura-ws"
 
 [[queues.producers]]
+binding = "REPORT_QUEUE"
+queue = "report-generation"
+
+[[queues.producers]]
 binding = "EMAIL_QUEUE"
 queue = "email-outbound"
 

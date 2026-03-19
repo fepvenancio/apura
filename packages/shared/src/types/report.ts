@@ -48,7 +48,7 @@ export interface Report {
   query_id: string;
   chart_config: string | null;
   layout_config: string | null;
-  is_public: boolean;
+  is_shared: boolean;
   created_at: string;
   updated_at: string;
 }

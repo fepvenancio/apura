@@ -169,7 +169,7 @@ async function processReport(message: ReportMessage, env: Env): Promise<void> {
 
   // Fetch the report's underlying query SQL
   const report = await env.DB.prepare(
-    `SELECT r.name, q.generated_sql FROM reports r JOIN saved_queries q ON r.query_id = q.id WHERE r.id = ? AND r.org_id = ?`,
+    `SELECT r.name, q.generated_sql FROM reports r JOIN queries q ON r.query_id = q.id WHERE r.id = ? AND r.org_id = ?`,
   )
     .bind(reportId, orgId)
     .first<{ name: string; generated_sql: string }>();

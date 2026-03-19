@@ -19,6 +19,7 @@ interface ScheduleRow {
   id: string;
   org_id: string;
   report_id: string;
+  created_by: string;
   cron_expression: string;
   timezone: string;
   output_format: string;
@@ -116,7 +117,7 @@ export default {
     // Find all active schedules that are due
     const dueSchedules = await env.DB
       .prepare(
-        `SELECT s.id, s.org_id, s.report_id, s.cron_expression, s.timezone,
+        `SELECT s.id, s.org_id, s.report_id, s.created_by, s.cron_expression, s.timezone,
                 s.output_format, s.recipients, s.subject_template, s.body_template
          FROM schedules s
          WHERE s.is_active = 1 AND s.next_run_at <= ?
@@ -153,20 +154,17 @@ export default {
           continue;
         }
 
-        // Publish to report-generation queue
+        // Publish to report-generation queue (matches ReportMessage interface)
         const runId = crypto.randomUUID();
         await env.REPORT_QUEUE.send({
-          runId,
+          scheduleRunId: runId,
           scheduleId: schedule.id,
           orgId: schedule.org_id,
           reportId: schedule.report_id,
+          userId: schedule.created_by,
           reportName: report.name,
-          sqlQuery: report.sql_query,
           outputFormat: schedule.output_format,
           recipients,
-          subjectTemplate: schedule.subject_template,
-          bodyTemplate: schedule.body_template,
-          triggeredAt: now,
         });
 
         // Compute next run and update schedule
