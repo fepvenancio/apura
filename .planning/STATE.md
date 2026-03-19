@@ -9,7 +9,7 @@ progress:
   total_phases: 10
   completed_phases: 8
   total_plans: 20
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 09 (internationalization) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Plan: 2 of 3
 | Phase 08-sharing-and-scheduled-reports P01 | 3min | 2 tasks | 9 files |
 | Phase 08-sharing-and-scheduled-reports P02 | 4min | 2 tasks | 5 files |
 | Phase 09-internationalization P01 | 11min | 2 tasks | 41 files |
+| Phase 09-internationalization P02 | 6min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 - [Phase 09-internationalization]: Removed output: export from next.config.ts -- dynamic route segments incompatible with static export
 - [Phase 09-internationalization]: 521 translation keys across 21 namespaces covering all pages and components
 - [Phase 09-internationalization]: Backend returns language field on all auth responses; PATCH /auth/profile validates against allowed locales
+- [Phase 09-internationalization]: Sidebar nav uses data-driven keys array mapping path to translation key for cleaner i18n
+- [Phase 09-internationalization]: mapLocale helper converts short locale (pt) to full locale (pt-PT) for Intl APIs in components
 
 ### Pending Todos
 
@@ -121,6 +124,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T01:28:10Z
-Stopped at: Completed 09-01-PLAN.md
+Last session: 2026-03-19T01:36:47Z
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None

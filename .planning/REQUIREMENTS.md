@@ -78,8 +78,8 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 - [x] **I18N-01**: UI supports PT, ES, and EN languages via next-intl
 - [x] **I18N-02**: User can select preferred language in settings (stored in users.language)
-- [ ] **I18N-03**: Date and number formatting follows locale conventions (DD/MM/YYYY for PT/ES)
-- [ ] **I18N-04**: All hardcoded UI strings extracted to locale JSON files
+- [x] **I18N-03**: Date and number formatting follows locale conventions (DD/MM/YYYY for PT/ES)
+- [x] **I18N-04**: All hardcoded UI strings extracted to locale JSON files
 
 ### Security Hardening
 
@@ -186,8 +186,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXPORT-03 | Phase 8: Sharing and Scheduled Reports | Complete |
 | I18N-01 | Phase 9: Internationalization | Complete |
 | I18N-02 | Phase 9: Internationalization | Complete |
-| I18N-03 | Phase 9: Internationalization | Pending |
-| I18N-04 | Phase 9: Internationalization | Pending |
+| I18N-03 | Phase 9: Internationalization | Complete |
+| I18N-04 | Phase 9: Internationalization | Complete |
 | CONN-01 | Phase 10: Connector Packaging | Pending |
 | CONN-02 | Phase 10: Connector Packaging | Pending |
 | CONN-03 | Phase 10: Connector Packaging | Pending |
