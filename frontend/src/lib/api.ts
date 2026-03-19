@@ -110,7 +110,20 @@ class ApiClient {
     });
 
     if (res.status === 401) {
-      await this.refreshToken();
+      try {
+        await this.refreshToken();
+      } catch {
+        // Refresh failed — clear auth state and redirect to login
+        this.clearToken();
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("user");
+          localStorage.removeItem("org");
+          window.location.href = "/pt/login";
+        }
+        throw new ApiError(401, "Session expired. Please log in again.");
+      }
       const retryRes = await fetch(`${API_BASE}${path}`, {
         method,
         headers: {

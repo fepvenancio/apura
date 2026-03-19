@@ -334,23 +334,23 @@ export class OrgDatabase {
     return id;
   }
 
-  async getWidget(widgetId: string): Promise<DashboardWidget | null> {
+  async getWidget(widgetId: string, dashboardId: string): Promise<DashboardWidget | null> {
     return this.db
-      .prepare('SELECT * FROM dashboard_widgets WHERE id = ?')
-      .bind(widgetId)
+      .prepare('SELECT w.* FROM dashboard_widgets w JOIN dashboards d ON w.dashboard_id = d.id WHERE w.id = ? AND w.dashboard_id = ? AND d.org_id = ?')
+      .bind(widgetId, dashboardId, this.orgId)
       .first<DashboardWidget>();
   }
 
   async listWidgets(dashboardId: string): Promise<DashboardWidget[]> {
     const { results } = await this.db
-      .prepare('SELECT * FROM dashboard_widgets WHERE dashboard_id = ? ORDER BY position_y, position_x')
-      .bind(dashboardId)
+      .prepare('SELECT w.* FROM dashboard_widgets w JOIN dashboards d ON w.dashboard_id = d.id WHERE w.dashboard_id = ? AND d.org_id = ? ORDER BY w.position_y, w.position_x')
+      .bind(dashboardId, this.orgId)
       .all<DashboardWidget>();
 
     return results ?? [];
   }
 
-  async updateWidget(widgetId: string, updates: Partial<DashboardWidget>): Promise<void> {
+  async updateWidget(widgetId: string, dashboardId: string, updates: Partial<DashboardWidget>): Promise<void> {
     const fields: string[] = [];
     const values: unknown[] = [];
 
@@ -363,18 +363,18 @@ export class OrgDatabase {
 
     if (fields.length === 0) return;
 
-    values.push(widgetId);
+    values.push(widgetId, dashboardId);
 
     await this.db
-      .prepare(`UPDATE dashboard_widgets SET ${fields.join(', ')} WHERE id = ?`)
+      .prepare(`UPDATE dashboard_widgets SET ${fields.join(', ')} WHERE id = ? AND dashboard_id = ?`)
       .bind(...values)
       .run();
   }
 
-  async deleteWidget(widgetId: string): Promise<void> {
+  async deleteWidget(widgetId: string, dashboardId: string): Promise<void> {
     await this.db
-      .prepare('DELETE FROM dashboard_widgets WHERE id = ?')
-      .bind(widgetId)
+      .prepare('DELETE FROM dashboard_widgets WHERE id = ? AND dashboard_id = ?')
+      .bind(widgetId, dashboardId)
       .run();
   }
 

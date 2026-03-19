@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -8,7 +8,7 @@ interface ResultSqlProps {
   sql: string;
 }
 
-const SQL_KEYWORDS = [
+const SQL_KEYWORDS = new Set([
   "SELECT", "FROM", "WHERE", "JOIN", "LEFT", "RIGHT", "INNER", "OUTER",
   "FULL", "CROSS", "ON", "AND", "OR", "NOT", "IN", "EXISTS", "BETWEEN",
   "LIKE", "IS", "NULL", "AS", "ORDER", "BY", "GROUP", "HAVING", "LIMIT",
@@ -17,51 +17,65 @@ const SQL_KEYWORDS = [
   "COUNT", "SUM", "AVG", "MIN", "MAX", "CASE", "WHEN", "THEN", "ELSE",
   "END", "WITH", "ASC", "DESC", "OVER", "PARTITION", "ROW_NUMBER",
   "RANK", "DENSE_RANK", "COALESCE", "CAST", "CONVERT",
-];
+]);
 
-function highlightSQL(sql: string): string {
-  let result = sql
-    // Escape HTML
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+/**
+ * Tokenize SQL into safe React elements — no dangerouslySetInnerHTML.
+ */
+function tokenizeSQL(sql: string): ReactNode[] {
+  const tokens: ReactNode[] = [];
+  // Match strings, numbers, comments, words, or any other char
+  const regex = /('(?:[^'\\]|\\.)*')|(--.*)|([\w.]+)|(\S)/g;
+  let match: RegExpExecArray | null;
+  let lastIndex = 0;
 
-  // Highlight strings (single-quoted)
-  result = result.replace(
-    /'([^']*)'/g,
-    '<span class="sql-string">\'$1\'</span>'
-  );
+  while ((match = regex.exec(sql)) !== null) {
+    // Preserve whitespace between tokens
+    if (match.index > lastIndex) {
+      tokens.push(sql.slice(lastIndex, match.index));
+    }
+    lastIndex = regex.lastIndex;
 
-  // Highlight numbers
-  result = result.replace(
-    /\b(\d+(?:\.\d+)?)\b/g,
-    '<span class="sql-number">$1</span>'
-  );
+    const [full, str, comment, word] = match;
 
-  // Highlight keywords
-  const keywordPattern = new RegExp(
-    `\\b(${SQL_KEYWORDS.join("|")})\\b`,
-    "gi"
-  );
-  result = result.replace(
-    keywordPattern,
-    '<span class="sql-keyword">$1</span>'
-  );
+    if (str) {
+      tokens.push(
+        <span key={tokens.length} className="sql-string">{full}</span>
+      );
+    } else if (comment) {
+      tokens.push(
+        <span key={tokens.length} className="sql-comment">{full}</span>
+      );
+    } else if (word) {
+      if (SQL_KEYWORDS.has(word.toUpperCase())) {
+        tokens.push(
+          <span key={tokens.length} className="sql-keyword">{full}</span>
+        );
+      } else if (/^\d+(\.\d+)?$/.test(word)) {
+        tokens.push(
+          <span key={tokens.length} className="sql-number">{full}</span>
+        );
+      } else {
+        tokens.push(full);
+      }
+    } else {
+      tokens.push(full);
+    }
+  }
 
-  // Highlight comments
-  result = result.replace(
-    /(--.*$)/gm,
-    '<span class="sql-comment">$1</span>'
-  );
+  // Trailing whitespace
+  if (lastIndex < sql.length) {
+    tokens.push(sql.slice(lastIndex));
+  }
 
-  return result;
+  return tokens;
 }
 
 export function ResultSql({ sql }: ResultSqlProps) {
   const [copied, setCopied] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  const highlighted = useMemo(() => highlightSQL(sql), [sql]);
+  const highlighted = useMemo(() => tokenizeSQL(sql), [sql]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(sql);
@@ -108,7 +122,7 @@ export function ResultSql({ sql }: ResultSqlProps) {
 
       {!collapsed && (
         <pre className="overflow-x-auto rounded-lg border border-card-border bg-[#0d0d0d] p-4 text-sm leading-relaxed">
-          <code dangerouslySetInnerHTML={{ __html: highlighted }} />
+          <code>{highlighted}</code>
         </pre>
       )}
     </div>

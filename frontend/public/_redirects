@@ -1,0 +1,5 @@
+/login /pt/login 302
+/signup /pt/signup 302
+/home /pt/home 302
+/query /pt/query 302
+/settings/* /pt/settings/:splat 302

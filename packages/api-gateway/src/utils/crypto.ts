@@ -135,11 +135,11 @@ export async function verifyBackupCode(code: string, storedHash: string): Promis
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashHex = toHex(new Uint8Array(hashBuffer));
 
-  // Constant-time comparison
-  if (hashHex.length !== expectedHash.length) return false;
-  let result = 0;
-  for (let i = 0; i < hashHex.length; i++) {
-    result |= hashHex.charCodeAt(i) ^ expectedHash.charCodeAt(i);
+  // Constant-time comparison — no early exit on length mismatch
+  const len = Math.max(hashHex.length, expectedHash.length);
+  let result = hashHex.length ^ expectedHash.length;
+  for (let i = 0; i < len; i++) {
+    result |= (hashHex.charCodeAt(i) || 0) ^ (expectedHash.charCodeAt(i) || 0);
   }
   return result === 0;
 }

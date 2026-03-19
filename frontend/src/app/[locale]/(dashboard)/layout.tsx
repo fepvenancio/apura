@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { useConnectorStore } from "@/stores/connector-store";
@@ -13,6 +14,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const locale = useLocale();
+  const router = useRouter();
   const { isAuthenticated, loadFromStorage } = useAuthStore();
   const checkStatus = useConnectorStore((s) => s.checkStatus);
   const startPolling = useConnectorStore((s) => s.startPolling);
@@ -28,14 +30,14 @@ export default function DashboardLayout({
     if (!token || !user || !org) {
       // No auth data — redirect to login
       setRedirecting(true);
-      window.location.href = `/${locale}/login`;
+      router.push(`/${locale}/login`);
       return;
     }
 
     // Auth data exists — load into Zustand store
     loadFromStorage();
     setReady(true);
-  }, [loadFromStorage, locale]);
+  }, [loadFromStorage, locale, router]);
 
   useEffect(() => {
     if (isAuthenticated) {

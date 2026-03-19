@@ -17,8 +17,10 @@ database_id = "48a7c67d-223e-4ee1-8c87-9a9b3231def0"
 binding = "CACHE"
 id = "290e5fb7d86847b6823b79be9b6d2cb4"
 
+# IMPORTANT: INTERNAL_SECRET and JWT_SECRET must be set as Cloudflare secrets, not vars.
+# Run: wrangler secret put INTERNAL_SECRET
+# Run: wrangler secret put JWT_SECRET
 [vars]
-INTERNAL_SECRET = "apura-internal-2026-change-me"
 
 [[services]]
 binding = "AI_ORCHESTRATOR"

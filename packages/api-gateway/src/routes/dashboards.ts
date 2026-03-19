@@ -157,7 +157,7 @@ dashboards.post('/:id/widgets', requireRole('owner', 'admin', 'analyst'), async 
     height: body.height ?? 4,
   });
 
-  const widget = await orgDb.getWidget(widgetId);
+  const widget = await orgDb.getWidget(widgetId, dashboardId);
   return c.json({ success: true, data: widget }, 201);
 });
 
@@ -175,7 +175,7 @@ dashboards.put('/:id/widgets/:widgetId', requireRole('owner', 'admin', 'analyst'
     return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'Dashboard not found' } }, 404);
   }
 
-  const existing = await orgDb.getWidget(widgetId);
+  const existing = await orgDb.getWidget(widgetId, dashboardId);
   if (!existing) {
     return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'Widget not found' } }, 404);
   }
@@ -193,9 +193,9 @@ dashboards.put('/:id/widgets/:widgetId', requireRole('owner', 'admin', 'analyst'
   if (body.width !== undefined) updates.width = body.width;
   if (body.height !== undefined) updates.height = body.height;
 
-  await orgDb.updateWidget(widgetId, updates);
+  await orgDb.updateWidget(widgetId, dashboardId, updates);
 
-  const updated = await orgDb.getWidget(widgetId);
+  const updated = await orgDb.getWidget(widgetId, dashboardId);
   return c.json({ success: true, data: updated });
 });
 
@@ -213,12 +213,12 @@ dashboards.delete('/:id/widgets/:widgetId', requireRole('owner', 'admin'), async
     return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'Dashboard not found' } }, 404);
   }
 
-  const existing = await orgDb.getWidget(widgetId);
+  const existing = await orgDb.getWidget(widgetId, dashboardId);
   if (!existing) {
     return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'Widget not found' } }, 404);
   }
 
-  await orgDb.deleteWidget(widgetId);
+  await orgDb.deleteWidget(widgetId, dashboardId);
   return c.json({ success: true, data: { deleted: true } });
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
@@ -18,6 +18,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
   const router = useRouter();
+
+  // Redirect to home if already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const user = localStorage.getItem("user");
+    const org = localStorage.getItem("org");
+    if (token && user && org) {
+      router.push(`/${locale}/home`);
+    }
+  }, [locale, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

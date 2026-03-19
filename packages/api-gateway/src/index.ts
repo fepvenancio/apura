@@ -59,14 +59,14 @@ app.get('/health', (c) =>
   c.json({ status: 'ok', timestamp: new Date().toISOString() }),
 );
 
-// Rate limiting for auth routes
+// Rate limiting for auth routes — 5 requests/minute per IP
 app.use('/auth/*', async (c, next) => {
   const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
   const minute = Math.floor(Date.now() / 60000);
   const key = `rate:auth:${ip}:${minute}`;
   const current = parseInt(await c.env.CACHE.get(key) ?? '0', 10);
-  if (current >= 10) {
-    return c.json({ success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests' } }, 429);
+  if (current >= 5) {
+    return c.json({ success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Please wait.' } }, 429);
   }
   await c.env.CACHE.put(key, String(current + 1), { expirationTtl: 60 });
   return next();
