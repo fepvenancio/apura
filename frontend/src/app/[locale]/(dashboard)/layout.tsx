@@ -27,7 +27,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (mounted && !isLoading && !isAuthenticated) {
-      router.push(`/${locale}/login`);
+      window.location.href = `/${locale}/login`;
     }
   }, [mounted, isLoading, isAuthenticated, router, locale]);
 
