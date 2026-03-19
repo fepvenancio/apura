@@ -125,10 +125,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User can click a button to download current query results as a CSV file
   2. User can generate a print-optimized HTML view of any report suitable for browser print-to-PDF
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 07-01: TBD
+- [ ] 07-01-PLAN.md -- Shared CSV utility with proper escaping, print-optimized report view with @media print CSS
 
 ### Phase 8: Sharing and Scheduled Reports
 **Goal**: Users can share reports within their org and set up automated recurring report generation
@@ -189,7 +189,7 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 | 4. GDPR Compliance | 0/3 | Complete    | 2026-03-18 |
 | 5. MFA | 3/3 | Complete    | 2026-03-18 |
 | 6. Security Hardening | 0/? | Complete    | 2026-03-18 |
-| 7. Export | 0/? | Not started | - |
+| 7. Export | 0/1 | Planning complete | - |
 | 8. Sharing and Scheduled Reports | 0/? | Not started | - |
 | 9. Internationalization | 0/? | Not started | - |
 | 10. Connector Packaging | 0/? | Not started | - |
