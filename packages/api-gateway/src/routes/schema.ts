@@ -23,17 +23,16 @@ schema.get('/tables', async (c) => {
 
   const { results } = await c.env.DB
     .prepare(
-      `SELECT table_name, description, description_pt, category, row_count_approx
+      `SELECT table_name, table_description, table_category, row_count_approx
        FROM schema_tables
        WHERE org_id = ?
-       ORDER BY category, table_name`,
+       ORDER BY table_category, table_name`,
     )
     .bind(orgId)
     .all<{
       table_name: string;
-      description: string;
-      description_pt: string;
-      category: string;
+      table_description: string | null;
+      table_category: string | null;
       row_count_approx: number | null;
     }>();
 
@@ -61,16 +60,15 @@ schema.get('/tables/:name', async (c) => {
 
   const table = await c.env.DB
     .prepare(
-      `SELECT table_name, description, description_pt, category, row_count_approx
+      `SELECT table_name, table_description, table_category, row_count_approx
        FROM schema_tables
        WHERE org_id = ? AND table_name = ?`,
     )
     .bind(orgId, tableName)
     .first<{
       table_name: string;
-      description: string;
-      description_pt: string;
-      category: string;
+      table_description: string | null;
+      table_category: string | null;
       row_count_approx: number | null;
     }>();
 
@@ -80,20 +78,19 @@ schema.get('/tables/:name', async (c) => {
 
   const { results: columns } = await c.env.DB
     .prepare(
-      `SELECT name, type, is_primary_key, is_foreign_key, fk_references, description, description_pt
+      `SELECT column_name, data_type, is_primary_key, is_foreign_key, fk_references, column_description
        FROM schema_columns
-       WHERE org_id = ? AND table_name = ?
-       ORDER BY name`,
+       WHERE org_id = ? AND table_id = (SELECT id FROM schema_tables WHERE org_id = ? AND table_name = ?)
+       ORDER BY column_name`,
     )
-    .bind(orgId, tableName)
+    .bind(orgId, orgId, tableName)
     .all<{
-      name: string;
-      type: string;
-      is_primary_key: boolean;
-      is_foreign_key: boolean;
+      column_name: string;
+      data_type: string | null;
+      is_primary_key: number;
+      is_foreign_key: number;
       fk_references: string | null;
-      description: string | null;
-      description_pt: string | null;
+      column_description: string | null;
     }>();
 
   const result = { ...table, columns: columns ?? [] };
@@ -112,14 +109,14 @@ schema.get('/categories', async (c) => {
 
   const { results } = await c.env.DB
     .prepare(
-      `SELECT category, COUNT(*) as table_count
+      `SELECT table_category, COUNT(*) as table_count
        FROM schema_tables
        WHERE org_id = ?
-       GROUP BY category
-       ORDER BY category`,
+       GROUP BY table_category
+       ORDER BY table_category`,
     )
     .bind(orgId)
-    .all<{ category: string; table_count: number }>();
+    .all<{ table_category: string; table_count: number }>();
 
   return c.json({ success: true, data: results ?? [] });
 });

@@ -83,21 +83,21 @@ export class SchemaLoader {
     // Try org-specific categories first
     let result = await this.db
       .prepare(
-        `SELECT DISTINCT category FROM schema_tables WHERE org_id = ? ORDER BY category`,
+        `SELECT DISTINCT table_category FROM schema_tables WHERE org_id = ? ORDER BY table_category`,
       )
       .bind(orgId)
-      .all<{ category: string }>();
+      .all<{ table_category: string }>();
 
     // Fall back to master schema if org has no custom schema
     if (!result.results || result.results.length === 0) {
       result = await this.db
         .prepare(
-          `SELECT DISTINCT category FROM schema_tables WHERE org_id = 'master' ORDER BY category`,
+          `SELECT DISTINCT table_category FROM schema_tables WHERE org_id = 'master' ORDER BY table_category`,
         )
-        .all<{ category: string }>();
+        .all<{ table_category: string }>();
     }
 
-    const categories = (result.results ?? []).map((r) => r.category);
+    const categories = (result.results ?? []).map((r) => r.table_category);
 
     await this.cache.put(cacheKey, JSON.stringify(categories), {
       expirationTtl: CACHE_TTL_SCHEMA,
@@ -138,11 +138,11 @@ export class SchemaLoader {
     category?: string,
   ): Promise<TableContext[]> {
     // Load table metadata
-    let tableQuery = `SELECT id, table_name, description, common_joins FROM schema_tables WHERE org_id = ?`;
+    let tableQuery = `SELECT id, table_name, table_description, table_category FROM schema_tables WHERE org_id = ?`;
     const binds: unknown[] = [orgId];
 
     if (category) {
-      tableQuery += ` AND category = ?`;
+      tableQuery += ` AND table_category = ?`;
       binds.push(category);
     }
 
@@ -150,10 +150,10 @@ export class SchemaLoader {
 
     const stmt = this.db.prepare(tableQuery);
     const tableResult = await stmt.bind(...binds).all<{
-      id: number;
+      id: string;
       table_name: string;
-      description: string;
-      common_joins: string | null;
+      table_description: string | null;
+      table_category: string | null;
     }>();
 
     if (!tableResult.results || tableResult.results.length === 0) {
@@ -166,22 +166,22 @@ export class SchemaLoader {
 
     const colResult = await this.db
       .prepare(
-        `SELECT table_id, column_name, column_type, description
+        `SELECT table_id, column_name, data_type, column_description
          FROM schema_columns
          WHERE table_id IN (${placeholders})
          ORDER BY table_id, column_name`,
       )
       .bind(...tableIds)
       .all<{
-        table_id: number;
+        table_id: string;
         column_name: string;
-        column_type: string;
-        description: string;
+        data_type: string | null;
+        column_description: string | null;
       }>();
 
     // Group columns by table_id
     const columnsByTable = new Map<
-      number,
+      string,
       { name: string; type: string; description: string }[]
     >();
     for (const col of colResult.results ?? []) {
@@ -190,19 +190,16 @@ export class SchemaLoader {
       }
       columnsByTable.get(col.table_id)!.push({
         name: col.column_name,
-        type: col.column_type,
-        description: col.description,
+        type: col.data_type ?? 'unknown',
+        description: col.column_description ?? '',
       });
     }
 
     // Assemble TableContext objects
     return tableResult.results.map((t) => ({
       tableName: t.table_name,
-      description: t.description,
+      description: t.table_description ?? '',
       columns: columnsByTable.get(t.id) ?? [],
-      commonJoins: t.common_joins
-        ? t.common_joins.split(',').map((j) => j.trim())
-        : undefined,
     }));
   }
 
