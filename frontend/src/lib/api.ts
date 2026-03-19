@@ -290,7 +290,7 @@ class ApiClient {
   }
 
   async getConnectorStatus(): Promise<ConnectorStatus> {
-    return this.request<ConnectorStatus>("GET", "/connector/status");
+    return this.request<ConnectorStatus>("GET", "/api/org/connector-status");
   }
 
   // Dashboards

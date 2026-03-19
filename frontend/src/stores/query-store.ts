@@ -45,11 +45,12 @@ export const useQueryStore = create<QueryStore>((set) => ({
 
   loadHistory: async (page = 1) => {
     try {
-      const response = await api.getQueryHistory(page);
+      const response = await api.getQueryHistory(page) as unknown as Record<string, unknown>;
+      const items = (response?.items ?? response?.data ?? []) as SavedQuery[];
       set({
-        history: response.data,
-        historyPage: response.page,
-        historyTotalPages: response.totalPages,
+        history: Array.isArray(items) ? items : [],
+        historyPage: (response?.page as number) ?? page,
+        historyTotalPages: (response?.totalPages as number) ?? 1,
       });
     } catch {
       // Silently fail for history loading
