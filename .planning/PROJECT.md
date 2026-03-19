@@ -44,6 +44,7 @@ Users can query their Primavera database using natural language and get accurate
 - ✓ MFA (TOTP setup, two-phase login, backup codes, org enforcement, admin reset) — Phase 5
 - ✓ mTLS security hardening (Cloudflare API Shield, .NET client cert, dual-auth) — Phase 6
 - ✓ Export (CSV download with proper escaping, print-optimized report view) — Phase 7
+- ✓ Sharing and Scheduled Reports (sharing toggle, schedule CRUD, cron pipeline, run history) — Phase 8
 
 ### Active
 
@@ -98,4 +99,4 @@ Users can query their Primavera database using natural language and get accurate
 | Durable Objects for connector sessions | Stateful WebSocket management per-org | — Pending |
 
 ---
-*Last updated: 2026-03-19 after Phase 7 completion*
+*Last updated: 2026-03-19 after Phase 8 completion*
