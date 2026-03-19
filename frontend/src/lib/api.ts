@@ -265,7 +265,8 @@ class ApiClient {
   }
 
   async getReports(): Promise<Report[]> {
-    return this.request<Report[]>("GET", "/api/reports");
+    const res = await this.request<{ items: Report[] }>("GET", "/api/reports");
+    return (res as unknown as { items?: Report[] })?.items ?? [];
   }
 
   async getReport(id: string): Promise<Report> {
@@ -295,7 +296,8 @@ class ApiClient {
 
   // Dashboards
   async getDashboards(): Promise<Dashboard[]> {
-    return this.request<Dashboard[]>("GET", "/api/dashboards");
+    const res = await this.request<{ items: Dashboard[] }>("GET", "/api/dashboards");
+    return (res as unknown as { items?: Dashboard[] })?.items ?? [];
   }
 
   async getDashboard(id: string): Promise<Dashboard> {
@@ -324,7 +326,8 @@ class ApiClient {
 
   // Schedules
   async getSchedules(): Promise<Schedule[]> {
-    return this.request<Schedule[]>("GET", "/api/schedules");
+    const res = await this.request<{ items: Schedule[] }>("GET", "/api/schedules");
+    return (res as unknown as { items?: Schedule[] })?.items ?? [];
   }
 
   async createSchedule(data: {
@@ -350,7 +353,8 @@ class ApiClient {
   }
 
   async getScheduleRuns(scheduleId: string): Promise<ScheduleRun[]> {
-    return this.request<ScheduleRun[]>("GET", `/api/schedules/${scheduleId}/runs`);
+    const res = await this.request<{ items: ScheduleRun[] }>("GET", `/api/schedules/${scheduleId}/runs`);
+    return (res as unknown as { items?: ScheduleRun[] })?.items ?? [];
   }
 
   downloadScheduleRun(scheduleId: string, runId: string): void {
@@ -373,15 +377,16 @@ class ApiClient {
 
   // Team
   async getTeamMembers(): Promise<TeamMember[]> {
-    return this.request<TeamMember[]>("GET", "/api/org/members");
+    const res = await this.request<{ items: TeamMember[] }>("GET", "/api/org/users");
+    return (res as unknown as { items?: TeamMember[] })?.items ?? (Array.isArray(res) ? res : []);
   }
 
   async removeMember(id: string): Promise<void> {
-    return this.request<void>("DELETE", `/api/org/members/${id}`);
+    return this.request<void>("DELETE", `/api/org/users/${id}`);
   }
 
   async updateMemberRole(id: string, role: string): Promise<void> {
-    return this.request<void>("PATCH", `/api/org/members/${id}`, { role });
+    return this.request<void>("PUT", `/api/org/users/${id}`, { role });
   }
 
   async getInvitations(): Promise<Invitation[]> {
