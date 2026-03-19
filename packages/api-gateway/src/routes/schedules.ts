@@ -152,9 +152,9 @@ schedules.get('/:id', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// PUT /api/schedules/:id — Update schedule
+// PUT|PATCH /api/schedules/:id — Update schedule
 // ---------------------------------------------------------------------------
-schedules.put('/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
+schedules.on(['PUT', 'PATCH'], '/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
   const orgId = c.get('orgId');
   const scheduleId = c.req.param('id');
   const orgDb = new OrgDatabase(c.env.DB, orgId);

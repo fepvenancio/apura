@@ -83,9 +83,9 @@ reports.get('/:id', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// PUT /api/reports/:id — Update report
+// PUT|PATCH /api/reports/:id — Update report
 // ---------------------------------------------------------------------------
-reports.put('/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
+reports.on(['PUT', 'PATCH'], '/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
   const orgId = c.get('orgId');
   const reportId = c.req.param('id');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
