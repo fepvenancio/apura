@@ -101,7 +101,8 @@ public class CloudTunnelService
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     _isConnected = false;
-                    _logger.Information("Server closed connection");
+                    _logger.Information("Server closed connection: {Status} {Description}",
+                        result.CloseStatus, result.CloseStatusDescription);
                     return;
                 }
 

@@ -1,6 +1,6 @@
 import type { Env } from './types';
 
-const CACHE_TTL_CONNECTOR_STATUS = 30;
+const CACHE_TTL_CONNECTOR_STATUS = 120; // KV minimum is 60s
 
 interface PendingQuery {
   resolve: (data: any) => void;
@@ -50,14 +50,17 @@ export class ConnectorSession implements DurableObject {
     const orgId = request.headers.get('X-Org-Id') ?? 'unknown';
     const version = request.headers.get('X-Connector-Version') ?? 'unknown';
 
+    // Close ALL existing agent sockets before creating a new pair.
+    // Must be done BEFORE creating the new pair to avoid closing the new socket.
+    const existingSockets = this.state.getWebSockets('agent');
+    for (const sock of existingSockets) {
+      try { sock.close(1000, 'Replaced by new connection'); } catch {}
+    }
+    this.agentSocket = null;
+
     // Create WebSocket pair
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);
-
-    // Close existing connection if any
-    if (this.agentSocket) {
-      try { this.agentSocket.close(1000, 'Replaced by new connection'); } catch {}
-    }
 
     // Accept with hibernation tag
     this.state.acceptWebSocket(server, ['agent']);
@@ -69,12 +72,12 @@ export class ConnectorSession implements DurableObject {
     this.state.storage.put('connectedAt', new Date().toISOString());
     this.state.storage.put('agentVersion', version);
 
-    // Update KV
+    // Update KV (fire-and-forget, don't block response)
     this.env.CACHE.put(
       `connector:${orgId}:status`,
       JSON.stringify({ status: 'connected', agentVersion: version }),
       { expirationTtl: CACHE_TTL_CONNECTOR_STATUS }
-    );
+    ).catch(() => {});
 
     return new Response(null, { status: 101, webSocket: client });
   }

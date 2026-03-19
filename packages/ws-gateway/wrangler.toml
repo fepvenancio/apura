@@ -3,6 +3,7 @@ account_id = "616231e4ffa88bb203ec4cbedeab4a8e"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = true
 
 routes = [
   { pattern = "ws.apura.xyz", custom_domain = true }

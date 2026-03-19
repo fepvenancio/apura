@@ -57,6 +57,15 @@ bash deploy/migrate.sh
 
 ---
 
+## Build & Test Status (2026-03-19)
+
+- Connector MSI builds and installs correctly (304KB)
+- Setup utility included in MSI for first-time configuration
+- Service starts in "waiting for setup" mode if unconfigured (no more crashes)
+- WebSocket tunnel tested: stable 40+ second connections to Apura cloud
+- SQL Server connection tested with real PRIFIXUS database (Primavera ERP)
+- MSI hosted on R2 and downloadable via API
+
 ## NEXT STEPS (pending)
 
 ### 1. Fix `api.apura.xyz` TLS block (Cloudflare Dashboard)

@@ -41,14 +41,14 @@
                             Type="ownProcess"
                             Name="ApuraConnector"
                             DisplayName="Apura Connector"
-                            Description="Apura on-premise database connector for Primavera P6"
+                            Description="Apura on-premise database connector for Primavera ERP"
                             Start="auto"
                             Account="NT AUTHORITY\LocalService"
                             ErrorControl="normal" />
 
+            <!-- Do NOT start the service on install — user must run Setup first -->
             <ServiceControl Id="ApuraConnectorControl"
                             Name="ApuraConnector"
-                            Start="install"
                             Stop="both"
                             Remove="uninstall"
                             Wait="yes" />
@@ -62,12 +62,19 @@
 
           </Component>
 
+          <Component Id="SetupExecutable" Bitness="always64" Guid="C2D3E4F5-A6B7-8901-CDEF-234567890ABC">
+            <File Id="SetupExe"
+                  Source="!(bindpath.ApuraConnector.Setup)\ApuraConnector.Setup.exe"
+                  KeyPath="yes" />
+          </Component>
+
         </Directory>
       </Directory>
     </StandardDirectory>
 
     <Feature Id="Service" Title="Apura Connector" Level="1">
       <ComponentRef Id="ServiceExecutable" />
+      <ComponentRef Id="SetupExecutable" />
     </Feature>
 
   </Package>

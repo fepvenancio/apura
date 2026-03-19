@@ -18,7 +18,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    Log.Information("Apura Connector v0.1.0 starting...");
+    Log.Information("Apura Connector v1.0.0 starting...");
 
     var builder = Host.CreateApplicationBuilder(args);
 
@@ -41,8 +41,18 @@ try
     if (OperatingSystem.IsWindows() && File.Exists(credStorePath))
     {
         Log.Information("Loading SQL credentials from DPAPI-encrypted store");
-        var credStore = new DpapiCredentialStore(credStorePath);
-        sqlConfig = credStore.LoadCredentials();
+        try
+        {
+            var credStore = new DpapiCredentialStore(credStorePath);
+            sqlConfig = credStore.LoadCredentials();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load DPAPI credentials, falling back to appsettings.json");
+            sqlConfig = builder.Configuration
+                .GetSection("SqlServer")
+                .Get<SqlServerConfig>() ?? new SqlServerConfig();
+        }
     }
     else
     {
@@ -52,16 +62,18 @@ try
             .Get<SqlServerConfig>() ?? new SqlServerConfig();
     }
 
-    // Validate required config
-    if (string.IsNullOrEmpty(connectorConfig.ApiKey))
+    // Check if configuration is complete
+    var isConfigured = !string.IsNullOrEmpty(connectorConfig.ApiKey)
+        && !string.IsNullOrEmpty(sqlConfig.ServerName)
+        && !string.IsNullOrEmpty(sqlConfig.DatabaseName);
+
+    if (!isConfigured)
     {
-        Log.Fatal("Connector API key is not configured. Set Connector:ApiKey in appsettings.json");
-        return 1;
-    }
-    if (string.IsNullOrEmpty(sqlConfig.ServerName) || string.IsNullOrEmpty(sqlConfig.DatabaseName))
-    {
-        Log.Fatal("SQL Server connection is not configured. Set SqlServer:ServerName and SqlServer:DatabaseName in appsettings.json");
-        return 1;
+        Log.Warning("=============================================================");
+        Log.Warning("  Apura Connector is not configured.");
+        Log.Warning("  Run ApuraConnector.Setup.exe to configure the connector.");
+        Log.Warning("  The service will wait for configuration...");
+        Log.Warning("=============================================================");
     }
 
     // Register services
@@ -92,13 +104,11 @@ try
         .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
         .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
         .FirstOrDefault()?.InformationalVersion ?? "1.0.0";
-    // Strip any +metadata suffix for version parsing
     var versionForParsing = currentVersion.Contains('+')
         ? currentVersion[..currentVersion.IndexOf('+')]
         : currentVersion;
 
-    var tunnelUri = new Uri(connectorConfig.TunnelEndpoint.Replace("wss://", "https://").Replace("ws://", "http://"));
-    var versionEndpoint = $"{tunnelUri.Scheme}://{tunnelUri.Host}/connector/version";
+    var versionEndpoint = connectorConfig.GetVersionEndpoint();
 
     builder.Services.AddSingleton(sp =>
         new UpdateChecker(
@@ -112,16 +122,22 @@ try
 
     var host = builder.Build();
 
-    // Test SQL connection on startup
-    var sqlConn = host.Services.GetRequiredService<SqlServerConnection>();
-    var testResult = await sqlConn.TestConnectionAsync();
-    if (!testResult)
+    if (isConfigured)
     {
-        Log.Fatal("Cannot connect to SQL Server at {Server}/{Database}. Please check your configuration.",
-            sqlConfig.ServerName, sqlConfig.DatabaseName);
-        return 1;
+        // Test SQL connection on startup (non-fatal — the service will retry)
+        var sqlConn = host.Services.GetRequiredService<SqlServerConnection>();
+        var testResult = await sqlConn.TestConnectionAsync();
+        if (!testResult)
+        {
+            Log.Warning("Cannot connect to SQL Server at {Server}/{Database}. The connector will keep retrying.",
+                sqlConfig.ServerName, sqlConfig.DatabaseName);
+        }
+        else
+        {
+            Log.Information("SQL Server connection verified: {Server}/{Database}",
+                sqlConfig.ServerName, sqlConfig.DatabaseName);
+        }
     }
-    Log.Information("SQL Server connection verified: {Server}/{Database}", sqlConfig.ServerName, sqlConfig.DatabaseName);
 
     await host.RunAsync();
     return 0;
