@@ -22,14 +22,18 @@ export default function DashboardLayout({
 
   useEffect(() => {
     loadFromStorage();
-    setMounted(true);
+    // Small delay to ensure Zustand state has propagated after loadFromStorage
+    const timer = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(timer);
   }, [loadFromStorage]);
 
   useEffect(() => {
-    if (mounted && !isLoading && !isAuthenticated) {
+    if (!mounted || isLoading) return;
+    // Only redirect if we've fully loaded from storage and still not authenticated
+    if (!isAuthenticated) {
       window.location.href = `/${locale}/login`;
     }
-  }, [mounted, isLoading, isAuthenticated, router, locale]);
+  }, [mounted, isLoading, isAuthenticated, locale]);
 
   useEffect(() => {
     if (isAuthenticated) {
