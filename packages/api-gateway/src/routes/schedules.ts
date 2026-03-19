@@ -264,4 +264,68 @@ schedules.post('/:id/trigger', requireRole('owner', 'admin', 'analyst'), async (
   return c.json({ success: true, data: { runId, status: 'queued' } });
 });
 
+// ---------------------------------------------------------------------------
+// GET /api/schedules/:id/runs — List schedule run history
+// ---------------------------------------------------------------------------
+schedules.get('/:id/runs', async (c) => {
+  const orgId = c.get('orgId');
+  const scheduleId = c.req.param('id');
+  const orgDb = new OrgDatabase(c.env.DB, orgId);
+
+  // Verify schedule exists and belongs to org
+  const schedule = await orgDb.getSchedule(scheduleId);
+  if (!schedule) {
+    return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'Schedule not found' } }, 404);
+  }
+
+  const { results } = await c.env.DB
+    .prepare(
+      `SELECT id, schedule_id, status, output_url, error_message, started_at, completed_at
+       FROM schedule_runs WHERE schedule_id = ? ORDER BY started_at DESC LIMIT 50`
+    )
+    .bind(scheduleId)
+    .all();
+
+  return c.json({ success: true, data: { items: results ?? [], total: results?.length ?? 0 } });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/schedules/:scheduleId/runs/:runId/download — Download run output
+// ---------------------------------------------------------------------------
+schedules.get('/:scheduleId/runs/:runId/download', async (c) => {
+  const orgId = c.get('orgId');
+  const scheduleId = c.req.param('scheduleId');
+  const runId = c.req.param('runId');
+  const orgDb = new OrgDatabase(c.env.DB, orgId);
+
+  // Verify schedule exists and belongs to org
+  const schedule = await orgDb.getSchedule(scheduleId);
+  if (!schedule) {
+    return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'Schedule not found' } }, 404);
+  }
+
+  const run = await c.env.DB
+    .prepare('SELECT * FROM schedule_runs WHERE id = ? AND schedule_id = ?')
+    .bind(runId, scheduleId)
+    .first<{ output_url: string; status: string }>();
+
+  if (!run || !run.output_url) {
+    return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'Run output not found' } }, 404);
+  }
+
+  const object = await c.env.REPORTS_BUCKET.get(run.output_url);
+  if (!object) {
+    return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'File not found in storage' } }, 404);
+  }
+
+  const ext = run.output_url.split('.').pop() || 'csv';
+  const contentType = ext === 'csv' ? 'text/csv' : 'text/html';
+  return new Response(object.body, {
+    headers: {
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename="report-${runId}.${ext}"`,
+    },
+  });
+});
+
 export default schedules;
