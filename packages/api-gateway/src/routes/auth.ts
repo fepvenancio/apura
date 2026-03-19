@@ -7,6 +7,7 @@ import { createJWT, verifyJWT, generateJti } from '../utils/jwt';
 import { hashPassword, verifyPassword } from '../utils/password';
 import { generateApiKey } from '../utils/api-key';
 import { OrgDatabase } from '../services/org-db';
+import { authMiddleware } from '../middleware/auth';
 import { decryptSecret, verifyBackupCode } from '../utils/crypto';
 
 const auth = new Hono<{ Bindings: Env; Variables: AppVariables }>();
@@ -693,7 +694,7 @@ auth.post('/mfa/verify', async (c) => {
 // ---------------------------------------------------------------------------
 // PATCH /auth/profile — Update user profile (name, language)
 // ---------------------------------------------------------------------------
-auth.patch('/profile', async (c) => {
+auth.patch('/profile', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
   const body = await c.req.json<{ name?: string; language?: string }>();
@@ -717,7 +718,7 @@ auth.patch('/profile', async (c) => {
 // ---------------------------------------------------------------------------
 // POST /auth/change-password — Change current user's password
 // ---------------------------------------------------------------------------
-auth.post('/change-password', async (c) => {
+auth.post('/change-password', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
   const body = await c.req.json<{ currentPassword: string; newPassword: string }>();
