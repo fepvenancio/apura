@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?define Name = "Apura Connector" ?>
+<?define Manufacturer = "Apura" ?>
+<?define Version = "1.0.0.0" ?>
+<?define UpgradeCode = "B7E3F2A1-8C4D-4E6F-9A2B-1D3E5F7A8B9C" ?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:fw="http://wixtoolset.org/schemas/v4/wxs/firewall">
+
+  <Package Name="$(Name)"
+           Manufacturer="$(Manufacturer)"
+           Version="$(Version)"
+           UpgradeCode="$(UpgradeCode)"
+           Compressed="yes"
+           InstallerVersion="500"
+           Scope="perMachine">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="MANUFACTURERDIR" Name="Apura">
+        <Directory Id="INSTALLDIR" Name="Apura Connector">
+
+          <Component Id="ServiceExecutable" Bitness="always64" Guid="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+
+            <File Id="ServiceExe"
+                  Source="!(bindpath.ApuraConnector.Service)\ApuraConnector.Service.exe"
+                  KeyPath="yes" />
+
+            <File Id="AppSettings"
+                  Source="!(bindpath.ApuraConnector.Service)\appsettings.json" />
+
+            <RemoveFile Id="ALLFILES" Name="*.*" On="both" />
+
+            <ServiceInstall Id="ApuraConnectorService"
+                            Type="ownProcess"
+                            Name="ApuraConnector"
+                            DisplayName="Apura Connector"
+                            Description="Apura on-premise database connector for Primavera P6"
+                            Start="auto"
+                            Account="NT AUTHORITY\LocalService"
+                            ErrorControl="normal" />
+
+            <ServiceControl Id="ApuraConnectorControl"
+                            Name="ApuraConnector"
+                            Start="install"
+                            Stop="both"
+                            Remove="uninstall"
+                            Wait="yes" />
+
+            <fw:FirewallException Id="ApuraOutbound443"
+                                  Name="Apura Connector (Outbound HTTPS)"
+                                  Protocol="tcp"
+                                  Port="443"
+                                  Direction="out"
+                                  Profile="all"
+                                  Scope="any" />
+
+          </Component>
+
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="Service" Title="Apura Connector" Level="1">
+      <ComponentRef Id="ServiceExecutable" />
+    </Feature>
+
+  </Package>
+
+</Wix>

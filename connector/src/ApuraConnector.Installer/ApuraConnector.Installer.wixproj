@@ -1,0 +1,9 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+  <ItemGroup>
+    <ProjectReference Include="..\ApuraConnector.Service\ApuraConnector.Service.csproj"
+                      Publish="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Firewall.wixext" Version="6.0.*" />
+  </ItemGroup>
+</Project>
