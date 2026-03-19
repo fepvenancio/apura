@@ -43,6 +43,7 @@ Users can query their Primavera database using natural language and get accurate
 - ✓ GDPR compliance (erasure, data export, consent, DPA, retention) — Phase 4
 - ✓ MFA (TOTP setup, two-phase login, backup codes, org enforcement, admin reset) — Phase 5
 - ✓ mTLS security hardening (Cloudflare API Shield, .NET client cert, dual-auth) — Phase 6
+- ✓ Export (CSV download with proper escaping, print-optimized report view) — Phase 7
 
 ### Active
 
@@ -97,4 +98,4 @@ Users can query their Primavera database using natural language and get accurate
 | Durable Objects for connector sessions | Stateful WebSocket management per-org | — Pending |
 
 ---
-*Last updated: 2026-03-18 after Phase 6 completion*
+*Last updated: 2026-03-19 after Phase 7 completion*
