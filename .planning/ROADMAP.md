@@ -173,8 +173,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
+- [ ] 10-01-PLAN.md -- DPAPI credential store, auto-update checker, UseWindowsService integration, version endpoint
+- [ ] 10-02-PLAN.md -- WiX v6 MSI installer project with service/firewall/upgrade elements, IT admin documentation
 
 ## Progress
 
@@ -193,4 +193,4 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 | 7. Export | 1/1 | Complete    | 2026-03-19 |
 | 8. Sharing and Scheduled Reports | 0/2 | Complete    | 2026-03-19 |
 | 9. Internationalization | 3/3 | Complete    | 2026-03-19 |
-| 10. Connector Packaging | 0/? | Not started | - |
+| 10. Connector Packaging | 0/2 | Planning complete | - |
