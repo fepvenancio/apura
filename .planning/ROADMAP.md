@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Security Hardening** - mTLS for connector-to-cloud communication (completed 2026-03-18)
 - [x] **Phase 7: Export** - CSV download and print-optimized HTML report views (completed 2026-03-19)
 - [x] **Phase 8: Sharing and Scheduled Reports** - Internal report sharing and recurring report generation pipeline (completed 2026-03-19)
-- [ ] **Phase 9: Internationalization** - PT/ES/EN language support across all UI surfaces
+- [x] **Phase 9: Internationalization** - PT/ES/EN language support across all UI surfaces (completed 2026-03-19)
 - [ ] **Phase 10: Connector Packaging** - MSI installer, DPAPI credentials, auto-update, and end-to-end validation
 
 ## Phase Details
@@ -192,5 +192,5 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 | 6. Security Hardening | 0/? | Complete    | 2026-03-18 |
 | 7. Export | 1/1 | Complete    | 2026-03-19 |
 | 8. Sharing and Scheduled Reports | 0/2 | Complete    | 2026-03-19 |
-| 9. Internationalization | 0/3 | Planning complete | - |
+| 9. Internationalization | 3/3 | Complete   | 2026-03-19 |
 | 10. Connector Packaging | 0/? | Not started | - |
