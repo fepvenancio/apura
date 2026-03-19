@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { useConnectorStore } from "@/stores/connector-store";
@@ -13,27 +12,30 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const locale = useLocale();
-  const { isAuthenticated, isLoading, loadFromStorage } = useAuthStore();
+  const { isAuthenticated, loadFromStorage } = useAuthStore();
   const checkStatus = useConnectorStore((s) => s.checkStatus);
   const startPolling = useConnectorStore((s) => s.startPolling);
-  const [mounted, setMounted] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    loadFromStorage();
-    // Small delay to ensure Zustand state has propagated after loadFromStorage
-    const timer = setTimeout(() => setMounted(true), 50);
-    return () => clearTimeout(timer);
-  }, [loadFromStorage]);
+    // Check localStorage directly — don't rely on Zustand timing
+    const token = localStorage.getItem("accessToken");
+    const user = localStorage.getItem("user");
+    const org = localStorage.getItem("org");
 
-  useEffect(() => {
-    if (!mounted || isLoading) return;
-    // Only redirect if we've fully loaded from storage and still not authenticated
-    if (!isAuthenticated) {
+    if (!token || !user || !org) {
+      // No auth data — redirect to login
+      setRedirecting(true);
       window.location.href = `/${locale}/login`;
+      return;
     }
-  }, [mounted, isLoading, isAuthenticated, locale]);
+
+    // Auth data exists — load into Zustand store
+    loadFromStorage();
+    setReady(true);
+  }, [loadFromStorage, locale]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -43,16 +45,12 @@ export default function DashboardLayout({
     }
   }, [isAuthenticated, checkStatus, startPolling]);
 
-  if (!mounted || isLoading) {
+  if (redirecting || !ready) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Spinner size="lg" />
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (

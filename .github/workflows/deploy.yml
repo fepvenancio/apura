@@ -95,11 +95,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and deploy frontend
+      - name: Build frontend
         working-directory: frontend
         env:
           NEXT_PUBLIC_API_URL: https://api.apura.xyz
-        run: |
-          npm install @cloudflare/next-on-pages
-          npx @cloudflare/next-on-pages
-          npx wrangler pages deploy .vercel/output/static --project-name apura-web --branch main --commit-dirty=true
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        working-directory: frontend
+        run: npx wrangler pages deploy out --project-name apura-web --branch main --commit-dirty=true

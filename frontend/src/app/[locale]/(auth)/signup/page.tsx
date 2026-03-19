@@ -35,7 +35,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signup({ name, email, password, orgName, slug });
-      window.location.href = `/${locale}/home`;
+      router.push(`/${locale}/home`);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : t("signupError")
