@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 status: unknown
 stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-03-19T00:52:11.986Z"
+last_updated: "2026-03-19T01:15:56.928Z"
 progress:
   total_phases: 10
   completed_phases: 8
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 20
+  completed_plans: 18
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Users can query their Primavera database using natural language and get accurate, validated SQL results -- without knowing SQL.
-**Current focus:** Phase 08 — sharing-and-scheduled-reports
+**Current focus:** Phase 09 — internationalization
 
 ## Current Position
 
-Phase: 08 (sharing-and-scheduled-reports) — COMPLETE
-Plan: 2 of 2 (DONE)
+Phase: 09 (internationalization) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Plan: 2 of 2 (DONE)
 | Phase 07-export P01 | 3min | 2 tasks | 8 files |
 | Phase 08-sharing-and-scheduled-reports P01 | 3min | 2 tasks | 9 files |
 | Phase 08-sharing-and-scheduled-reports P02 | 4min | 2 tasks | 5 files |
+| Phase 09-internationalization P01 | 11min | 2 tasks | 41 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,9 @@ Recent decisions affecting current work:
 - [Phase 08-sharing-and-scheduled-reports]: Copied computeNextRun logic into schedules.ts rather than sharing module to avoid cross-package dependency
 - [Phase 08-sharing-and-scheduled-reports]: Used card-based layout for schedules instead of table for better mobile responsiveness
 - [Phase 08-sharing-and-scheduled-reports]: Frequency presets (daily/weekly/monthly) with radio selection instead of raw cron input for better UX
+- [Phase 09-internationalization]: Removed output: export from next.config.ts -- dynamic route segments incompatible with static export
+- [Phase 09-internationalization]: 521 translation keys across 21 namespaces covering all pages and components
+- [Phase 09-internationalization]: Backend returns language field on all auth responses; PATCH /auth/profile validates against allowed locales
 
 ### Pending Todos
 
@@ -117,6 +121,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T00:47:02Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-03-19T01:28:10Z
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None
