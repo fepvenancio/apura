@@ -151,13 +151,14 @@ Plans:
 **Requirements**: I18N-01, I18N-02, I18N-03, I18N-04
 **Success Criteria** (what must be TRUE):
   1. User can switch language to PT, ES, or EN in settings and the entire UI updates
-  2. All UI text is rendered from locale JSON files with no hardcoded English strings
+  2. All UI text is rendered from locale JSON files with no hardcoded Portuguese strings
   3. Dates display as DD/MM/YYYY for PT/ES and MM/DD/YYYY for EN; numbers use locale-appropriate separators
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
+- [ ] 09-01-PLAN.md -- Foundation: install next-intl, configure plugin, create locale JSON files, restructure app under [locale] segment, wire backend language field
+- [ ] 09-02-PLAN.md -- Extract strings from auth pages (7), layout components (2), query components (4), billing banner, and refactor utils.ts formatting
+- [ ] 09-03-PLAN.md -- Extract strings from dashboard pages (17) and public pages (3), wire language selector to locale switching
 
 ### Phase 10: Connector Packaging
 **Goal**: Enterprise IT teams can deploy and maintain the .NET connector via standard Windows tooling
@@ -191,5 +192,5 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 | 6. Security Hardening | 0/? | Complete    | 2026-03-18 |
 | 7. Export | 1/1 | Complete    | 2026-03-19 |
 | 8. Sharing and Scheduled Reports | 0/2 | Complete    | 2026-03-19 |
-| 9. Internationalization | 0/? | Not started | - |
+| 9. Internationalization | 0/3 | Planning complete | - |
 | 10. Connector Packaging | 0/? | Not started | - |
