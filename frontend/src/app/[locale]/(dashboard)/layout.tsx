@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { useConnectorStore } from "@/stores/connector-store";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -13,6 +14,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const locale = useLocale();
   const { isAuthenticated, isLoading, loadFromStorage } = useAuthStore();
   const checkStatus = useConnectorStore((s) => s.checkStatus);
   const startPolling = useConnectorStore((s) => s.startPolling);
@@ -25,9 +27,9 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (mounted && !isLoading && !isAuthenticated) {
-      router.push("/login");
+      router.push(`/${locale}/login`);
     }
-  }, [mounted, isLoading, isAuthenticated, router]);
+  }, [mounted, isLoading, isAuthenticated, router, locale]);
 
   useEffect(() => {
     if (isAuthenticated) {
