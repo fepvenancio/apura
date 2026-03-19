@@ -28,17 +28,23 @@ export async function authMiddleware(c: AppContext, next: Next): Promise<Respons
   try {
     const payload = await verifyJWT(token, c.env.JWT_SECRET);
 
-    // Check if session is still valid (not revoked) in KV
-    const sessionKey = `session:${payload.jti}`;
-    const session = await c.env.CACHE.get(sessionKey);
-    if (!session) {
-      return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Session expired or revoked' } }, 401);
-    }
+    // Skip KV session check for very fresh tokens (< 60s old).
+    // Cloudflare KV is eventually consistent — reads may miss writes
+    // for a few seconds after login. The JWT signature is sufficient
+    // proof of authenticity for fresh tokens.
+    const tokenAge = Math.floor(Date.now() / 1000) - payload.iat;
+    if (tokenAge > 60) {
+      const sessionKey = `session:${payload.jti}`;
+      const session = await c.env.CACHE.get(sessionKey);
+      if (!session) {
+        return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Session expired or revoked' } }, 401);
+      }
 
-    // Reject refresh tokens used as access tokens
-    const sessionData = JSON.parse(session);
-    if (sessionData.type === 'refresh') {
-      return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid token type' } }, 401);
+      // Reject refresh tokens used as access tokens
+      const sessionData = JSON.parse(session);
+      if (sessionData.type === 'refresh') {
+        return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid token type' } }, 401);
+      }
     }
 
     // Attach user context

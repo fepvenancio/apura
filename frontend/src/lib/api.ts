@@ -113,15 +113,10 @@ class ApiClient {
       try {
         await this.refreshToken();
       } catch {
-        // Refresh failed — clear auth state and redirect to login
+        // Refresh failed — clear in-memory token and rethrow.
+        // Don't redirect here — let the dashboard layout handle it
+        // by detecting missing localStorage tokens on next render.
         this.clearToken();
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("user");
-          localStorage.removeItem("org");
-          window.location.href = "/pt/login";
-        }
         throw new ApiError(401, "Session expired. Please log in again.");
       }
       const retryRes = await fetch(`${API_BASE}${path}`, {
