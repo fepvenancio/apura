@@ -49,8 +49,8 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 ### Export
 
-- [ ] **EXPORT-01**: User can download current query results as CSV from the UI
-- [ ] **EXPORT-02**: User can generate a print-optimized HTML view of a report (print-to-PDF)
+- [x] **EXPORT-01**: User can download current query results as CSV from the UI
+- [x] **EXPORT-02**: User can generate a print-optimized HTML view of a report (print-to-PDF)
 - [ ] **EXPORT-03**: Scheduled reports generate CSV and deliver via email
 
 ### Query Sharing
@@ -175,8 +175,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MFA-05 | Phase 5: MFA | Complete |
 | SEC-01 | Phase 6: Security Hardening | Complete |
 | SEC-02 | Phase 6: Security Hardening | Complete |
-| EXPORT-01 | Phase 7: Export | Pending |
-| EXPORT-02 | Phase 7: Export | Pending |
+| EXPORT-01 | Phase 7: Export | Complete |
+| EXPORT-02 | Phase 7: Export | Complete |
 | SHARE-01 | Phase 8: Sharing and Scheduled Reports | Pending |
 | SHARE-02 | Phase 8: Sharing and Scheduled Reports | Pending |
 | SCHED-01 | Phase 8: Sharing and Scheduled Reports | Pending |
