@@ -75,8 +75,8 @@ export class OrgDatabase {
 
     await this.db
       .prepare(
-        `INSERT INTO queries (id, org_id, user_id, natural_language, generated_sql, explanation, status, row_count, execution_time_ms, error_message, cached, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO queries (id, org_id, user_id, natural_language, generated_sql, explanation, status, row_count, execution_time_ms, error_message, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
@@ -89,7 +89,6 @@ export class OrgDatabase {
         query.row_count ?? null,
         query.execution_time_ms ?? null,
         query.error_message ?? null,
-        query.cached ? 1 : 0,
         now,
         now,
       )
