@@ -58,7 +58,7 @@ export default function SchedulesPage() {
     try {
       const schedule = await api.createSchedule({
         reportId: newReportId,
-        cron: newCron,
+        cronExpression: newCron,
         timezone: newTimezone,
       });
       setSchedules((prev) => [schedule, ...prev]);

@@ -12,6 +12,7 @@ import type {
   Dashboard,
   DashboardWidget,
   Schedule,
+  ScheduleRun,
   SchemaTable,
   TeamMember,
   Invitation,
@@ -319,8 +320,10 @@ class ApiClient {
 
   async createSchedule(data: {
     reportId: string;
-    cron: string;
+    cronExpression: string;
     timezone: string;
+    outputFormat?: string;
+    recipients?: string[];
   }): Promise<Schedule> {
     return this.request<Schedule>("POST", "/schedules", data);
   }
@@ -335,6 +338,15 @@ class ApiClient {
 
   async triggerSchedule(id: string): Promise<void> {
     return this.request<void>("POST", `/schedules/${id}/trigger`);
+  }
+
+  async getScheduleRuns(scheduleId: string): Promise<ScheduleRun[]> {
+    return this.request<ScheduleRun[]>("GET", `/schedules/${scheduleId}/runs`);
+  }
+
+  downloadScheduleRun(scheduleId: string, runId: string): void {
+    const url = `${API_BASE}/schedules/${scheduleId}/runs/${runId}/download`;
+    window.open(url, "_blank");
   }
 
   // Schema

@@ -71,6 +71,8 @@ export interface Report {
   queryId: string;
   chartConfig?: Record<string, unknown>;
   layoutConfig?: Record<string, unknown>;
+  isShared?: boolean;
+  userId?: string;
   lastRunAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -118,11 +120,23 @@ export interface Schedule {
   cron: string;
   timezone: string;
   enabled: boolean;
+  outputFormat?: string;
+  recipients?: string[];
   nextRunAt?: string;
   lastRunAt?: string;
   lastRunStatus?: "success" | "error";
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ScheduleRun {
+  id: string;
+  scheduleId: string;
+  status: "pending" | "queued" | "running" | "completed" | "failed";
+  outputUrl?: string;
+  errorMessage?: string;
+  startedAt: string;
+  completedAt?: string;
 }
 
 // Schema
