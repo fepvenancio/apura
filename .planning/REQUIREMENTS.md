@@ -51,19 +51,19 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 - [x] **EXPORT-01**: User can download current query results as CSV from the UI
 - [x] **EXPORT-02**: User can generate a print-optimized HTML view of a report (print-to-PDF)
-- [ ] **EXPORT-03**: Scheduled reports generate CSV and deliver via email
+- [x] **EXPORT-03**: Scheduled reports generate CSV and deliver via email
 
 ### Query Sharing
 
-- [ ] **SHARE-01**: User can share a report with other authenticated org members via `is_shared` flag
+- [x] **SHARE-01**: User can share a report with other authenticated org members via `is_shared` flag
 - [ ] **SHARE-02**: Shared reports visible to all org members on reports page
 
 ### Scheduled Reports
 
-- [ ] **SCHED-01**: User can create a schedule for recurring report generation (daily/weekly/monthly)
-- [ ] **SCHED-02**: Cron worker triggers report generation on schedule
-- [ ] **SCHED-03**: User can view schedule run history and status
-- [ ] **SCHED-04**: Generated reports stored in R2 and delivered via email
+- [x] **SCHED-01**: User can create a schedule for recurring report generation (daily/weekly/monthly)
+- [x] **SCHED-02**: Cron worker triggers report generation on schedule
+- [x] **SCHED-03**: User can view schedule run history and status
+- [x] **SCHED-04**: Generated reports stored in R2 and delivered via email
 
 ### GDPR
 
@@ -177,13 +177,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-02 | Phase 6: Security Hardening | Complete |
 | EXPORT-01 | Phase 7: Export | Complete |
 | EXPORT-02 | Phase 7: Export | Complete |
-| SHARE-01 | Phase 8: Sharing and Scheduled Reports | Pending |
+| SHARE-01 | Phase 8: Sharing and Scheduled Reports | Complete |
 | SHARE-02 | Phase 8: Sharing and Scheduled Reports | Pending |
-| SCHED-01 | Phase 8: Sharing and Scheduled Reports | Pending |
-| SCHED-02 | Phase 8: Sharing and Scheduled Reports | Pending |
-| SCHED-03 | Phase 8: Sharing and Scheduled Reports | Pending |
-| SCHED-04 | Phase 8: Sharing and Scheduled Reports | Pending |
-| EXPORT-03 | Phase 8: Sharing and Scheduled Reports | Pending |
+| SCHED-01 | Phase 8: Sharing and Scheduled Reports | Complete |
+| SCHED-02 | Phase 8: Sharing and Scheduled Reports | Complete |
+| SCHED-03 | Phase 8: Sharing and Scheduled Reports | Complete |
+| SCHED-04 | Phase 8: Sharing and Scheduled Reports | Complete |
+| EXPORT-03 | Phase 8: Sharing and Scheduled Reports | Complete |
 | I18N-01 | Phase 9: Internationalization | Pending |
 | I18N-02 | Phase 9: Internationalization | Pending |
 | I18N-03 | Phase 9: Internationalization | Pending |
