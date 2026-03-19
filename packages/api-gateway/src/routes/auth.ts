@@ -201,13 +201,6 @@ auth.post('/login', async (c) => {
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Email and password required' } }, 400);
   }
 
-  // Per-account lockout: block after 5 failed attempts (15-min cooldown)
-  const lockoutKey = `login:fail:${body.email.toLowerCase()}`;
-  const failCount = parseInt(await c.env.CACHE.get(lockoutKey) ?? '0', 10);
-  if (failCount >= 5) {
-    return c.json({ success: false, error: { code: 'RATE_LIMITED', message: 'Account temporarily locked. Please try again in 15 minutes.' } }, 429);
-  }
-
   // Find user by email (global lookup)
   const user = await c.env.DB
     .prepare('SELECT * FROM users WHERE email = ?')
@@ -215,20 +208,14 @@ auth.post('/login', async (c) => {
     .first<{ id: string; org_id: string; email: string; name: string; password_hash: string; role: string; mfa_enabled: number; language: string }>();
 
   if (!user) {
-    // Increment failure counter even for non-existent users (prevent enumeration)
-    await c.env.CACHE.put(lockoutKey, String(failCount + 1), { expirationTtl: 900 });
     return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid credentials' } }, 401);
   }
 
   // Verify password
   const valid = await verifyPassword(body.password, user.password_hash);
   if (!valid) {
-    await c.env.CACHE.put(lockoutKey, String(failCount + 1), { expirationTtl: 900 });
     return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid credentials' } }, 401);
   }
-
-  // Clear lockout on successful login
-  await c.env.CACHE.delete(lockoutKey);
 
   // MFA two-phase login: if MFA enabled, return challenge token instead of real tokens
   if (user.mfa_enabled) {
