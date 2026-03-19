@@ -142,8 +142,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md -- Fix 6 backend bugs, align worker contracts, add schedule runs API and report download endpoint
+- [ ] 08-02-PLAN.md -- Frontend: sharing toggle + shared tab on reports, schedule management UI with creation form and run history
 
 ### Phase 9: Internationalization
 **Goal**: The application is fully usable in Portuguese, Spanish, and English
@@ -190,6 +190,6 @@ Note: Phases 5, 6, and 7 can execute in parallel after their dependencies are me
 | 5. MFA | 3/3 | Complete    | 2026-03-18 |
 | 6. Security Hardening | 0/? | Complete    | 2026-03-18 |
 | 7. Export | 1/1 | Complete    | 2026-03-19 |
-| 8. Sharing and Scheduled Reports | 0/? | Not started | - |
+| 8. Sharing and Scheduled Reports | 0/2 | Planning complete | - |
 | 9. Internationalization | 0/? | Not started | - |
 | 10. Connector Packaging | 0/? | Not started | - |
