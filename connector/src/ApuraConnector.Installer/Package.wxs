@@ -20,7 +20,9 @@
 
     <MediaTemplate EmbedCab="yes" />
 
-    <StandardDirectory Id="ProgramFiles6432Folder">
+    <SummaryInformation Description="$(Name)" Manufacturer="$(Manufacturer)" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="MANUFACTURERDIR" Name="Apura">
         <Directory Id="INSTALLDIR" Name="Apura Connector">
 
@@ -55,9 +57,8 @@
                                   Name="Apura Connector (Outbound HTTPS)"
                                   Protocol="tcp"
                                   Port="443"
-                                  Direction="out"
-                                  Profile="all"
-                                  Scope="any" />
+                                  Outbound="yes"
+                                  Profile="all" />
 
           </Component>
 
