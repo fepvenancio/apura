@@ -72,6 +72,18 @@ app.use('/auth/*', async (c, next) => {
   return next();
 });
 
+// Connector CORS (public endpoint, called from frontend)
+app.use(
+  '/connector/*',
+  cors({
+    origin: ['https://apura.xyz', 'https://app.apura.xyz', 'http://localhost:3000'],
+    allowMethods: ['GET'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    maxAge: 86400,
+  }),
+);
+
 // Webhook CORS (Stripe needs to POST, no auth)
 app.use('/webhooks/*', cors({
   origin: '*',

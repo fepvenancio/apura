@@ -241,18 +241,18 @@ class ApiClient {
 
   // Queries
   async executeQuery(naturalLanguage: string): Promise<QueryResult> {
-    return this.request<QueryResult>("POST", "/queries", { naturalLanguage });
+    return this.request<QueryResult>("POST", "/api/queries", { naturalLanguage });
   }
 
   async getQueryHistory(page = 1): Promise<PaginatedResponse<SavedQuery>> {
     return this.request<PaginatedResponse<SavedQuery>>(
       "GET",
-      `/queries?page=${page}`
+      `/api/queries?page=${page}`
     );
   }
 
   async getQuery(id: string): Promise<QueryResult> {
-    return this.request<QueryResult>("GET", `/queries/${id}`);
+    return this.request<QueryResult>("GET", `/api/queries/${id}`);
   }
 
   // Reports
@@ -262,32 +262,32 @@ class ApiClient {
     chartConfig?: Record<string, unknown>;
     layoutConfig?: Record<string, unknown>;
   }): Promise<Report> {
-    return this.request<Report>("POST", "/reports", data);
+    return this.request<Report>("POST", "/api/reports", data);
   }
 
   async getReports(): Promise<Report[]> {
-    return this.request<Report[]>("GET", "/reports");
+    return this.request<Report[]>("GET", "/api/reports");
   }
 
   async getReport(id: string): Promise<Report> {
-    return this.request<Report>("GET", `/reports/${id}`);
+    return this.request<Report>("GET", `/api/reports/${id}`);
   }
 
   async runReport(id: string): Promise<QueryResult> {
-    return this.request<QueryResult>("POST", `/reports/${id}/run`);
+    return this.request<QueryResult>("POST", `/api/reports/${id}/run`);
   }
 
   async deleteReport(id: string): Promise<void> {
-    return this.request<void>("DELETE", `/reports/${id}`);
+    return this.request<void>("DELETE", `/api/reports/${id}`);
   }
 
   // Org
   async getOrg(): Promise<Organization> {
-    return this.request<Organization>("GET", "/org");
+    return this.request<Organization>("GET", "/api/org");
   }
 
   async getUsage(): Promise<UsageInfo> {
-    return this.request<UsageInfo>("GET", "/org/usage");
+    return this.request<UsageInfo>("GET", "/api/org/usage");
   }
 
   async getConnectorStatus(): Promise<ConnectorStatus> {
@@ -296,36 +296,36 @@ class ApiClient {
 
   // Dashboards
   async getDashboards(): Promise<Dashboard[]> {
-    return this.request<Dashboard[]>("GET", "/dashboards");
+    return this.request<Dashboard[]>("GET", "/api/dashboards");
   }
 
   async getDashboard(id: string): Promise<Dashboard> {
-    return this.request<Dashboard>("GET", `/dashboards/${id}`);
+    return this.request<Dashboard>("GET", `/api/dashboards/${id}`);
   }
 
   async createDashboard(data: { name: string; description?: string }): Promise<Dashboard> {
-    return this.request<Dashboard>("POST", "/dashboards", data);
+    return this.request<Dashboard>("POST", "/api/dashboards", data);
   }
 
   async updateDashboard(id: string, data: Partial<Dashboard>): Promise<Dashboard> {
-    return this.request<Dashboard>("PATCH", `/dashboards/${id}`, data);
+    return this.request<Dashboard>("PATCH", `/api/dashboards/${id}`, data);
   }
 
   async deleteDashboard(id: string): Promise<void> {
-    return this.request<void>("DELETE", `/dashboards/${id}`);
+    return this.request<void>("DELETE", `/api/dashboards/${id}`);
   }
 
   async addWidget(dashboardId: string, data: { reportId: string; x: number; y: number; w: number; h: number }): Promise<DashboardWidget> {
-    return this.request<DashboardWidget>("POST", `/dashboards/${dashboardId}/widgets`, data);
+    return this.request<DashboardWidget>("POST", `/api/dashboards/${dashboardId}/widgets`, data);
   }
 
   async removeWidget(dashboardId: string, widgetId: string): Promise<void> {
-    return this.request<void>("DELETE", `/dashboards/${dashboardId}/widgets/${widgetId}`);
+    return this.request<void>("DELETE", `/api/dashboards/${dashboardId}/widgets/${widgetId}`);
   }
 
   // Schedules
   async getSchedules(): Promise<Schedule[]> {
-    return this.request<Schedule[]>("GET", "/schedules");
+    return this.request<Schedule[]>("GET", "/api/schedules");
   }
 
   async createSchedule(data: {
@@ -335,66 +335,66 @@ class ApiClient {
     outputFormat?: string;
     recipients?: string[];
   }): Promise<Schedule> {
-    return this.request<Schedule>("POST", "/schedules", data);
+    return this.request<Schedule>("POST", "/api/schedules", data);
   }
 
   async updateSchedule(id: string, data: Partial<Schedule>): Promise<Schedule> {
-    return this.request<Schedule>("PATCH", `/schedules/${id}`, data);
+    return this.request<Schedule>("PATCH", `/api/schedules/${id}`, data);
   }
 
   async deleteSchedule(id: string): Promise<void> {
-    return this.request<void>("DELETE", `/schedules/${id}`);
+    return this.request<void>("DELETE", `/api/schedules/${id}`);
   }
 
   async triggerSchedule(id: string): Promise<void> {
-    return this.request<void>("POST", `/schedules/${id}/trigger`);
+    return this.request<void>("POST", `/api/schedules/${id}/trigger`);
   }
 
   async getScheduleRuns(scheduleId: string): Promise<ScheduleRun[]> {
-    return this.request<ScheduleRun[]>("GET", `/schedules/${scheduleId}/runs`);
+    return this.request<ScheduleRun[]>("GET", `/api/schedules/${scheduleId}/runs`);
   }
 
   downloadScheduleRun(scheduleId: string, runId: string): void {
-    const url = `${API_BASE}/schedules/${scheduleId}/runs/${runId}/download`;
+    const url = `${API_BASE}/api/schedules/${scheduleId}/runs/${runId}/download`;
     window.open(url, "_blank");
   }
 
   // Schema
   async getSchema(): Promise<SchemaTable[]> {
-    return this.request<SchemaTable[]>("GET", "/schema/tables");
+    return this.request<SchemaTable[]>("GET", "/api/schema/tables");
   }
 
   async getSchemaTable(name: string): Promise<SchemaTable> {
-    return this.request<SchemaTable>("GET", `/schema/tables/${encodeURIComponent(name)}`);
+    return this.request<SchemaTable>("GET", `/api/schema/tables/${encodeURIComponent(name)}`);
   }
 
   async getSchemaCategories(): Promise<string[]> {
-    return this.request<string[]>("GET", "/schema/categories");
+    return this.request<string[]>("GET", "/api/schema/categories");
   }
 
   // Team
   async getTeamMembers(): Promise<TeamMember[]> {
-    return this.request<TeamMember[]>("GET", "/org/members");
+    return this.request<TeamMember[]>("GET", "/api/org/members");
   }
 
   async removeMember(id: string): Promise<void> {
-    return this.request<void>("DELETE", `/org/members/${id}`);
+    return this.request<void>("DELETE", `/api/org/members/${id}`);
   }
 
   async updateMemberRole(id: string, role: string): Promise<void> {
-    return this.request<void>("PATCH", `/org/members/${id}`, { role });
+    return this.request<void>("PATCH", `/api/org/members/${id}`, { role });
   }
 
   async getInvitations(): Promise<Invitation[]> {
-    return this.request<Invitation[]>("GET", "/org/invitations");
+    return this.request<Invitation[]>("GET", "/api/org/invitations");
   }
 
   async sendInvitation(data: { email: string; role: string }): Promise<Invitation> {
-    return this.request<Invitation>("POST", "/org/invitations", data);
+    return this.request<Invitation>("POST", "/api/org/invitations", data);
   }
 
   async revokeInvitation(id: string): Promise<void> {
-    return this.request<void>("DELETE", `/org/invitations/${id}`);
+    return this.request<void>("DELETE", `/api/org/invitations/${id}`);
   }
 
   async acceptInvitation(token: string, data: { name: string; password: string }): Promise<LoginResponse> {
@@ -445,16 +445,16 @@ class ApiClient {
 
   // Org settings
   async getOrgSettings(): Promise<OrgSettings> {
-    return this.request<OrgSettings>("GET", "/org/settings");
+    return this.request<OrgSettings>("GET", "/api/org/settings");
   }
 
   async updateOrgSettings(data: Partial<OrgSettings>): Promise<OrgSettings> {
-    return this.request<OrgSettings>("PATCH", "/org/settings", data);
+    return this.request<OrgSettings>("PATCH", "/api/org/settings", data);
   }
 
   // Report update
   async updateReport(id: string, data: Partial<Report>): Promise<Report> {
-    return this.request<Report>("PATCH", `/reports/${id}`, data);
+    return this.request<Report>("PATCH", `/api/reports/${id}`, data);
   }
 
   // MFA
@@ -485,7 +485,7 @@ class ApiClient {
   }
 
   async updateOrgMfaRequired(required: boolean): Promise<OrgSettings> {
-    return this.request<OrgSettings>("PATCH", "/org/settings", {
+    return this.request<OrgSettings>("PATCH", "/api/org/settings", {
       mfa_required: required ? 1 : 0,
     });
   }
