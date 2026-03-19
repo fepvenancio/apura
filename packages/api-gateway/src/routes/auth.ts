@@ -130,7 +130,7 @@ auth.post('/signup', async (c) => {
     c.env.EMAIL_QUEUE.send({
       type: 'email_verification',
       to: [body.email],
-      verifyUrl: `https://app.apura.xyz/verify-email/${verifyToken}`,
+      verifyUrl: `https://apura.xyz/pt/verify-email/${verifyToken}`,
       userName: body.name,
     })
   );
@@ -500,7 +500,7 @@ auth.post('/forgot-password', async (c) => {
       c.env.EMAIL_QUEUE.send({
         type: 'password_reset',
         to: [body.email],
-        resetUrl: `https://app.apura.xyz/reset-password/${resetToken}`,
+        resetUrl: `https://apura.xyz/pt/reset-password/${resetToken}`,
         userName: user.name ?? body.email,
       })
     );
