@@ -14,6 +14,7 @@ import webhooks from './routes/webhooks';
 import billing from './routes/billing';
 import gdpr from './routes/gdpr';
 import mfa from './routes/mfa';
+import connector from './routes/connector';
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -81,6 +82,8 @@ app.use('/webhooks/*', cors({
 // Public routes
 app.route('/auth', auth);
 app.route('/webhooks', webhooks);
+// Connector version check (public -- connectors use API key auth, not user JWT)
+app.route('/connector', connector);
 
 // Protected routes (auth required)
 app.use('/api/*', authMiddleware);

@@ -11,6 +11,9 @@ public class ConnectorConfig
     public int ReconnectInitialDelayMs { get; set; } = 1000;
     public int ReconnectMaxDelayMs { get; set; } = 120000;
 
+    // Auto-update settings
+    public int UpdateCheckIntervalHours { get; set; } = 6;
+
     // Client certificate for mTLS
     public string? ClientCertificatePath { get; set; }
     public string? ClientCertificatePassword { get; set; }

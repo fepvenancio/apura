@@ -1,7 +1,9 @@
 using ApuraConnector.Core.Models;
 using ApuraConnector.Core.Validation;
+using ApuraConnector.Infrastructure.Credentials;
 using ApuraConnector.Infrastructure.Database;
 using ApuraConnector.Infrastructure.Tunnel;
+using ApuraConnector.Infrastructure.Updates;
 using ApuraConnector.Service;
 using Serilog;
 
@@ -19,15 +21,36 @@ try
     Log.Information("Apura Connector v0.1.0 starting...");
 
     var builder = Host.CreateApplicationBuilder(args);
+
+    // Windows Service support (SCM integration)
+    builder.Services.AddWindowsService(options =>
+    {
+        options.ServiceName = "ApuraConnector";
+    });
+
     builder.Services.AddSerilog();
 
     // Load configuration
     var connectorConfig = builder.Configuration
         .GetSection("Connector")
         .Get<ConnectorConfig>() ?? new ConnectorConfig();
-    var sqlConfig = builder.Configuration
-        .GetSection("SqlServer")
-        .Get<SqlServerConfig>() ?? new SqlServerConfig();
+
+    // Load SQL credentials: prefer DPAPI-encrypted file, fall back to appsettings.json
+    SqlServerConfig sqlConfig;
+    var credStorePath = Path.Combine(AppContext.BaseDirectory, "credentials.dpapi");
+    if (OperatingSystem.IsWindows() && File.Exists(credStorePath))
+    {
+        Log.Information("Loading SQL credentials from DPAPI-encrypted store");
+        var credStore = new DpapiCredentialStore(credStorePath);
+        sqlConfig = credStore.LoadCredentials();
+    }
+    else
+    {
+        Log.Information("Loading SQL credentials from appsettings.json");
+        sqlConfig = builder.Configuration
+            .GetSection("SqlServer")
+            .Get<SqlServerConfig>() ?? new SqlServerConfig();
+    }
 
     // Validate required config
     if (string.IsNullOrEmpty(connectorConfig.ApiKey))
@@ -64,7 +87,28 @@ try
             sp.GetRequiredService<SqlServerConnection>(),
             Log.Logger));
 
+    // Register UpdateChecker
+    var currentVersion = typeof(Program).Assembly
+        .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+        .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
+        .FirstOrDefault()?.InformationalVersion ?? "1.0.0";
+    // Strip any +metadata suffix for version parsing
+    var versionForParsing = currentVersion.Contains('+')
+        ? currentVersion[..currentVersion.IndexOf('+')]
+        : currentVersion;
+
+    var tunnelUri = new Uri(connectorConfig.TunnelEndpoint.Replace("wss://", "https://").Replace("ws://", "http://"));
+    var versionEndpoint = $"{tunnelUri.Scheme}://{tunnelUri.Host}/connector/version";
+
+    builder.Services.AddSingleton(sp =>
+        new UpdateChecker(
+            new HttpClient(),
+            versionEndpoint,
+            versionForParsing,
+            Log.ForContext<UpdateChecker>()));
+
     builder.Services.AddHostedService<ConnectorWorker>();
+    builder.Services.AddHostedService<UpdateWorker>();
 
     var host = builder.Build();
 
