@@ -1,28 +1,30 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useQueryStore } from "@/stores/query-store";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-
-const suggestions = [
-  "Vendas este mês",
-  "Top 10 clientes",
-  "Stock abaixo do mínimo",
-  "Funcionários por departamento",
-];
 
 interface QueryInputProps {
   autoFocus?: boolean;
 }
 
 export function QueryInput({ autoFocus = false }: QueryInputProps) {
+  const t = useTranslations("query");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const currentQuery = useQueryStore((s) => s.currentQuery);
   const setCurrentQuery = useQueryStore((s) => s.setCurrentQuery);
   const executeQuery = useQueryStore((s) => s.executeQuery);
   const isExecuting = useQueryStore((s) => s.isExecuting);
+
+  const suggestions = [
+    t("suggestionSalesMonth"),
+    t("suggestionTop10"),
+    t("suggestionStockBelow"),
+    t("suggestionEmployeesDept"),
+  ];
 
   useEffect(() => {
     if (autoFocus && textareaRef.current) {
@@ -62,14 +64,14 @@ export function QueryInput({ autoFocus = false }: QueryInputProps) {
           value={currentQuery}
           onChange={(e) => setCurrentQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Faça uma pergunta sobre os seus dados..."
+          placeholder={t("placeholder")}
           disabled={isExecuting}
           rows={2}
           className="w-full resize-none rounded-lg bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted/60 focus:outline-none disabled:opacity-50"
         />
         <div className="flex items-center justify-between border-t border-card-border px-4 py-2.5">
           <span className="text-xs text-muted">
-            Ctrl+Enter para enviar
+            {t("submitHint")}
           </span>
           <Button
             onClick={handleSubmit}
@@ -78,7 +80,7 @@ export function QueryInput({ autoFocus = false }: QueryInputProps) {
             size="sm"
           >
             <Search className="h-4 w-4" />
-            Perguntar
+            {t("submit")}
           </Button>
         </div>
       </div>

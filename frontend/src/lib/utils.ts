@@ -5,19 +5,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat("pt-PT").format(value);
+export function formatNumber(value: number, locale: string = "pt-PT"): string {
+  return new Intl.NumberFormat(locale).format(value);
 }
 
-export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("pt-PT", {
+export function formatCurrency(value: number, locale: string = "pt-PT"): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "EUR",
   }).format(value);
 }
 
-export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat("pt-PT", {
+export function formatDate(date: string | Date, locale: string = "pt-PT"): string {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -26,19 +26,21 @@ export function formatDate(date: string | Date): string {
   }).format(new Date(date));
 }
 
-export function formatRelativeDate(date: string | Date): string {
+export function formatRelativeDate(date: string | Date, locale: string = "pt-PT"): string {
   const now = new Date();
   const d = new Date(date);
   const diffMs = now.getTime() - d.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
+  const diffSec = Math.floor(diffMs / 1000);
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
 
-  if (diffMins < 1) return "agora";
-  if (diffMins < 60) return `${diffMins}min atrás`;
-  if (diffHours < 24) return `${diffHours}h atrás`;
-  if (diffDays < 7) return `${diffDays}d atrás`;
-  return formatDate(date);
+  if (diffSec < 60) return rtf.format(-diffSec, "second");
+  const diffMins = Math.floor(diffSec / 60);
+  if (diffMins < 60) return rtf.format(-diffMins, "minute");
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return rtf.format(-diffHours, "hour");
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return rtf.format(-diffDays, "day");
+  return formatDate(date, locale);
 }
 
 export function slugify(text: string): string {

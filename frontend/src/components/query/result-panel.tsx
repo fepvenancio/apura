@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { QueryResult } from "@/lib/types";
 import { downloadCsv } from "@/lib/csv";
@@ -17,15 +18,16 @@ interface ResultPanelProps {
 
 type TabId = "tabela" | "grafico" | "sql" | "explicacao";
 
-const tabs: { id: TabId; label: string }[] = [
-  { id: "tabela", label: "Tabela" },
-  { id: "grafico", label: "Gráfico" },
-  { id: "sql", label: "SQL" },
-  { id: "explicacao", label: "Explicação" },
-];
-
 export function ResultPanel({ result }: ResultPanelProps) {
+  const t = useTranslations("query");
   const [activeTab, setActiveTab] = useState<TabId>("tabela");
+
+  const tabs: { id: TabId; label: string }[] = [
+    { id: "tabela", label: t("tabTable") },
+    { id: "grafico", label: t("tabChart") },
+    { id: "sql", label: t("tabSql") },
+    { id: "explicacao", label: t("tabExplanation") },
+  ];
 
   return (
     <Card className="mt-6">
@@ -50,11 +52,11 @@ export function ResultPanel({ result }: ResultPanelProps) {
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm">
             <Save className="h-3.5 w-3.5" />
-            Guardar como Relatório
+            {t("saveAsReport")}
           </Button>
           <Button variant="ghost" size="sm" onClick={() => downloadCsv(result.columns, result.rows, `apura-resultado-${new Date().toISOString().slice(0, 10)}.csv`)}>
             <Download className="h-3.5 w-3.5" />
-            Exportar CSV
+            {t("exportCsv")}
           </Button>
         </div>
       </div>
@@ -63,7 +65,7 @@ export function ResultPanel({ result }: ResultPanelProps) {
       <div className="p-4">
         {/* Execution stats */}
         <div className="mb-4 flex items-center gap-4 text-xs text-muted">
-          <span>{result.rowCount} {result.rowCount === 1 ? "linha" : "linhas"}</span>
+          <span>{result.rowCount} {result.rowCount === 1 ? t("rowSingular") : t("rowPlural")}</span>
           <span>{result.executionTimeMs}ms</span>
         </div>
 
@@ -73,7 +75,7 @@ export function ResultPanel({ result }: ResultPanelProps) {
         {activeTab === "explicacao" && (
           <div className="prose prose-invert max-w-none">
             <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
-              {result.explanation || "Sem explicação disponível."}
+              {result.explanation || t("noExplanation")}
             </p>
           </div>
         )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import ReactEChartsCore from "echarts-for-react/lib/core";
 import * as echarts from "echarts/core";
 import { BarChart, LineChart, PieChart } from "echarts/charts";
@@ -54,6 +55,7 @@ function detectChartType(result: QueryResult): ChartType | null {
 }
 
 export function ResultChart({ result }: ResultChartProps) {
+  const t = useTranslations("query");
   const autoType = detectChartType(result);
   const [chartType, setChartType] = useState<ChartType>(autoType || "bar");
 
@@ -145,16 +147,16 @@ export function ResultChart({ result }: ResultChartProps) {
   if (!option) {
     return (
       <div className="flex items-center justify-center py-12 text-muted">
-        <p className="text-sm">Dados insuficientes para gerar gráfico</p>
+        <p className="text-sm">{t("insufficientData")}</p>
       </div>
     );
   }
 
   const chartButtons: { type: ChartType; icon: typeof BarChart3; label: string }[] = [
-    { type: "bar", icon: BarChart3, label: "Barras" },
-    { type: "line", icon: LineChartIcon, label: "Linha" },
-    { type: "pie", icon: PieChartIcon, label: "Circular" },
-    { type: "area", icon: AreaChart, label: "Área" },
+    { type: "bar", icon: BarChart3, label: t("chartBar") },
+    { type: "line", icon: LineChartIcon, label: t("chartLine") },
+    { type: "pie", icon: PieChartIcon, label: t("chartPie") },
+    { type: "area", icon: AreaChart, label: t("chartArea") },
   ];
 
   return (

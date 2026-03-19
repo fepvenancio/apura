@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { cn, formatNumber, formatCurrency, isCurrencyColumn } from "@/lib/utils";
 import type { QueryResult } from "@/lib/types";
 import { ChevronUp, ChevronDown } from "lucide-react";
@@ -11,7 +12,17 @@ interface ResultTableProps {
 
 const PAGE_SIZE = 50;
 
+function mapLocale(locale: string): string {
+  if (locale === "pt") return "pt-PT";
+  if (locale === "es") return "es-ES";
+  return "en-US";
+}
+
 export function ResultTable({ result }: ResultTableProps) {
+  const t = useTranslations("query");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const fullLocale = mapLocale(locale);
   const [sortCol, setSortCol] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(0);
@@ -30,10 +41,10 @@ export function ResultTable({ result }: ResultTableProps) {
       const aStr = String(aVal);
       const bStr = String(bVal);
       return sortDir === "asc"
-        ? aStr.localeCompare(bStr, "pt")
-        : bStr.localeCompare(aStr, "pt");
+        ? aStr.localeCompare(bStr, locale)
+        : bStr.localeCompare(aStr, locale);
     });
-  }, [result.rows, sortCol, sortDir]);
+  }, [result.rows, sortCol, sortDir, locale]);
 
   const totalPages = Math.ceil(sortedRows.length / PAGE_SIZE);
   const pageRows = sortedRows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -49,10 +60,10 @@ export function ResultTable({ result }: ResultTableProps) {
   };
 
   const formatCellValue = (col: string, value: unknown): string => {
-    if (value == null) return "—";
+    if (value == null) return "\u2014";
     if (typeof value === "number") {
-      if (isCurrencyColumn(col)) return formatCurrency(value);
-      return formatNumber(value);
+      if (isCurrencyColumn(col)) return formatCurrency(value, fullLocale);
+      return formatNumber(value, fullLocale);
     }
     return String(value);
   };
@@ -60,7 +71,7 @@ export function ResultTable({ result }: ResultTableProps) {
   if (result.rows.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-muted">
-        <p className="text-sm">Sem resultados</p>
+        <p className="text-sm">{tc("noResults")}</p>
       </div>
     );
   }
@@ -122,7 +133,7 @@ export function ResultTable({ result }: ResultTableProps) {
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-card-border px-4 py-3">
           <span className="text-xs text-muted">
-            {sortedRows.length} {sortedRows.length === 1 ? "linha" : "linhas"}
+            {sortedRows.length} {sortedRows.length === 1 ? t("rowSingular") : t("rowPlural")}
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -130,7 +141,7 @@ export function ResultTable({ result }: ResultTableProps) {
               disabled={page === 0}
               className="rounded px-2 py-1 text-xs text-muted hover:text-foreground disabled:opacity-30 cursor-pointer"
             >
-              Anterior
+              {tc("previous")}
             </button>
             <span className="text-xs text-muted">
               {page + 1} / {totalPages}
@@ -140,7 +151,7 @@ export function ResultTable({ result }: ResultTableProps) {
               disabled={page >= totalPages - 1}
               className="rounded px-2 py-1 text-xs text-muted hover:text-foreground disabled:opacity-30 cursor-pointer"
             >
-              Seguinte
+              {tc("next")}
             </button>
           </div>
         </div>
