@@ -390,7 +390,9 @@ class ApiClient {
   }
 
   async getInvitations(): Promise<Invitation[]> {
-    return this.request<Invitation[]>("GET", "/api/org/invitations");
+    const res = await this.request<Invitation[] | { items: Invitation[] }>("GET", "/api/org/invitations");
+    if (Array.isArray(res)) return res;
+    return (res as { items?: Invitation[] })?.items ?? [];
   }
 
   async sendInvitation(data: { email: string; role: string }): Promise<Invitation> {
