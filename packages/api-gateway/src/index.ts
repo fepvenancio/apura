@@ -25,7 +25,7 @@ app.use('*', secureHeaders());
 app.use(
   '/api/*',
   cors({
-    origin: ['https://apura.xyz', 'https://app.apura.xyz'],
+    origin: ['https://apura.xyz', 'https://app.apura.xyz', 'http://localhost:3000'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -37,7 +37,7 @@ app.use(
 app.use(
   '/auth/*',
   cors({
-    origin: ['https://apura.xyz', 'https://app.apura.xyz'],
+    origin: ['https://apura.xyz', 'https://app.apura.xyz', 'http://localhost:3000'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
