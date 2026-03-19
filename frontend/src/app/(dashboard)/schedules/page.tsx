@@ -2,75 +2,55 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import type { Schedule, Report } from "@/lib/types";
+import type { Schedule, ScheduleRun } from "@/lib/types";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/utils";
-import { CalendarClock, Plus, Trash2, Play } from "lucide-react";
+import { formatDate, formatRelativeDate } from "@/lib/utils";
+import Link from "next/link";
+import {
+  CalendarClock,
+  Plus,
+  Trash2,
+  Play,
+  Download,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
-function humanCron(cron: string): string {
-  const parts = cron.split(" ");
+function cronToLabel(cron: string): string {
+  const parts = cron.trim().split(/\s+/);
   if (parts.length < 5) return cron;
   const [min, hour, dom, , dow] = parts;
-  if (dom === "*" && dow === "*") {
-    return `Diario as ${hour}:${min.padStart(2, "0")}`;
+  if (dom !== "*" && /^\d+$/.test(dom)) {
+    return `Mensal (dia ${dom}, ${hour}:${min.padStart(2, "0")})`;
   }
-  if (dow !== "*" && dom === "*") {
-    const days: Record<string, string> = {
-      "1": "Segunda", "2": "Terca", "3": "Quarta",
-      "4": "Quinta", "5": "Sexta", "6": "Sabado", "0": "Domingo",
-    };
-    return `${days[dow] || dow} as ${hour}:${min.padStart(2, "0")}`;
+  if (dow !== "*" && /^\d+$/.test(dow)) {
+    const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+    return `Semanal (${days[parseInt(dow)]}, ${hour}:${min.padStart(2, "0")})`;
   }
-  if (dom !== "*") {
-    return `Dia ${dom} as ${hour}:${min.padStart(2, "0")}`;
+  if (/^\d+$/.test(hour)) {
+    return `Diario (${hour}:${min.padStart(2, "0")})`;
   }
   return cron;
 }
 
 export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [newReportId, setNewReportId] = useState("");
-  const [newCron, setNewCron] = useState("0 8 * * *");
-  const [newTimezone, setNewTimezone] = useState("Europe/Lisbon");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [runs, setRuns] = useState<Record<string, ScheduleRun[]>>({});
+  const [loadingRuns, setLoadingRuns] = useState<string | null>(null);
+  const [triggeringId, setTriggeringId] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([api.getSchedules(), api.getReports()])
-      .then(([s, r]) => {
-        setSchedules(s);
-        setReports(r);
-      })
+    api
+      .getSchedules()
+      .then(setSchedules)
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newReportId) return;
-    setCreating(true);
-    try {
-      const schedule = await api.createSchedule({
-        reportId: newReportId,
-        cronExpression: newCron,
-        timezone: newTimezone,
-      });
-      setSchedules((prev) => [schedule, ...prev]);
-      setShowCreate(false);
-      setNewReportId("");
-      setNewCron("0 8 * * *");
-    } catch {
-      // Ignore
-    } finally {
-      setCreating(false);
-    }
-  };
 
   const handleToggle = async (schedule: Schedule) => {
     try {
@@ -86,6 +66,7 @@ export default function SchedulesPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm("Tem a certeza que deseja eliminar este agendamento?")) return;
     try {
       await api.deleteSchedule(id);
       setSchedules((prev) => prev.filter((s) => s.id !== id));
@@ -95,91 +76,63 @@ export default function SchedulesPage() {
   };
 
   const handleTrigger = async (id: string) => {
+    setTriggeringId(id);
     try {
       await api.triggerSchedule(id);
     } catch {
       // Ignore
+    } finally {
+      setTriggeringId(null);
     }
+  };
+
+  const toggleHistory = async (scheduleId: string) => {
+    if (expandedId === scheduleId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(scheduleId);
+    if (!runs[scheduleId]) {
+      setLoadingRuns(scheduleId);
+      try {
+        const data = await api.getScheduleRuns(scheduleId);
+        setRuns((prev) => ({ ...prev, [scheduleId]: data }));
+      } catch {
+        setRuns((prev) => ({ ...prev, [scheduleId]: [] }));
+      } finally {
+        setLoadingRuns(null);
+      }
+    }
+  };
+
+  const statusBadge = (status: ScheduleRun["status"]) => {
+    const map: Record<ScheduleRun["status"], { variant: "success" | "danger" | "warning" | "muted" | "primary"; label: string }> = {
+      completed: { variant: "success", label: "Concluido" },
+      failed: { variant: "danger", label: "Erro" },
+      running: { variant: "primary", label: "A executar" },
+      queued: { variant: "warning", label: "Em fila" },
+      pending: { variant: "muted", label: "Pendente" },
+    };
+    const { variant, label } = map[status] || { variant: "muted" as const, label: status };
+    return <Badge variant={variant} dot>{label}</Badge>;
   };
 
   return (
     <div>
       <Topbar title="Agendamentos" />
 
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
           <p className="text-sm text-muted">
             {schedules.length} agendamento{schedules.length !== 1 ? "s" : ""}
           </p>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowCreate(!showCreate)}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Novo Agendamento
-          </Button>
+          <Link href="/schedules/new">
+            <Button variant="primary" size="sm">
+              <Plus className="h-3.5 w-3.5" />
+              Novo Agendamento
+            </Button>
+          </Link>
         </div>
-
-        {showCreate && (
-          <Card className="mb-6">
-            <CardContent className="py-5">
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[13px] font-medium text-foreground/80">
-                    Relatorio
-                  </label>
-                  <select
-                    value={newReportId}
-                    onChange={(e) => setNewReportId(e.target.value)}
-                    required
-                    className="w-full rounded-md border border-card-border bg-background px-3 py-2 text-sm text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/60"
-                  >
-                    <option value="">Selecione um relatorio</option>
-                    {reports.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <Input
-                  label="Expressao cron"
-                  placeholder="0 8 * * *"
-                  value={newCron}
-                  onChange={(e) => setNewCron(e.target.value)}
-                  required
-                  description="Formato: minuto hora dia mes dia_semana"
-                />
-                <Input
-                  label="Fuso horario"
-                  placeholder="Europe/Lisbon"
-                  value={newTimezone}
-                  onChange={(e) => setNewTimezone(e.target.value)}
-                  required
-                />
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="sm"
-                    isLoading={creating}
-                  >
-                    Criar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setShowCreate(false)}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted">
@@ -189,115 +142,205 @@ export default function SchedulesPage() {
           <Card>
             <div className="flex flex-col items-center justify-center py-16 text-muted">
               <CalendarClock className="h-12 w-12 mb-3 opacity-30" />
-              <p className="text-sm">Ainda nao criou nenhum agendamento.</p>
-              <p className="text-xs mt-1">
-                Clique em &ldquo;Novo Agendamento&rdquo; para comecar.
+              <p className="text-sm">
+                Ainda nao tem agendamentos. Crie o primeiro para receber
+                relatorios por email.
               </p>
+              <Link href="/schedules/new" className="mt-3">
+                <Button variant="primary" size="sm">
+                  <Plus className="h-3.5 w-3.5" />
+                  Novo Agendamento
+                </Button>
+              </Link>
             </div>
           </Card>
         ) : (
-          <Card>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-card-border">
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                      Relatorio
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                      Frequencia
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                      Proxima execucao
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                      Ultima execucao
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted">
-                      Estado
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted">
-                      Acoes
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-card-border/50">
-                  {schedules.map((schedule) => (
-                    <tr
-                      key={schedule.id}
-                      className="hover:bg-[#1a1a1a] transition-colors"
-                    >
-                      <td className="px-6 py-3 text-foreground">
-                        {schedule.reportName}
-                      </td>
-                      <td className="px-6 py-3 text-muted">
-                        {humanCron(schedule.cron)}
-                      </td>
-                      <td className="px-6 py-3 text-xs text-muted">
-                        {schedule.nextRunAt
-                          ? formatDate(schedule.nextRunAt)
-                          : "\u2014"}
-                      </td>
-                      <td className="px-6 py-3 text-xs text-muted">
-                        <div className="flex items-center gap-2">
-                          {schedule.lastRunAt
-                            ? formatDate(schedule.lastRunAt)
-                            : "\u2014"}
-                          {schedule.lastRunStatus && (
-                            <Badge
-                              variant={
-                                schedule.lastRunStatus === "success"
-                                  ? "success"
-                                  : "danger"
-                              }
-                            >
-                              {schedule.lastRunStatus === "success"
-                                ? "OK"
-                                : "Erro"}
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-3 text-center">
-                        <button
-                          onClick={() => handleToggle(schedule)}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
-                            schedule.enabled ? "bg-primary" : "bg-[#333]"
-                          }`}
+          <div className="space-y-4">
+            {schedules.map((schedule) => (
+              <Card key={schedule.id}>
+                <CardContent className="py-5">
+                  {/* Header row */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-foreground truncate">
+                          {schedule.reportName}
+                        </h3>
+                        <Badge
+                          variant={schedule.enabled ? "success" : "muted"}
+                          dot
                         >
-                          <span
-                            className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
-                              schedule.enabled
-                                ? "translate-x-4.5"
-                                : "translate-x-0.5"
-                            }`}
-                          />
-                        </button>
-                      </td>
-                      <td className="px-6 py-3">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleTrigger(schedule.id)}
-                          >
-                            <Play className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(schedule.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-danger" />
-                          </Button>
+                          {schedule.enabled ? "Ativo" : "Pausado"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted mt-1">
+                        {cronToLabel(schedule.cron)} &middot; {schedule.timezone}
+                      </p>
+                    </div>
+
+                    {/* Toggle switch */}
+                    <button
+                      onClick={() => handleToggle(schedule)}
+                      className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors cursor-pointer ${
+                        schedule.enabled ? "bg-primary" : "bg-[#333]"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
+                          schedule.enabled
+                            ? "translate-x-4.5"
+                            : "translate-x-0.5"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Info row */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-xs text-muted mb-4">
+                    <span>
+                      Proxima:{" "}
+                      {schedule.nextRunAt
+                        ? formatRelativeDate(schedule.nextRunAt)
+                        : "\u2014"}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      Ultima:{" "}
+                      {schedule.lastRunAt
+                        ? formatRelativeDate(schedule.lastRunAt)
+                        : "\u2014"}
+                      {schedule.lastRunStatus && (
+                        <Badge
+                          variant={
+                            schedule.lastRunStatus === "success"
+                              ? "success"
+                              : "danger"
+                          }
+                        >
+                          {schedule.lastRunStatus === "success" ? "OK" : "Erro"}
+                        </Badge>
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleTrigger(schedule.id)}
+                      disabled={triggeringId === schedule.id}
+                    >
+                      <Play className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Executar agora</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleHistory(schedule.id)}
+                    >
+                      {expandedId === schedule.id ? (
+                        <ChevronUp className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      )}
+                      {expandedId === schedule.id
+                        ? "Ocultar historico"
+                        : "Ver historico"}
+                    </Button>
+                    <div className="flex-1" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(schedule.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-danger" />
+                    </Button>
+                  </div>
+
+                  {/* Run history */}
+                  {expandedId === schedule.id && (
+                    <div className="mt-4 border-t border-card-border pt-4">
+                      <h4 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
+                        Historico de execucoes
+                      </h4>
+                      {loadingRuns === schedule.id ? (
+                        <p className="text-xs text-muted">A carregar...</p>
+                      ) : (runs[schedule.id] || []).length === 0 ? (
+                        <p className="text-xs text-muted">
+                          Sem execucoes registadas.
+                        </p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-card-border/50">
+                                <th className="py-2 pr-4 text-left text-xs font-medium text-muted">
+                                  Estado
+                                </th>
+                                <th className="py-2 pr-4 text-left text-xs font-medium text-muted">
+                                  Inicio
+                                </th>
+                                <th className="py-2 pr-4 text-left text-xs font-medium text-muted">
+                                  Fim
+                                </th>
+                                <th className="py-2 text-right text-xs font-medium text-muted">
+                                  Ficheiro
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-card-border/30">
+                              {(runs[schedule.id] || []).map((run) => (
+                                <tr key={run.id}>
+                                  <td className="py-2 pr-4">
+                                    {statusBadge(run.status)}
+                                  </td>
+                                  <td className="py-2 pr-4 text-xs text-muted">
+                                    {formatDate(run.startedAt)}
+                                  </td>
+                                  <td className="py-2 pr-4 text-xs text-muted">
+                                    {run.completedAt
+                                      ? formatDate(run.completedAt)
+                                      : "\u2014"}
+                                  </td>
+                                  <td className="py-2 text-right">
+                                    {run.outputUrl ? (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                          api.downloadScheduleRun(
+                                            schedule.id,
+                                            run.id
+                                          )
+                                        }
+                                      >
+                                        <Download className="h-3.5 w-3.5" />
+                                      </Button>
+                                    ) : run.errorMessage ? (
+                                      <span
+                                        className="text-xs text-danger cursor-help"
+                                        title={run.errorMessage}
+                                      >
+                                        Erro
+                                      </span>
+                                    ) : (
+                                      <span className="text-xs text-muted">
+                                        &mdash;
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
       </div>
     </div>
