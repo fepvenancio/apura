@@ -5,7 +5,7 @@ compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-AI_MODEL_DEFAULT = "claude-sonnet-4-5-20241022"
+AI_MODEL_DEFAULT = "claude-sonnet-4-20250514"
 AI_MODEL_BUDGET = "claude-haiku-4-5-20251001"
 
 [[kv_namespaces]]
