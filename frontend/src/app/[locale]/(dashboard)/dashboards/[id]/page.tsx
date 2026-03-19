@@ -9,8 +9,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, GripVertical, Trash2, Save } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function DashboardDetailPage() {
+  const t = useTranslations("dashboards");
+  const tc = useTranslations("common");
   const params = useParams();
   const id = params.id as string;
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -53,9 +56,9 @@ export default function DashboardDetailPage() {
   if (loading) {
     return (
       <div>
-        <Topbar title="Dashboard" />
+        <Topbar title={t("title")} />
         <div className="flex items-center justify-center py-16 text-muted">
-          <p className="text-sm">A carregar...</p>
+          <p className="text-sm">{tc("loading")}</p>
         </div>
       </div>
     );
@@ -64,9 +67,9 @@ export default function DashboardDetailPage() {
   if (!dashboard) {
     return (
       <div>
-        <Topbar title="Dashboard" />
+        <Topbar title={t("title")} />
         <div className="flex items-center justify-center py-16 text-muted">
-          <p className="text-sm">Dashboard nao encontrado.</p>
+          <p className="text-sm">{t("detailNotFound")}</p>
         </div>
       </div>
     );
@@ -84,10 +87,10 @@ export default function DashboardDetailPage() {
             )}
             <div className="flex items-center gap-2 mt-1">
               {dashboard.shared && (
-                <Badge variant="primary">Partilhado</Badge>
+                <Badge variant="primary">{t("shared")}</Badge>
               )}
               <span className="text-xs text-muted">
-                {dashboard.widgets.length} widget{dashboard.widgets.length !== 1 ? "s" : ""}
+                {t("widgets", { count: dashboard.widgets.length })}
               </span>
             </div>
           </div>
@@ -101,14 +104,14 @@ export default function DashboardDetailPage() {
                   isLoading={saving}
                 >
                   <Save className="h-3.5 w-3.5" />
-                  Guardar
+                  {tc("save")}
                 </Button>
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => setEditMode(false)}
                 >
-                  Cancelar
+                  {tc("cancel")}
                 </Button>
               </>
             ) : (
@@ -119,11 +122,11 @@ export default function DashboardDetailPage() {
                   onClick={() => setEditMode(true)}
                 >
                   <Pencil className="h-3.5 w-3.5" />
-                  Editar layout
+                  {t("editLayout")}
                 </Button>
                 <Button variant="primary" size="sm">
                   <Plus className="h-3.5 w-3.5" />
-                  Adicionar widget
+                  {t("addWidget")}
                 </Button>
               </>
             )}
@@ -133,9 +136,9 @@ export default function DashboardDetailPage() {
         {dashboard.widgets.length === 0 ? (
           <Card>
             <div className="flex flex-col items-center justify-center py-16 text-muted">
-              <p className="text-sm">Este dashboard ainda nao tem widgets.</p>
+              <p className="text-sm">{t("emptyWidgets")}</p>
               <p className="text-xs mt-1">
-                Clique em &ldquo;Adicionar widget&rdquo; para comecar.
+                {t("emptyWidgetsHint")}
               </p>
             </div>
           </Card>
@@ -166,7 +169,7 @@ export default function DashboardDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-center py-8 text-muted">
-                    <p className="text-xs">Visualizacao do relatorio</p>
+                    <p className="text-xs">{t("widgetVisualization")}</p>
                   </div>
                 </CardContent>
               </Card>

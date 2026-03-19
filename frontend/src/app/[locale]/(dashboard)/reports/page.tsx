@@ -10,10 +10,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatRelativeDate } from "@/lib/utils";
 import { FileBarChart, Play, Pencil, Trash2, Share2 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 type Tab = "mine" | "shared";
 
 export default function ReportsPage() {
+  const t = useTranslations("reports");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const fullLocale = locale === "pt" ? "pt-PT" : locale === "es" ? "es-ES" : "en-US";
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("mine");
@@ -59,35 +65,35 @@ export default function ReportsPage() {
       : reports.filter((r) => r.isShared && r.userId !== userId);
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "mine", label: "Meus Relatorios" },
-    { key: "shared", label: "Partilhados comigo" },
+    { key: "mine", label: t("tabMine") },
+    { key: "shared", label: t("tabShared") },
   ];
 
   return (
     <div>
-      <Topbar title="Relatorios" />
+      <Topbar title={t("title")} />
 
       <div className="p-4 sm:p-6">
         {/* Tabs */}
         <div className="flex border-b border-card-border mb-6">
-          {tabs.map((t) => (
+          {tabs.map((tabItem) => (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+              key={tabItem.key}
+              onClick={() => setTab(tabItem.key)}
               className={`px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap flex-1 sm:flex-none ${
-                tab === t.key
+                tab === tabItem.key
                   ? "text-primary border-b-2 border-primary"
                   : "text-muted hover:text-foreground"
               }`}
             >
-              {t.label}
+              {tabItem.label}
             </button>
           ))}
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted">
-            <p className="text-sm">A carregar...</p>
+            <p className="text-sm">{tc("loading")}</p>
           </div>
         ) : filteredReports.length === 0 ? (
           <Card>
@@ -96,21 +102,19 @@ export default function ReportsPage() {
               {tab === "mine" ? (
                 <>
                   <p className="text-sm">
-                    Ainda nao guardou nenhum relatorio.
+                    {t("emptyMine")}
                   </p>
                   <p className="text-xs mt-1">
-                    Execute uma consulta e clique em &ldquo;Guardar como
-                    Relatorio&rdquo;.
+                    {t("emptyMineHint")}
                   </p>
                 </>
               ) : (
                 <>
                   <p className="text-sm">
-                    Nenhum relatorio partilhado consigo.
+                    {t("emptyShared")}
                   </p>
                   <p className="text-xs mt-1">
-                    Os membros da organizacao podem partilhar relatorios
-                    consigo.
+                    {t("emptySharedHint")}
                   </p>
                 </>
               )}
@@ -128,7 +132,7 @@ export default function ReportsPage() {
                           {report.name}
                         </h3>
                         {tab === "mine" && report.isShared && (
-                          <Badge variant="primary">Partilhado</Badge>
+                          <Badge variant="primary">{t("shared")}</Badge>
                         )}
                       </div>
                       {report.description && (
@@ -141,15 +145,14 @@ export default function ReportsPage() {
 
                   {report.lastRunAt && (
                     <p className="text-xs text-muted mb-4">
-                      Ultima execucao:{" "}
-                      {formatRelativeDate(report.lastRunAt)}
+                      {t("lastRun", { time: formatRelativeDate(report.lastRunAt, fullLocale) })}
                     </p>
                   )}
 
                   <div className="flex items-center gap-2">
                     <Button variant="primary" size="sm" className="flex-1">
                       <Play className="h-3.5 w-3.5" />
-                      Executar
+                      {t("run")}
                     </Button>
                     <Button variant="secondary" size="sm">
                       <Pencil className="h-3.5 w-3.5" />
@@ -162,8 +165,8 @@ export default function ReportsPage() {
                         disabled={togglingId === report.id}
                         title={
                           report.isShared
-                            ? "Deixar de partilhar"
-                            : "Partilhar"
+                            ? t("unshare")
+                            : t("share")
                         }
                       >
                         <Share2

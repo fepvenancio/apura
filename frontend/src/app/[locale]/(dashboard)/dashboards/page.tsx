@@ -11,8 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { formatRelativeDate } from "@/lib/utils";
 import { BarChart3, Plus, Trash2, LayoutGrid, Share2 } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 export default function DashboardsPage() {
+  const t = useTranslations("dashboards");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const fullLocale = locale === "pt" ? "pt-PT" : locale === "es" ? "es-ES" : "en-US";
   const [dashboards, setDashboards] = useState<Dashboard[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -59,16 +65,16 @@ export default function DashboardsPage() {
 
   return (
     <div>
-      <Topbar title="Dashboards" />
+      <Topbar title={t("title")} />
 
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <p className="text-sm text-muted">
-            {dashboards.length} dashboard{dashboards.length !== 1 ? "s" : ""}
+            {t("count", { count: dashboards.length })}
           </p>
           <Button variant="primary" size="sm" onClick={() => setShowCreate(!showCreate)}>
             <Plus className="h-3.5 w-3.5" />
-            Novo Dashboard
+            {t("newDashboard")}
           </Button>
         </div>
 
@@ -77,21 +83,21 @@ export default function DashboardsPage() {
             <CardContent className="py-5">
               <form onSubmit={handleCreate} className="space-y-4">
                 <Input
-                  label="Nome"
-                  placeholder="Ex: Vendas mensais"
+                  label={t("createName")}
+                  placeholder={t("createNamePlaceholder")}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   required
                 />
                 <Input
-                  label="Descricao (opcional)"
-                  placeholder="Descricao do dashboard"
+                  label={t("createDescription")}
+                  placeholder={t("createDescriptionPlaceholder")}
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
                 />
                 <div className="flex items-center gap-2">
                   <Button type="submit" variant="primary" size="sm" isLoading={creating}>
-                    Criar
+                    {tc("create")}
                   </Button>
                   <Button
                     type="button"
@@ -99,7 +105,7 @@ export default function DashboardsPage() {
                     size="sm"
                     onClick={() => setShowCreate(false)}
                   >
-                    Cancelar
+                    {tc("cancel")}
                   </Button>
                 </div>
               </form>
@@ -109,15 +115,15 @@ export default function DashboardsPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted">
-            <p className="text-sm">A carregar...</p>
+            <p className="text-sm">{tc("loading")}</p>
           </div>
         ) : dashboards.length === 0 ? (
           <Card>
             <div className="flex flex-col items-center justify-center py-16 text-muted">
               <BarChart3 className="h-12 w-12 mb-3 opacity-30" />
-              <p className="text-sm">Ainda nao criou nenhum dashboard.</p>
+              <p className="text-sm">{t("emptyTitle")}</p>
               <p className="text-xs mt-1">
-                Clique em &ldquo;Novo Dashboard&rdquo; para comecar.
+                {t("emptyHint")}
               </p>
             </div>
           </Card>
@@ -129,7 +135,7 @@ export default function DashboardsPage() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                       <Link
-                        href={`/dashboards/${dashboard.id}`}
+                        href={`/${locale}/dashboards/${dashboard.id}`}
                         className="font-semibold text-foreground hover:text-primary transition-colors truncate block"
                       >
                         {dashboard.name}
@@ -145,19 +151,19 @@ export default function DashboardsPage() {
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex items-center gap-1.5 text-xs text-muted">
                       <LayoutGrid className="h-3.5 w-3.5" />
-                      {dashboard.widgets.length} widget{dashboard.widgets.length !== 1 ? "s" : ""}
+                      {t("widgets", { count: dashboard.widgets.length })}
                     </div>
                     {dashboard.shared && (
                       <Badge variant="primary">
                         <Share2 className="h-3 w-3" />
-                        Partilhado
+                        {t("shared")}
                       </Badge>
                     )}
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted">
-                      {formatRelativeDate(dashboard.updatedAt)}
+                      {formatRelativeDate(dashboard.updatedAt, fullLocale)}
                     </span>
                     <Button
                       variant="ghost"

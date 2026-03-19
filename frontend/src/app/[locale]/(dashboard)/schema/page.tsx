@@ -8,18 +8,25 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Database, ChevronDown, ChevronRight, Key, Link2 } from "lucide-react";
-
-const CATEGORIES = [
-  { key: "all", label: "Todas" },
-  { key: "vendas", label: "Vendas" },
-  { key: "compras", label: "Compras" },
-  { key: "financeiro", label: "Financeiro" },
-  { key: "stocks", label: "Stocks" },
-  { key: "rh", label: "RH" },
-  { key: "tesouraria", label: "Tesouraria" },
-];
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 export default function SchemaPage() {
+  const t = useTranslations("schema");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const fullLocale = locale === "pt" ? "pt-PT" : locale === "es" ? "es-ES" : "en-US";
+
+  const CATEGORIES = [
+    { key: "all", label: t("categoryAll") },
+    { key: "vendas", label: t("categorySales") },
+    { key: "compras", label: t("categoryPurchases") },
+    { key: "financeiro", label: t("categoryFinance") },
+    { key: "stocks", label: t("categoryStock") },
+    { key: "rh", label: t("categoryHR") },
+    { key: "tesouraria", label: t("categoryTreasury") },
+  ];
+
   const [tables, setTables] = useState<SchemaTable[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -34,13 +41,13 @@ export default function SchemaPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = tables.filter((t) => {
+  const filtered = tables.filter((tbl) => {
     const matchesCategory =
-      activeCategory === "all" || t.category === activeCategory;
+      activeCategory === "all" || tbl.category === activeCategory;
     const matchesSearch =
       !search ||
-      t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.columns.some((c) =>
+      tbl.name.toLowerCase().includes(search.toLowerCase()) ||
+      tbl.columns.some((c) =>
         c.name.toLowerCase().includes(search.toLowerCase())
       );
     return matchesCategory && matchesSearch;
@@ -48,12 +55,12 @@ export default function SchemaPage() {
 
   return (
     <div>
-      <Topbar title="Esquema" />
+      <Topbar title={t("title")} />
 
       <div className="p-6 space-y-6">
         {/* Search */}
         <Input
-          placeholder="Pesquisar tabelas ou colunas..."
+          placeholder={t("searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -77,13 +84,13 @@ export default function SchemaPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted">
-            <p className="text-sm">A carregar...</p>
+            <p className="text-sm">{tc("loading")}</p>
           </div>
         ) : filtered.length === 0 ? (
           <Card>
             <div className="flex flex-col items-center justify-center py-16 text-muted">
               <Database className="h-12 w-12 mb-3 opacity-30" />
-              <p className="text-sm">Nenhuma tabela encontrada.</p>
+              <p className="text-sm">{t("emptyTitle")}</p>
             </div>
           </Card>
         ) : (
@@ -117,11 +124,11 @@ export default function SchemaPage() {
                     <div className="flex items-center gap-2 shrink-0">
                       <Badge variant="muted">{table.category}</Badge>
                       <span className="text-xs text-muted">
-                        {table.columns.length} colunas
+                        {t("columns", { count: table.columns.length })}
                       </span>
                       {table.rowCount !== undefined && (
                         <span className="text-xs text-muted">
-                          {table.rowCount.toLocaleString("pt-PT")} linhas
+                          {t("rowCount", { count: table.rowCount.toLocaleString(fullLocale) })}
                         </span>
                       )}
                     </div>
@@ -134,16 +141,16 @@ export default function SchemaPage() {
                           <thead>
                             <tr className="border-b border-card-border bg-[#0d0d0d]">
                               <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                                Coluna
+                                {t("columnHeader")}
                               </th>
                               <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                                Tipo
+                                {t("typeHeader")}
                               </th>
                               <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                                Descricao
+                                {t("descriptionHeader")}
                               </th>
                               <th className="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted">
-                                Chaves
+                                {t("keysHeader")}
                               </th>
                             </tr>
                           </thead>

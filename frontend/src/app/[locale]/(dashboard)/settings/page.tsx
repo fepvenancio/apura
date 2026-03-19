@@ -9,6 +9,8 @@ import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 const TIMEZONES = [
   "Europe/Lisbon",
@@ -32,6 +34,9 @@ const COUNTRIES = [
 ];
 
 export default function OrgSettingsPage() {
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const [settings, setSettings] = useState<OrgSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -68,7 +73,7 @@ export default function OrgSettingsPage() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch {
-      setError("Erro ao guardar definicoes.");
+      setError(t("saveError"));
     } finally {
       setSaving(false);
     }
@@ -76,18 +81,18 @@ export default function OrgSettingsPage() {
 
   return (
     <div>
-      <Topbar title="Definicoes" />
+      <Topbar title={t("title")} />
 
       <div className="max-w-3xl p-6">
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted">
-            <p className="text-sm">A carregar...</p>
+            <p className="text-sm">{tc("loading")}</p>
           </div>
         ) : settings ? (
           <>
           <Card>
             <CardHeader>
-              <h3 className="text-sm font-semibold">Organizacao</h3>
+              <h3 className="text-sm font-semibold">{t("orgTitle")}</h3>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,12 +103,12 @@ export default function OrgSettingsPage() {
                 )}
                 {success && (
                   <div className="rounded-md bg-success/10 border border-success/20 px-3 py-2.5 text-[13px] text-success">
-                    Definicoes guardadas com sucesso.
+                    {t("saveSuccess")}
                   </div>
                 )}
 
                 <Input
-                  label="Nome da organizacao"
+                  label={t("orgName")}
                   value={settings.name}
                   onChange={(e) =>
                     setSettings({ ...settings, name: e.target.value })
@@ -112,7 +117,7 @@ export default function OrgSettingsPage() {
                 />
 
                 <Input
-                  label="Email de faturacao"
+                  label={t("billingEmail")}
                   type="email"
                   value={settings.billingEmail}
                   onChange={(e) =>
@@ -123,7 +128,7 @@ export default function OrgSettingsPage() {
 
                 <div className="flex flex-col gap-1">
                   <label className="text-[13px] font-medium text-foreground/80">
-                    Fuso horario
+                    {t("timezone")}
                   </label>
                   <select
                     value={settings.timezone}
@@ -142,7 +147,7 @@ export default function OrgSettingsPage() {
 
                 <div className="flex flex-col gap-1">
                   <label className="text-[13px] font-medium text-foreground/80">
-                    Pais
+                    {t("country")}
                   </label>
                   <select
                     value={settings.country}
@@ -160,7 +165,7 @@ export default function OrgSettingsPage() {
                 </div>
 
                 <Button type="submit" variant="primary" size="sm" isLoading={saving}>
-                  Guardar
+                  {tc("save")}
                 </Button>
               </form>
             </CardContent>
@@ -169,13 +174,12 @@ export default function OrgSettingsPage() {
           {/* GDPR - Data Export */}
           <Card className="mt-6">
             <CardHeader>
-              <h3 className="text-sm font-semibold">Dados Pessoais</h3>
+              <h3 className="text-sm font-semibold">{t("personalData")}</h3>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <p className="text-[13px] text-muted mb-3">
-                  Pode solicitar uma copia de todos os seus dados pessoais.
-                  Receberá um email com o link de download.
+                  {t("personalDataText")}
                 </p>
                 {exportMessage && (
                   <div className="rounded-md bg-success/10 border border-success/20 px-3 py-2.5 text-[13px] text-success mb-3">
@@ -192,15 +196,13 @@ export default function OrgSettingsPage() {
                       const result = await api.requestDataExport();
                       setExportMessage(result.message);
                     } catch {
-                      setExportMessage(
-                        "Erro ao solicitar exportacao. Tente novamente."
-                      );
+                      setExportMessage(t("exportError"));
                     } finally {
                       setExportLoading(false);
                     }
                   }}
                 >
-                  Exportar Dados
+                  {t("exportData")}
                 </Button>
               </div>
             </CardContent>
@@ -210,14 +212,12 @@ export default function OrgSettingsPage() {
           <Card className="mt-6 border-danger/30">
             <CardHeader>
               <h3 className="text-sm font-semibold text-danger">
-                Zona de Perigo
+                {t("dangerZone")}
               </h3>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-[13px] text-muted">
-                A eliminacao da conta e irreversivel. Todos os seus dados,
-                consultas, relatorios e dashboards serao permanentemente
-                eliminados.
+                {t("dangerText")}
               </p>
               {!showDeleteConfirm ? (
                 <Button
@@ -225,16 +225,16 @@ export default function OrgSettingsPage() {
                   size="sm"
                   onClick={() => setShowDeleteConfirm(true)}
                 >
-                  Eliminar Conta
+                  {t("deleteAccount")}
                 </Button>
               ) : (
                 <div className="space-y-3">
                   <p className="text-[13px] text-muted">
-                    Para confirmar, escreva o seu email:{" "}
+                    {t("deleteConfirmText")}{" "}
                     <strong className="text-foreground">{user?.email}</strong>
                   </p>
                   <Input
-                    placeholder="Escreva o seu email para confirmar"
+                    placeholder={t("deleteConfirmPlaceholder")}
                     value={deleteConfirm}
                     onChange={(e) => setDeleteConfirm(e.target.value)}
                   />
@@ -249,13 +249,13 @@ export default function OrgSettingsPage() {
                         try {
                           await api.requestAccountDeletion();
                           logout();
-                          router.push("/");
+                          router.push(`/${locale}`);
                         } catch {
                           setDeleteLoading(false);
                         }
                       }}
                     >
-                      Confirmar Eliminacao
+                      {t("deleteConfirmButton")}
                     </Button>
                     <Button
                       variant="secondary"
@@ -265,7 +265,7 @@ export default function OrgSettingsPage() {
                         setDeleteConfirm("");
                       }}
                     >
-                      Cancelar
+                      {tc("cancel")}
                     </Button>
                   </div>
                 </div>
@@ -276,7 +276,7 @@ export default function OrgSettingsPage() {
         ) : (
           <Card>
             <div className="flex flex-col items-center justify-center py-16 text-muted">
-              <p className="text-sm">Erro ao carregar definicoes.</p>
+              <p className="text-sm">{t("loadError")}</p>
             </div>
           </Card>
         )}

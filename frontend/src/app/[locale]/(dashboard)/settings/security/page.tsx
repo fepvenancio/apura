@@ -8,10 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Copy, Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type SetupStep = "idle" | "qr" | "backup" | "done";
 
 export default function SecurityPage() {
+  const t = useTranslations("security");
+  const tc = useTranslations("common");
   // MFA status
   const [mfaEnabled, setMfaEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -32,18 +35,13 @@ export default function SecurityPage() {
   const [disableCode, setDisableCode] = useState("");
   const [disabling, setDisabling] = useState(false);
 
-  // Check MFA status on mount by attempting setup
-  // If MFA_ALREADY_ENABLED error, user has MFA enabled
   useEffect(() => {
     let cancelled = false;
     const checkStatus = async () => {
       try {
         await api.setupMfa();
-        // If setup succeeds, MFA is not enabled -- but we have side-effects (pending secret).
-        // We don't want to leave that dangling. Mark as not enabled.
         if (!cancelled) setMfaEnabled(false);
       } catch (err) {
-        // MFA_ALREADY_ENABLED means MFA is active
         if (!cancelled) {
           if (
             err instanceof ApiError &&
@@ -52,7 +50,6 @@ export default function SecurityPage() {
           ) {
             setMfaEnabled(true);
           }
-          // Other errors: just default to not enabled
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -74,7 +71,7 @@ export default function SecurityPage() {
         setMfaEnabled(true);
       } else {
         setError(
-          err instanceof Error ? err.message : "Erro ao iniciar configuracao."
+          err instanceof Error ? err.message : t("mfaSetupError")
         );
       }
     }
@@ -91,7 +88,7 @@ export default function SecurityPage() {
       setSetupStep("backup");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Codigo invalido. Tente novamente."
+        err instanceof Error ? err.message : t("mfaVerifyError")
       );
     } finally {
       setConfirming(false);
@@ -131,7 +128,7 @@ export default function SecurityPage() {
       setSetupStep("idle");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Codigo invalido."
+        err instanceof Error ? err.message : t("mfaDisableError")
       );
     } finally {
       setDisabling(false);
@@ -140,7 +137,7 @@ export default function SecurityPage() {
 
   return (
     <div>
-      <Topbar title="Seguranca" />
+      <Topbar title={t("title")} />
 
       <div className="max-w-3xl p-4 sm:p-6 space-y-6">
         <Card>
@@ -149,12 +146,12 @@ export default function SecurityPage() {
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary" />
                 <h3 className="text-sm font-semibold">
-                  Autenticacao de dois fatores
+                  {t("mfaTitle")}
                 </h3>
               </div>
               {mfaEnabled && (
                 <Badge variant="success" dot>
-                  2FA ativo
+                  {t("mfaActive")}
                 </Badge>
               )}
             </div>
@@ -170,15 +167,14 @@ export default function SecurityPage() {
             {!mfaEnabled && setupStep === "idle" && (
               <div className="space-y-4">
                 <p className="text-sm text-muted">
-                  Proteja a sua conta com um codigo temporario alem da
-                  palavra-passe.
+                  {t("mfaDescription")}
                 </p>
                 <Button
                   variant="primary"
                   size="sm"
                   onClick={handleStartSetup}
                 >
-                  Ativar 2FA
+                  {t("mfaEnable")}
                 </Button>
               </div>
             )}
@@ -188,15 +184,14 @@ export default function SecurityPage() {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <p className="text-sm text-muted">
-                    Digitalize o codigo QR com a sua app de autenticacao (Google
-                    Authenticator, Authy, etc.)
+                    {t("mfaQrText")}
                   </p>
 
                   <div className="flex justify-center py-4">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={qrCodeDataUrl}
-                      alt="QR Code para autenticacao"
+                      alt={t("mfaQrAlt")}
                       className="rounded-lg border border-card-border bg-white p-2"
                       width={200}
                       height={200}
@@ -205,7 +200,7 @@ export default function SecurityPage() {
 
                   <div className="space-y-1">
                     <p className="text-xs text-muted">
-                      Ou insira manualmente este codigo:
+                      {t("mfaManualText")}
                     </p>
                     <code className="block rounded-md bg-background border border-card-border px-3 py-2 text-sm font-mono text-foreground break-all select-all">
                       {secret}
@@ -215,16 +210,16 @@ export default function SecurityPage() {
 
                 <form onSubmit={handleConfirm} className="space-y-4">
                   <Input
-                    label="Codigo de verificacao"
+                    label={t("mfaVerificationCode")}
                     type="text"
-                    placeholder="000000"
+                    placeholder={t("mfaVerificationPlaceholder")}
                     value={confirmCode}
                     onChange={(e) => setConfirmCode(e.target.value)}
                     required
                     autoFocus
                     maxLength={6}
                     autoComplete="one-time-code"
-                    description="Insira o codigo de 6 digitos da sua app de autenticacao"
+                    description={t("mfaVerificationHint")}
                   />
                   <div className="flex items-center gap-2">
                     <Button
@@ -233,7 +228,7 @@ export default function SecurityPage() {
                       size="sm"
                       isLoading={confirming}
                     >
-                      Confirmar
+                      {tc("confirm")}
                     </Button>
                     <Button
                       type="button"
@@ -247,7 +242,7 @@ export default function SecurityPage() {
                         setError(null);
                       }}
                     >
-                      Cancelar
+                      {tc("cancel")}
                     </Button>
                   </div>
                 </form>
@@ -259,11 +254,10 @@ export default function SecurityPage() {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-foreground">
-                    Codigos de recuperacao
+                    {t("backupCodesTitle")}
                   </h4>
                   <div className="rounded-md bg-warning/10 border border-warning/20 px-3 py-2.5 text-[13px] text-warning">
-                    Guarde estes codigos num local seguro. Cada codigo so pode
-                    ser usado uma vez.
+                    {t("backupCodesWarning")}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -286,12 +280,12 @@ export default function SecurityPage() {
                     {copied ? (
                       <>
                         <Check className="h-3.5 w-3.5" />
-                        Copiado
+                        {tc("copied")}
                       </>
                     ) : (
                       <>
                         <Copy className="h-3.5 w-3.5" />
-                        Copiar codigos
+                        {t("backupCodesCopy")}
                       </>
                     )}
                   </Button>
@@ -306,7 +300,7 @@ export default function SecurityPage() {
                       className="mt-0.5 rounded border-card-border"
                     />
                     <span className="text-sm text-muted">
-                      Guardei os meus codigos de recuperacao num local seguro.
+                      {t("backupCodesAcknowledge")}
                     </span>
                   </label>
 
@@ -316,7 +310,7 @@ export default function SecurityPage() {
                     disabled={!codesAcknowledged}
                     onClick={handleAcknowledge}
                   >
-                    Concluir configuracao
+                    {t("backupCodesComplete")}
                   </Button>
                 </div>
               </div>
@@ -326,7 +320,7 @@ export default function SecurityPage() {
             {mfaEnabled && setupStep !== "backup" && (
               <div className="space-y-4">
                 <p className="text-sm text-muted">
-                  A autenticacao de dois fatores esta ativa na sua conta.
+                  {t("mfaActiveText")}
                 </p>
 
                 {!showDisable ? (
@@ -335,21 +329,21 @@ export default function SecurityPage() {
                     size="sm"
                     onClick={() => setShowDisable(true)}
                   >
-                    Desativar 2FA
+                    {t("mfaDisable")}
                   </Button>
                 ) : (
                   <form onSubmit={handleDisable} className="space-y-4">
                     <Input
-                      label="Confirmar com codigo TOTP"
+                      label={t("mfaDisableCode")}
                       type="text"
-                      placeholder="000000"
+                      placeholder={t("mfaDisableCodePlaceholder")}
                       value={disableCode}
                       onChange={(e) => setDisableCode(e.target.value)}
                       required
                       autoFocus
                       maxLength={6}
                       autoComplete="one-time-code"
-                      description="Insira o codigo da sua app de autenticacao para desativar"
+                      description={t("mfaDisableCodeHint")}
                     />
                     <div className="flex items-center gap-2">
                       <Button
@@ -358,7 +352,7 @@ export default function SecurityPage() {
                         size="sm"
                         isLoading={disabling}
                       >
-                        Desativar
+                        {t("mfaDisableSubmit")}
                       </Button>
                       <Button
                         type="button"
@@ -370,7 +364,7 @@ export default function SecurityPage() {
                           setError(null);
                         }}
                       >
-                        Cancelar
+                        {tc("cancel")}
                       </Button>
                     </div>
                   </form>

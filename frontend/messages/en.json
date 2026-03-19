@@ -223,7 +223,8 @@
     "addWidget": "Add widget",
     "emptyWidgets": "This dashboard has no widgets yet.",
     "emptyWidgetsHint": "Click \"Add widget\" to get started.",
-    "widgetVisualization": "Report visualization"
+    "widgetVisualization": "Report visualization",
+    "shared": "Shared"
   },
   "schema": {
     "title": "Schema",

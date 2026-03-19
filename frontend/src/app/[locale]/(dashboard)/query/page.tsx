@@ -7,8 +7,10 @@ import type { UsageInfo } from "@/lib/types";
 import { Topbar } from "@/components/layout/topbar";
 import { QueryInput } from "@/components/query/query-input";
 import { ResultPanel } from "@/components/query/result-panel";
+import { useTranslations } from "next-intl";
 
 export default function QueryPage() {
+  const t = useTranslations("query");
   const result = useQueryStore((s) => s.result);
   const error = useQueryStore((s) => s.error);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
@@ -20,7 +22,7 @@ export default function QueryPage() {
   return (
     <div>
       <Topbar
-        title="Consultas"
+        title={t("title")}
         queriesUsed={usage?.queriesUsed}
         queriesLimit={usage?.queriesLimit}
       />

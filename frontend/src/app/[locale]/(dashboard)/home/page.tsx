@@ -14,8 +14,13 @@ import { ResultPanel } from "@/components/query/result-panel";
 import { formatRelativeDate } from "@/lib/utils";
 import { Clock } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 export default function DashboardPage() {
+  const t = useTranslations("dashboard");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const org = useAuthStore((s) => s.org);
   const connectorStatus = useConnectorStore((s) => s.status);
   const result = useQueryStore((s) => s.result);
@@ -28,10 +33,12 @@ export default function DashboardPage() {
     api.getUsage().then(setUsage).catch(() => {});
   }, [loadHistory]);
 
+  const fullLocale = locale === "pt" ? "pt-PT" : locale === "es" ? "es-ES" : "en-US";
+
   return (
     <div>
       <Topbar
-        title="Dashboard"
+        title={t("title")}
         queriesUsed={usage?.queriesUsed}
         queriesLimit={usage?.queriesLimit}
       />
@@ -41,7 +48,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-3 gap-3">
           <Card>
             <CardContent className="py-3 px-4">
-              <p className="text-[11px] uppercase tracking-wide text-muted">Consultas</p>
+              <p className="text-[11px] uppercase tracking-wide text-muted">{t("queries")}</p>
               <div className="flex items-baseline gap-1.5 mt-1">
                 <span className="text-xl font-semibold tabular-nums">
                   {usage?.queriesUsed ?? "\u2014"}
@@ -68,7 +75,7 @@ export default function DashboardPage() {
 
           <Card>
             <CardContent className="py-3 px-4">
-              <p className="text-[11px] uppercase tracking-wide text-muted">Conector</p>
+              <p className="text-[11px] uppercase tracking-wide text-muted">{t("connectorLabel")}</p>
               <div className="mt-1">
                 <Badge
                   variant={
@@ -77,10 +84,10 @@ export default function DashboardPage() {
                   dot
                 >
                   {connectorStatus === "connected"
-                    ? "Ligado"
+                    ? t("connectorConnected")
                     : connectorStatus === "checking"
-                    ? "A verificar"
-                    : "Desligado"}
+                    ? t("connectorChecking")
+                    : t("connectorDisconnected")}
                 </Badge>
               </div>
             </CardContent>
@@ -88,7 +95,7 @@ export default function DashboardPage() {
 
           <Card>
             <CardContent className="py-3 px-4">
-              <p className="text-[11px] uppercase tracking-wide text-muted">Plano</p>
+              <p className="text-[11px] uppercase tracking-wide text-muted">{t("plan")}</p>
               <p className="text-xl font-semibold capitalize mt-1">
                 {usage?.plan ?? "\u2014"}
               </p>
@@ -99,7 +106,7 @@ export default function DashboardPage() {
         {/* Quick query */}
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-semibold">Consulta r\u00e1pida</h3>
+            <h3 className="text-sm font-semibold">{t("quickQuery")}</h3>
           </CardHeader>
           <CardContent>
             <QueryInput />
@@ -112,12 +119,12 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold">Consultas recentes</h3>
+                <h3 className="text-sm font-semibold">{t("recentQueries")}</h3>
                 <Link
-                  href="/history"
+                  href={`/${locale}/history`}
                   className="text-xs text-primary hover:text-primary-hover transition-colors"
                 >
-                  Ver tudo
+                  {tc("viewAll")}
                 </Link>
               </div>
             </CardHeader>
@@ -126,7 +133,7 @@ export default function DashboardPage() {
                 {history.slice(0, 5).map((q) => (
                   <Link
                     key={q.id}
-                    href={`/query?id=${q.id}`}
+                    href={`/${locale}/query?id=${q.id}`}
                     className="flex items-center gap-3 px-6 py-3 hover:bg-[#1a1a1a] transition-colors"
                   >
                     <Clock className="h-4 w-4 text-muted shrink-0" />
@@ -134,7 +141,7 @@ export default function DashboardPage() {
                       {q.naturalLanguage}
                     </span>
                     <span className="text-xs text-muted shrink-0">
-                      {formatRelativeDate(q.createdAt)}
+                      {formatRelativeDate(q.createdAt, fullLocale)}
                     </span>
                   </Link>
                 ))}

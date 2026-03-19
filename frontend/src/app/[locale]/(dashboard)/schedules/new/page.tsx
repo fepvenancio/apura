@@ -9,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Clock, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 type FrequencyPreset = "daily" | "weekly" | "monthly";
 
@@ -19,21 +21,14 @@ const TIMEZONES = [
   "UTC",
 ];
 
-const DAYS_OF_WEEK = [
-  { value: "0", label: "Domingo" },
-  { value: "1", label: "Segunda" },
-  { value: "2", label: "Terca" },
-  { value: "3", label: "Quarta" },
-  { value: "4", label: "Quinta" },
-  { value: "5", label: "Sexta" },
-  { value: "6", label: "Sabado" },
-];
-
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 export default function NewSchedulePage() {
+  const t = useTranslations("schedules");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const router = useRouter();
   const [reports, setReports] = useState<Report[]>([]);
   const [loadingReports, setLoadingReports] = useState(true);
@@ -52,6 +47,16 @@ export default function NewSchedulePage() {
   const [recipients, setRecipients] = useState<string[]>([]);
   const [emailInput, setEmailInput] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
+
+  const DAYS_OF_WEEK = [
+    { value: "0", label: t("daySunday") },
+    { value: "1", label: t("dayMonday") },
+    { value: "2", label: t("dayTuesday") },
+    { value: "3", label: t("dayWednesday") },
+    { value: "4", label: t("dayThursday") },
+    { value: "5", label: t("dayFriday") },
+    { value: "6", label: t("daySaturday") },
+  ];
 
   useEffect(() => {
     api
@@ -78,11 +83,11 @@ export default function NewSchedulePage() {
     const email = emailInput.trim();
     if (!email) return;
     if (!isValidEmail(email)) {
-      setEmailError("Email invalido");
+      setEmailError(t("newRecipientInvalid"));
       return;
     }
     if (recipients.includes(email)) {
-      setEmailError("Email ja adicionado");
+      setEmailError(t("newRecipientDuplicate"));
       return;
     }
     setRecipients((prev) => [...prev, email]);
@@ -114,10 +119,10 @@ export default function NewSchedulePage() {
         outputFormat,
         recipients: recipients.length > 0 ? recipients : undefined,
       });
-      router.push("/schedules");
+      router.push(`/${locale}/schedules`);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Erro ao criar agendamento"
+        err instanceof Error ? err.message : t("newError")
       );
     } finally {
       setSubmitting(false);
@@ -129,7 +134,7 @@ export default function NewSchedulePage() {
 
   return (
     <div>
-      <Topbar title="Novo Agendamento" />
+      <Topbar title={t("newTitle")} />
 
       <div className="p-4 sm:p-6 max-w-2xl">
         <Card>
@@ -138,10 +143,10 @@ export default function NewSchedulePage() {
               {/* Report selector */}
               <div className="flex flex-col gap-1">
                 <label className="text-[13px] font-medium text-foreground/80">
-                  Relatorio *
+                  {t("newReport")}
                 </label>
                 {loadingReports ? (
-                  <p className="text-xs text-muted">A carregar relatorios...</p>
+                  <p className="text-xs text-muted">{t("newReportLoading")}</p>
                 ) : (
                   <select
                     value={reportId}
@@ -149,7 +154,7 @@ export default function NewSchedulePage() {
                     required
                     className={selectClasses}
                   >
-                    <option value="">Selecione um relatorio</option>
+                    <option value="">{t("newReportPlaceholder")}</option>
                     {reports.map((r) => (
                       <option key={r.id} value={r.id}>
                         {r.name}
@@ -162,14 +167,14 @@ export default function NewSchedulePage() {
               {/* Frequency preset */}
               <div className="flex flex-col gap-2">
                 <label className="text-[13px] font-medium text-foreground/80">
-                  Frequencia
+                  {t("newFrequency")}
                 </label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   {(
                     [
-                      { key: "daily", label: "Diario" },
-                      { key: "weekly", label: "Semanal" },
-                      { key: "monthly", label: "Mensal" },
+                      { key: "daily", label: t("newDaily") },
+                      { key: "weekly", label: t("newWeekly") },
+                      { key: "monthly", label: t("newMonthly") },
                     ] as const
                   ).map(({ key, label }) => (
                     <label
@@ -200,7 +205,7 @@ export default function NewSchedulePage() {
                 {preset === "weekly" && (
                   <div className="flex flex-col gap-1 flex-1">
                     <label className="text-[13px] font-medium text-foreground/80">
-                      Dia da semana
+                      {t("newDayOfWeek")}
                     </label>
                     <select
                       value={dayOfWeek}
@@ -219,7 +224,7 @@ export default function NewSchedulePage() {
                 {preset === "monthly" && (
                   <div className="flex flex-col gap-1 flex-1">
                     <label className="text-[13px] font-medium text-foreground/80">
-                      Dia do mes (1-28)
+                      {t("newDayOfMonth")}
                     </label>
                     <Input
                       type="number"
@@ -234,7 +239,7 @@ export default function NewSchedulePage() {
                 <div className="flex gap-2 flex-1">
                   <div className="flex flex-col gap-1 flex-1">
                     <label className="text-[13px] font-medium text-foreground/80">
-                      Hora
+                      {t("newHour")}
                     </label>
                     <select
                       value={hour}
@@ -250,7 +255,7 @@ export default function NewSchedulePage() {
                   </div>
                   <div className="flex flex-col gap-1 flex-1">
                     <label className="text-[13px] font-medium text-foreground/80">
-                      Minuto
+                      {t("newMinute")}
                     </label>
                     <select
                       value={minute}
@@ -270,7 +275,7 @@ export default function NewSchedulePage() {
               {/* Timezone */}
               <div className="flex flex-col gap-1">
                 <label className="text-[13px] font-medium text-foreground/80">
-                  Fuso horario
+                  {t("newTimezone")}
                 </label>
                 <select
                   value={timezone}
@@ -288,7 +293,7 @@ export default function NewSchedulePage() {
               {/* Output format */}
               <div className="flex flex-col gap-1">
                 <label className="text-[13px] font-medium text-foreground/80">
-                  Formato de saida
+                  {t("newOutputFormat")}
                 </label>
                 <select
                   value={outputFormat}
@@ -303,13 +308,13 @@ export default function NewSchedulePage() {
               {/* Recipients */}
               <div className="flex flex-col gap-2">
                 <label className="text-[13px] font-medium text-foreground/80">
-                  Destinatarios (email)
+                  {t("newRecipients")}
                 </label>
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <Input
                       type="email"
-                      placeholder="email@exemplo.com"
+                      placeholder={t("newRecipientsPlaceholder")}
                       value={emailInput}
                       onChange={(e) => {
                         setEmailInput(e.target.value);
@@ -325,7 +330,7 @@ export default function NewSchedulePage() {
                     size="md"
                     onClick={addRecipient}
                   >
-                    Adicionar
+                    {t("newRecipientAdd")}
                   </Button>
                 </div>
                 {recipients.length > 0 && (
@@ -361,10 +366,10 @@ export default function NewSchedulePage() {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => router.push("/schedules")}
+                  onClick={() => router.push(`/${locale}/schedules`)}
                   className="sm:w-auto"
                 >
-                  Cancelar
+                  {tc("cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -373,7 +378,7 @@ export default function NewSchedulePage() {
                   disabled={!reportId}
                   className="sm:w-auto"
                 >
-                  Criar Agendamento
+                  {t("newSubmit")}
                 </Button>
               </div>
             </form>

@@ -11,14 +11,21 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { Users, Plus, Trash2, X, ShieldCheck, ShieldOff } from "lucide-react";
-
-const ROLES = [
-  { value: "admin", label: "Admin" },
-  { value: "member", label: "Membro" },
-  { value: "viewer", label: "Visualizador" },
-];
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 export default function TeamPage() {
+  const t = useTranslations("team");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const fullLocale = locale === "pt" ? "pt-PT" : locale === "es" ? "es-ES" : "en-US";
+
+  const ROLES = [
+    { value: "admin", label: t("roleAdmin") },
+    { value: "member", label: t("roleMember") },
+    { value: "viewer", label: t("roleViewer") },
+  ];
+
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +48,6 @@ export default function TeamPage() {
         ]);
         setMembers(m);
         setInvitations(i);
-        // Load org MFA setting
         try {
           const settings = await api.getOrgSettings();
           setMfaRequired(!!settings.mfa_required);
@@ -122,17 +128,12 @@ export default function TeamPage() {
   };
 
   const handleResetMfa = async (userId: string) => {
-    if (
-      !confirm(
-        "Tem certeza que deseja reiniciar o 2FA deste membro?"
-      )
-    ) {
+    if (!confirm(t("resetMfaConfirm"))) {
       return;
     }
     setResettingMfa(userId);
     try {
       await api.resetUserMfa(userId);
-      // Refresh members to update MFA status
       const m = await api.getTeamMembers();
       setMembers(m);
     } catch {
@@ -144,12 +145,12 @@ export default function TeamPage() {
 
   return (
     <div>
-      <Topbar title="Equipa" />
+      <Topbar title={t("title")} />
 
       <div className="max-w-4xl p-6 space-y-6">
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted">
-            {members.length} membro{members.length !== 1 ? "s" : ""}
+            {t("memberCount", { count: members.length })}
           </p>
           <Button
             variant="primary"
@@ -157,7 +158,7 @@ export default function TeamPage() {
             onClick={() => setShowInvite(!showInvite)}
           >
             <Plus className="h-3.5 w-3.5" />
-            Convidar
+            {t("invite")}
           </Button>
         </div>
 
@@ -166,16 +167,16 @@ export default function TeamPage() {
             <CardContent className="py-5">
               <form onSubmit={handleInvite} className="space-y-4">
                 <Input
-                  label="Email"
+                  label={t("inviteEmail")}
                   type="email"
-                  placeholder="colega@empresa.pt"
+                  placeholder={t("inviteEmailPlaceholder")}
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   required
                 />
                 <div className="flex flex-col gap-1">
                   <label className="text-[13px] font-medium text-foreground/80">
-                    Funcao
+                    {t("inviteRole")}
                   </label>
                   <select
                     value={inviteRole}
@@ -196,7 +197,7 @@ export default function TeamPage() {
                     size="sm"
                     isLoading={inviting}
                   >
-                    Enviar convite
+                    {t("inviteSubmit")}
                   </Button>
                   <Button
                     type="button"
@@ -204,7 +205,7 @@ export default function TeamPage() {
                     size="sm"
                     onClick={() => setShowInvite(false)}
                   >
-                    Cancelar
+                    {tc("cancel")}
                   </Button>
                 </div>
               </form>
@@ -221,10 +222,10 @@ export default function TeamPage() {
                   <ShieldCheck className="h-4 w-4 text-primary" />
                   <div>
                     <p className="text-sm font-medium text-foreground">
-                      Exigir 2FA para todos os membros
+                      {t("mfaRequired")}
                     </p>
                     <p className="text-xs text-muted mt-0.5">
-                      Todos os membros terao de configurar autenticacao de dois fatores.
+                      {t("mfaRequiredHint")}
                     </p>
                   </div>
                 </div>
@@ -250,19 +251,19 @@ export default function TeamPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted">
-            <p className="text-sm">A carregar...</p>
+            <p className="text-sm">{tc("loading")}</p>
           </div>
         ) : (
           <>
             {/* Members table */}
             <Card>
               <CardHeader>
-                <h3 className="text-sm font-semibold">Membros</h3>
+                <h3 className="text-sm font-semibold">{t("membersTitle")}</h3>
               </CardHeader>
               {members.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-muted">
                   <Users className="h-12 w-12 mb-3 opacity-30" />
-                  <p className="text-sm">Nenhum membro encontrado.</p>
+                  <p className="text-sm">{t("noMembers")}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -270,22 +271,22 @@ export default function TeamPage() {
                     <thead>
                       <tr className="border-b border-card-border">
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                          Nome
+                          {t("nameColumn")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                          Email
+                          {t("emailColumn")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                          Funcao
+                          {t("roleColumn")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                          2FA
+                          {t("mfaColumn")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                          Desde
+                          {t("sinceColumn")}
                         </th>
                         <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted">
-                          Acoes
+                          {t("actionsColumn")}
                         </th>
                       </tr>
                     </thead>
@@ -303,7 +304,7 @@ export default function TeamPage() {
                           </td>
                           <td className="px-6 py-3">
                             {member.role === "owner" ? (
-                              <Badge variant="warning">Proprietario</Badge>
+                              <Badge variant="warning">{t("roleOwner")}</Badge>
                             ) : (
                               <select
                                 value={member.role}
@@ -328,7 +329,7 @@ export default function TeamPage() {
                             )}
                           </td>
                           <td className="px-6 py-3 text-xs text-muted">
-                            {formatDate(member.joinedAt)}
+                            {formatDate(member.joinedAt, fullLocale)}
                           </td>
                           <td className="px-6 py-3 text-right">
                             <div className="flex items-center justify-end gap-1">
@@ -367,23 +368,23 @@ export default function TeamPage() {
             {invitations.filter((i) => i.status === "pending").length > 0 && (
               <Card>
                 <CardHeader>
-                  <h3 className="text-sm font-semibold">Convites pendentes</h3>
+                  <h3 className="text-sm font-semibold">{t("pendingInvitations")}</h3>
                 </CardHeader>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-card-border">
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                          Email
+                          {t("emailColumn")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                          Funcao
+                          {t("roleColumn")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                          Expira
+                          {t("expiresColumn")}
                         </th>
                         <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted">
-                          Acoes
+                          {t("actionsColumn")}
                         </th>
                       </tr>
                     </thead>
@@ -402,7 +403,7 @@ export default function TeamPage() {
                               <Badge variant="muted">{invitation.role}</Badge>
                             </td>
                             <td className="px-6 py-3 text-xs text-muted">
-                              {formatDate(invitation.expiresAt)}
+                              {formatDate(invitation.expiresAt, fullLocale)}
                             </td>
                             <td className="px-6 py-3 text-right">
                               <Button

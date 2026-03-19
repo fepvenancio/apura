@@ -8,12 +8,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 export default function HistoryPage() {
+  const t = useTranslations("history");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const history = useQueryStore((s) => s.history);
   const historyPage = useQueryStore((s) => s.historyPage);
   const historyTotalPages = useQueryStore((s) => s.historyTotalPages);
   const loadHistory = useQueryStore((s) => s.loadHistory);
+
+  const fullLocale = locale === "pt" ? "pt-PT" : locale === "es" ? "es-ES" : "en-US";
 
   useEffect(() => {
     loadHistory();
@@ -21,15 +28,15 @@ export default function HistoryPage() {
 
   return (
     <div>
-      <Topbar title="Histórico" />
+      <Topbar title={t("title")} />
 
       <div className="p-6">
         <Card>
           {history.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted">
-              <p className="text-sm">Ainda não fez nenhuma consulta.</p>
-              <Link href="/query" className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors">
-                Fazer primeira consulta
+              <p className="text-sm">{t("emptyTitle")}</p>
+              <Link href={`/${locale}/query`} className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors">
+                {t("emptyAction")}
               </Link>
             </div>
           ) : (
@@ -39,19 +46,19 @@ export default function HistoryPage() {
                   <thead>
                     <tr className="border-b border-card-border">
                       <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                        Data
+                        {t("dateColumn")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                        Pergunta
+                        {t("questionColumn")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                        Estado
+                        {t("statusColumn")}
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted">
-                        Linhas
+                        {t("rowsColumn")}
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted">
-                        Tempo
+                        {t("timeColumn")}
                       </th>
                     </tr>
                   </thead>
@@ -62,11 +69,11 @@ export default function HistoryPage() {
                         className="hover:bg-[#1a1a1a] transition-colors"
                       >
                         <td className="px-6 py-3 text-xs text-muted whitespace-nowrap">
-                          {formatDate(q.createdAt)}
+                          {formatDate(q.createdAt, fullLocale)}
                         </td>
                         <td className="px-6 py-3 max-w-md">
                           <Link
-                            href={`/query?id=${q.id}`}
+                            href={`/${locale}/query?id=${q.id}`}
                             className="text-foreground hover:text-primary transition-colors truncate block"
                           >
                             {q.naturalLanguage}
@@ -78,7 +85,7 @@ export default function HistoryPage() {
                               q.status === "success" ? "success" : "danger"
                             }
                           >
-                            {q.status === "success" ? "Sucesso" : "Erro"}
+                            {q.status === "success" ? t("statusSuccess") : t("statusError")}
                           </Badge>
                         </td>
                         <td className="px-6 py-3 text-right tabular-nums text-muted">
@@ -102,7 +109,7 @@ export default function HistoryPage() {
                     onClick={() => loadHistory(historyPage - 1)}
                     disabled={historyPage <= 1}
                   >
-                    Anterior
+                    {tc("previous")}
                   </Button>
                   <span className="text-xs text-muted px-2">
                     {historyPage} / {historyTotalPages}
@@ -113,7 +120,7 @@ export default function HistoryPage() {
                     onClick={() => loadHistory(historyPage + 1)}
                     disabled={historyPage >= historyTotalPages}
                   >
-                    Seguinte
+                    {tc("next")}
                   </Button>
                 </div>
               )}

@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { api } from "@/lib/api";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 const LANGUAGES = [
   { value: "pt", label: "Portugues" },
@@ -15,9 +18,13 @@ const LANGUAGES = [
 ];
 
 export default function ProfilePage() {
+  const t = useTranslations("profile");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [name, setName] = useState(user?.name || "");
-  const [language, setLanguage] = useState("pt");
+  const [language, setLanguage] = useState(user?.language || locale);
   const [saving, setSaving] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -36,10 +43,24 @@ export default function ProfilePage() {
     setProfileSuccess(false);
     try {
       await api.updateProfile({ name, language });
+      // Update user in localStorage with new language
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const userData = JSON.parse(stored);
+          userData.language = language;
+          localStorage.setItem("user", JSON.stringify(userData));
+        }
+      }
       setProfileSuccess(true);
+      // If language changed, navigate to new locale
+      if (language !== locale) {
+        router.push(`/${language}/settings/profile`);
+        return;
+      }
       setTimeout(() => setProfileSuccess(false), 3000);
     } catch {
-      setProfileError("Erro ao atualizar perfil.");
+      setProfileError(t("saveError"));
     } finally {
       setSaving(false);
     }
@@ -48,11 +69,11 @@ export default function ProfilePage() {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      setPasswordError("As palavras-passe nao coincidem.");
+      setPasswordError(t("passwordMismatch"));
       return;
     }
     if (newPassword.length < 8) {
-      setPasswordError("A palavra-passe deve ter pelo menos 8 caracteres.");
+      setPasswordError(t("passwordTooShort"));
       return;
     }
     setChangingPassword(true);
@@ -69,7 +90,7 @@ export default function ProfilePage() {
       setConfirmPassword("");
       setTimeout(() => setPasswordSuccess(false), 3000);
     } catch {
-      setPasswordError("Erro ao alterar palavra-passe.");
+      setPasswordError(t("changePasswordError"));
     } finally {
       setChangingPassword(false);
     }
@@ -77,13 +98,13 @@ export default function ProfilePage() {
 
   return (
     <div>
-      <Topbar title="Perfil" />
+      <Topbar title={t("title")} />
 
       <div className="max-w-3xl p-6 space-y-6">
         {/* Profile info */}
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-semibold">Informacoes pessoais</h3>
+            <h3 className="text-sm font-semibold">{t("personalInfo")}</h3>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleProfileSubmit} className="space-y-4">
@@ -94,27 +115,27 @@ export default function ProfilePage() {
               )}
               {profileSuccess && (
                 <div className="rounded-md bg-success/10 border border-success/20 px-3 py-2.5 text-[13px] text-success">
-                  Perfil atualizado com sucesso.
+                  {t("saveSuccess")}
                 </div>
               )}
 
               <Input
-                label="Nome"
+                label={t("name")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
 
               <Input
-                label="Email"
+                label={t("email")}
                 value={user?.email || ""}
                 disabled
-                description="O email nao pode ser alterado."
+                description={t("emailHint")}
               />
 
               <div className="flex flex-col gap-1">
                 <label className="text-[13px] font-medium text-foreground/80">
-                  Idioma
+                  {t("language")}
                 </label>
                 <select
                   value={language}
@@ -130,7 +151,7 @@ export default function ProfilePage() {
               </div>
 
               <Button type="submit" variant="primary" size="sm" isLoading={saving}>
-                Guardar
+                {tc("save")}
               </Button>
             </form>
           </CardContent>
@@ -139,7 +160,7 @@ export default function ProfilePage() {
         {/* Change password */}
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-semibold">Alterar palavra-passe</h3>
+            <h3 className="text-sm font-semibold">{t("changePassword")}</h3>
           </CardHeader>
           <CardContent>
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
@@ -150,12 +171,12 @@ export default function ProfilePage() {
               )}
               {passwordSuccess && (
                 <div className="rounded-md bg-success/10 border border-success/20 px-3 py-2.5 text-[13px] text-success">
-                  Palavra-passe alterada com sucesso.
+                  {t("changePasswordSuccess")}
                 </div>
               )}
 
               <Input
-                label="Palavra-passe atual"
+                label={t("currentPassword")}
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -164,17 +185,17 @@ export default function ProfilePage() {
               />
 
               <Input
-                label="Nova palavra-passe"
+                label={t("newPassword")}
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                description="Minimo 8 caracteres"
+                description={t("newPasswordHint")}
               />
 
               <Input
-                label="Confirmar nova palavra-passe"
+                label={t("confirmNewPassword")}
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -188,7 +209,7 @@ export default function ProfilePage() {
                 size="sm"
                 isLoading={changingPassword}
               >
-                Alterar palavra-passe
+                {t("changePasswordSubmit")}
               </Button>
             </form>
           </CardContent>

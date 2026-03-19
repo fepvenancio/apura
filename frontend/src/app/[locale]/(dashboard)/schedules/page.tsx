@@ -18,25 +18,32 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-
-function cronToLabel(cron: string): string {
-  const parts = cron.trim().split(/\s+/);
-  if (parts.length < 5) return cron;
-  const [min, hour, dom, , dow] = parts;
-  if (dom !== "*" && /^\d+$/.test(dom)) {
-    return `Mensal (dia ${dom}, ${hour}:${min.padStart(2, "0")})`;
-  }
-  if (dow !== "*" && /^\d+$/.test(dow)) {
-    const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
-    return `Semanal (${days[parseInt(dow)]}, ${hour}:${min.padStart(2, "0")})`;
-  }
-  if (/^\d+$/.test(hour)) {
-    return `Diario (${hour}:${min.padStart(2, "0")})`;
-  }
-  return cron;
-}
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 export default function SchedulesPage() {
+  const t = useTranslations("schedules");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const fullLocale = locale === "pt" ? "pt-PT" : locale === "es" ? "es-ES" : "en-US";
+
+  function cronToLabel(cron: string): string {
+    const parts = cron.trim().split(/\s+/);
+    if (parts.length < 5) return cron;
+    const [min, hour, dom, , dow] = parts;
+    const dayNames = t("dayNames").split(",");
+    if (dom !== "*" && /^\d+$/.test(dom)) {
+      return t("cronMonthly", { day: dom, hour, minute: min.padStart(2, "0") });
+    }
+    if (dow !== "*" && /^\d+$/.test(dow)) {
+      return t("cronWeekly", { day: dayNames[parseInt(dow)], hour, minute: min.padStart(2, "0") });
+    }
+    if (/^\d+$/.test(hour)) {
+      return t("cronDaily", { hour, minute: min.padStart(2, "0") });
+    }
+    return cron;
+  }
+
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -66,7 +73,7 @@ export default function SchedulesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem a certeza que deseja eliminar este agendamento?")) return;
+    if (!confirm(t("confirmDelete"))) return;
     try {
       await api.deleteSchedule(id);
       setSchedules((prev) => prev.filter((s) => s.id !== id));
@@ -107,11 +114,11 @@ export default function SchedulesPage() {
 
   const statusBadge = (status: ScheduleRun["status"]) => {
     const map: Record<ScheduleRun["status"], { variant: "success" | "danger" | "warning" | "muted" | "primary"; label: string }> = {
-      completed: { variant: "success", label: "Concluido" },
-      failed: { variant: "danger", label: "Erro" },
-      running: { variant: "primary", label: "A executar" },
-      queued: { variant: "warning", label: "Em fila" },
-      pending: { variant: "muted", label: "Pendente" },
+      completed: { variant: "success", label: t("runStatusCompleted") },
+      failed: { variant: "danger", label: t("runStatusFailed") },
+      running: { variant: "primary", label: t("runStatusRunning") },
+      queued: { variant: "warning", label: t("runStatusQueued") },
+      pending: { variant: "muted", label: t("runStatusPending") },
     };
     const { variant, label } = map[status] || { variant: "muted" as const, label: status };
     return <Badge variant={variant} dot>{label}</Badge>;
@@ -119,37 +126,36 @@ export default function SchedulesPage() {
 
   return (
     <div>
-      <Topbar title="Agendamentos" />
+      <Topbar title={t("title")} />
 
       <div className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
           <p className="text-sm text-muted">
-            {schedules.length} agendamento{schedules.length !== 1 ? "s" : ""}
+            {t("count", { count: schedules.length })}
           </p>
-          <Link href="/schedules/new">
+          <Link href={`/${locale}/schedules/new`}>
             <Button variant="primary" size="sm">
               <Plus className="h-3.5 w-3.5" />
-              Novo Agendamento
+              {t("newSchedule")}
             </Button>
           </Link>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted">
-            <p className="text-sm">A carregar...</p>
+            <p className="text-sm">{tc("loading")}</p>
           </div>
         ) : schedules.length === 0 ? (
           <Card>
             <div className="flex flex-col items-center justify-center py-16 text-muted">
               <CalendarClock className="h-12 w-12 mb-3 opacity-30" />
               <p className="text-sm">
-                Ainda nao tem agendamentos. Crie o primeiro para receber
-                relatorios por email.
+                {t("emptyTitle")}
               </p>
-              <Link href="/schedules/new" className="mt-3">
+              <Link href={`/${locale}/schedules/new`} className="mt-3">
                 <Button variant="primary" size="sm">
                   <Plus className="h-3.5 w-3.5" />
-                  Novo Agendamento
+                  {t("newSchedule")}
                 </Button>
               </Link>
             </div>
@@ -170,7 +176,7 @@ export default function SchedulesPage() {
                           variant={schedule.enabled ? "success" : "muted"}
                           dot
                         >
-                          {schedule.enabled ? "Ativo" : "Pausado"}
+                          {schedule.enabled ? t("active") : t("paused")}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted mt-1">
@@ -198,16 +204,18 @@ export default function SchedulesPage() {
                   {/* Info row */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-xs text-muted mb-4">
                     <span>
-                      Proxima:{" "}
-                      {schedule.nextRunAt
-                        ? formatRelativeDate(schedule.nextRunAt)
-                        : "\u2014"}
+                      {t("nextRun", {
+                        time: schedule.nextRunAt
+                          ? formatRelativeDate(schedule.nextRunAt, fullLocale)
+                          : "\u2014",
+                      })}
                     </span>
                     <span className="flex items-center gap-1.5">
-                      Ultima:{" "}
-                      {schedule.lastRunAt
-                        ? formatRelativeDate(schedule.lastRunAt)
-                        : "\u2014"}
+                      {t("lastRun", {
+                        time: schedule.lastRunAt
+                          ? formatRelativeDate(schedule.lastRunAt, fullLocale)
+                          : "\u2014",
+                      })}
                       {schedule.lastRunStatus && (
                         <Badge
                           variant={
@@ -216,7 +224,7 @@ export default function SchedulesPage() {
                               : "danger"
                           }
                         >
-                          {schedule.lastRunStatus === "success" ? "OK" : "Erro"}
+                          {schedule.lastRunStatus === "success" ? "OK" : tc("error")}
                         </Badge>
                       )}
                     </span>
@@ -231,7 +239,7 @@ export default function SchedulesPage() {
                       disabled={triggeringId === schedule.id}
                     >
                       <Play className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Executar agora</span>
+                      <span className="hidden sm:inline">{t("runNow")}</span>
                     </Button>
                     <Button
                       variant="ghost"
@@ -244,8 +252,8 @@ export default function SchedulesPage() {
                         <ChevronDown className="h-3.5 w-3.5" />
                       )}
                       {expandedId === schedule.id
-                        ? "Ocultar historico"
-                        : "Ver historico"}
+                        ? t("hideHistory")
+                        : t("showHistory")}
                     </Button>
                     <div className="flex-1" />
                     <Button
@@ -261,13 +269,13 @@ export default function SchedulesPage() {
                   {expandedId === schedule.id && (
                     <div className="mt-4 border-t border-card-border pt-4">
                       <h4 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-                        Historico de execucoes
+                        {t("runHistoryTitle")}
                       </h4>
                       {loadingRuns === schedule.id ? (
-                        <p className="text-xs text-muted">A carregar...</p>
+                        <p className="text-xs text-muted">{t("runHistoryLoading")}</p>
                       ) : (runs[schedule.id] || []).length === 0 ? (
                         <p className="text-xs text-muted">
-                          Sem execucoes registadas.
+                          {t("runHistoryEmpty")}
                         </p>
                       ) : (
                         <div className="overflow-x-auto">
@@ -275,16 +283,16 @@ export default function SchedulesPage() {
                             <thead>
                               <tr className="border-b border-card-border/50">
                                 <th className="py-2 pr-4 text-left text-xs font-medium text-muted">
-                                  Estado
+                                  {t("runColumnStatus")}
                                 </th>
                                 <th className="py-2 pr-4 text-left text-xs font-medium text-muted">
-                                  Inicio
+                                  {t("runColumnStart")}
                                 </th>
                                 <th className="py-2 pr-4 text-left text-xs font-medium text-muted">
-                                  Fim
+                                  {t("runColumnEnd")}
                                 </th>
                                 <th className="py-2 text-right text-xs font-medium text-muted">
-                                  Ficheiro
+                                  {t("runColumnFile")}
                                 </th>
                               </tr>
                             </thead>
@@ -295,11 +303,11 @@ export default function SchedulesPage() {
                                     {statusBadge(run.status)}
                                   </td>
                                   <td className="py-2 pr-4 text-xs text-muted">
-                                    {formatDate(run.startedAt)}
+                                    {formatDate(run.startedAt, fullLocale)}
                                   </td>
                                   <td className="py-2 pr-4 text-xs text-muted">
                                     {run.completedAt
-                                      ? formatDate(run.completedAt)
+                                      ? formatDate(run.completedAt, fullLocale)
                                       : "\u2014"}
                                   </td>
                                   <td className="py-2 text-right">
@@ -321,7 +329,7 @@ export default function SchedulesPage() {
                                         className="text-xs text-danger cursor-help"
                                         title={run.errorMessage}
                                       >
-                                        Erro
+                                        {tc("error")}
                                       </span>
                                     ) : (
                                       <span className="text-xs text-muted">
