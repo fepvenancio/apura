@@ -88,8 +88,8 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 
 ### .NET Connector
 
-- [ ] **CONN-01**: MSI installer packages connector with .NET runtime, registers Windows Service, configures firewall
-- [ ] **CONN-02**: Silent install support for enterprise GPO deployment (msiexec /quiet)
+- [x] **CONN-01**: MSI installer packages connector with .NET runtime, registers Windows Service, configures firewall
+- [x] **CONN-02**: Silent install support for enterprise GPO deployment (msiexec /quiet)
 - [x] **CONN-03**: DPAPI-based credential storage for SQL Server connection strings
 - [x] **CONN-04**: Auto-update mechanism checks version endpoint and triggers MSI upgrade
 - [x] **CONN-05**: Connector validated working end-to-end on Windows with Primavera database
@@ -188,8 +188,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | I18N-02 | Phase 9: Internationalization | Complete |
 | I18N-03 | Phase 9: Internationalization | Complete |
 | I18N-04 | Phase 9: Internationalization | Complete |
-| CONN-01 | Phase 10: Connector Packaging | Pending |
-| CONN-02 | Phase 10: Connector Packaging | Pending |
+| CONN-01 | Phase 10: Connector Packaging | Complete |
+| CONN-02 | Phase 10: Connector Packaging | Complete |
 | CONN-03 | Phase 10: Connector Packaging | Complete |
 | CONN-04 | Phase 10: Connector Packaging | Complete |
 | CONN-05 | Phase 10: Connector Packaging | Complete |

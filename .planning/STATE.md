@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-03-19T02:18:32.753Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-03-19T02:23:36.248Z"
 progress:
   total_phases: 10
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 22
-  completed_plans: 21
+  completed_plans: 22
 ---
 
 # Project State
@@ -66,6 +66,7 @@ Plan: 2 of 2
 | Phase 09-internationalization P02 | 6min | 2 tasks | 15 files |
 | Phase 09-internationalization P03 | 11min | 2 tasks | 24 files |
 | Phase 10-connector-packaging P01 | 5min | 2 tasks | 12 files |
+| Phase 10-connector-packaging P02 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,9 @@ Recent decisions affecting current work:
 - [Phase 10-connector-packaging]: DPAPI LocalMachine scope for service credential encryption (not CurrentUser, since service runs as LocalService)
 - [Phase 10-connector-packaging]: schtasks + msiexec pattern for elevated update application (service cannot self-elevate)
 - [Phase 10-connector-packaging]: Connector version endpoint at /connector/version (public, outside /api/* auth middleware)
+- [Phase 10-connector-packaging]: UpgradeCode GUID B7E3F2A1 must never change across versions for in-place MSI upgrades
+- [Phase 10-connector-packaging]: Service runs as NT AUTHORITY\LocalService for least-privilege (matches DPAPI LocalMachine scope)
+- [Phase 10-connector-packaging]: PublishSingleFile=false because WiX needs individual files for MSI component model
 
 ### Pending Todos
 
@@ -131,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T02:18:32.751Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-03-19T02:23:36.246Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
