@@ -2,10 +2,9 @@
 export type QueryStatus =
   | 'pending'
   | 'generating'
-  | 'validating'
   | 'executing'
   | 'completed'
-  | 'error'
+  | 'failed'
   | 'cancelled';
 
 /** POST /queries request body. */

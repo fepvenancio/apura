@@ -74,7 +74,7 @@ queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, asy
     if (!aiResponse.ok) {
       const errorBody = await aiResponse.text();
       console.error('AI generation error for query', queryId, ':', errorBody);
-      await orgDb.updateQuery(queryId, { status: 'error', error_message: 'AI generation failed' });
+      await orgDb.updateQuery(queryId, { status: 'failed', error_message: 'AI generation failed' });
       return c.json({ success: false, error: { code: 'AI_ERROR', message: 'Failed to generate SQL query' } }, 502);
     }
 
@@ -83,7 +83,7 @@ queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, asy
     // Validate that AI generated a SELECT query
     const sqlUpper = aiResult.sql.trim().toUpperCase();
     if (!sqlUpper.startsWith('SELECT') && !sqlUpper.startsWith('WITH')) {
-      await orgDb.updateQuery(queryId, { status: 'error', error_message: 'AI generated non-SELECT query' });
+      await orgDb.updateQuery(queryId, { status: 'failed', error_message: 'AI generated non-SELECT query' });
       return c.json({ success: false, error: { code: 'QUERY_VALIDATION_FAILED', message: 'Generated query is not a SELECT statement' } }, 400);
     }
 
@@ -91,7 +91,7 @@ queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, asy
     await orgDb.updateQuery(queryId, {
       generated_sql: aiResult.sql,
       explanation: aiResult.explanation,
-      status: 'validating',
+      status: 'generating',
     });
 
     // 4. Send SQL to connector via WS gateway service binding
@@ -117,7 +117,7 @@ queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, asy
       const errorBody = await connectorResponse.text();
       const isOffline = connectorResponse.status === 503;
       await orgDb.updateQuery(queryId, {
-        status: 'error',
+        status: 'failed',
         error_message: isOffline ? 'Connector is offline' : `Execution failed: ${errorBody}`,
       });
       return c.json({
@@ -171,7 +171,7 @@ queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, asy
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    await orgDb.updateQuery(queryId, { status: 'error', error_message: message });
+    await orgDb.updateQuery(queryId, { status: 'failed', error_message: message });
     console.error('Query execution error:', err);
 
     return c.json({
@@ -315,7 +315,7 @@ queries.post('/:id/rerun', requireRole('owner', 'admin', 'analyst'), quotaMiddle
 
     if (!connectorResponse.ok) {
       const errorBody = await connectorResponse.text();
-      await orgDb.updateQuery(newQueryId, { status: 'error', error_message: errorBody });
+      await orgDb.updateQuery(newQueryId, { status: 'failed', error_message: errorBody });
       return c.json({ success: false, error: { code: 'SQL_ERROR', message: 'Re-execution failed' } }, 500);
     }
 
@@ -349,7 +349,7 @@ queries.post('/:id/rerun', requireRole('owner', 'admin', 'analyst'), quotaMiddle
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    await orgDb.updateQuery(newQueryId, { status: 'error', error_message: message });
+    await orgDb.updateQuery(newQueryId, { status: 'failed', error_message: message });
     return c.json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Re-execution failed' } }, 500);
   }
 });

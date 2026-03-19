@@ -181,7 +181,7 @@ reports.post('/:id/run', requireRole('owner', 'admin', 'analyst'), quotaMiddlewa
 
     if (!connectorResponse.ok) {
       const errorBody = await connectorResponse.text();
-      await orgDb.updateQuery(newQueryId, { status: 'error', error_message: errorBody });
+      await orgDb.updateQuery(newQueryId, { status: 'failed', error_message: errorBody });
       return c.json({ success: false, error: { code: 'SQL_ERROR', message: 'Report execution failed' } }, 500);
     }
 
@@ -218,7 +218,7 @@ reports.post('/:id/run', requireRole('owner', 'admin', 'analyst'), quotaMiddlewa
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    await orgDb.updateQuery(newQueryId, { status: 'error', error_message: message });
+    await orgDb.updateQuery(newQueryId, { status: 'failed', error_message: message });
     return c.json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Report execution failed' } }, 500);
   }
 });
