@@ -185,6 +185,7 @@ auth.post('/signup', async (c) => {
         orgId,
         role: 'owner' as const,
         email: body.email,
+        language: 'pt',
       },
     },
   }, 201);
@@ -204,7 +205,7 @@ auth.post('/login', async (c) => {
   const user = await c.env.DB
     .prepare('SELECT * FROM users WHERE email = ?')
     .bind(body.email)
-    .first<{ id: string; org_id: string; email: string; name: string; password_hash: string; role: string; mfa_enabled: number }>();
+    .first<{ id: string; org_id: string; email: string; name: string; password_hash: string; role: string; mfa_enabled: number; language: string }>();
 
   if (!user) {
     return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid credentials' } }, 401);
@@ -284,6 +285,7 @@ auth.post('/login', async (c) => {
           orgId: user.org_id,
           role: user.role,
           email: user.email,
+          language: user.language || 'pt',
         },
       },
     });
@@ -335,6 +337,7 @@ auth.post('/login', async (c) => {
         orgId: user.org_id,
         role: user.role,
         email: user.email,
+        language: user.language || 'pt',
       },
     },
   });
@@ -371,9 +374,9 @@ auth.post('/refresh', async (c) => {
 
   // Get current user data (role may have changed)
   const user = await c.env.DB
-    .prepare('SELECT id, org_id, role, email FROM users WHERE id = ? AND org_id = ?')
+    .prepare('SELECT id, org_id, role, email, language FROM users WHERE id = ? AND org_id = ?')
     .bind(payload.sub, payload.org)
-    .first<{ id: string; org_id: string; role: string; email: string }>();
+    .first<{ id: string; org_id: string; role: string; email: string; language: string }>();
 
   if (!user) {
     return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'User not found' } }, 401);
@@ -422,6 +425,7 @@ auth.post('/refresh', async (c) => {
         orgId: user.org_id,
         role: user.role,
         email: user.email,
+        language: user.language || 'pt',
       },
     },
   });
@@ -578,9 +582,9 @@ auth.post('/mfa/verify', async (c) => {
 
   // Get user's TOTP secret
   const mfaUser = await c.env.DB
-    .prepare('SELECT email, totp_secret FROM users WHERE id = ?')
+    .prepare('SELECT email, totp_secret, language FROM users WHERE id = ?')
     .bind(userId)
-    .first<{ email: string; totp_secret: string }>();
+    .first<{ email: string; totp_secret: string; language: string }>();
 
   if (!mfaUser || !mfaUser.totp_secret) {
     return c.json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'MFA configuration error' } }, 500);
@@ -677,9 +681,72 @@ auth.post('/mfa/verify', async (c) => {
         orgId,
         role,
         email: mfaUser.email,
+        language: mfaUser.language || 'pt',
       },
     },
   });
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /auth/profile — Update user profile (name, language)
+// ---------------------------------------------------------------------------
+auth.patch('/profile', async (c) => {
+  const userId = c.get('userId');
+  const orgId = c.get('orgId');
+  const body = await c.req.json<{ name?: string; language?: string }>();
+  const updates: string[] = [];
+  const values: unknown[] = [];
+  if (body.name) { updates.push('name = ?'); values.push(body.name); }
+  if (body.language && ['pt', 'en', 'es'].includes(body.language)) {
+    updates.push('language = ?'); values.push(body.language);
+  }
+  if (updates.length === 0) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'No fields to update' } }, 400);
+  }
+  updates.push('updated_at = ?'); values.push(new Date().toISOString());
+  values.push(userId, orgId);
+  await c.env.DB.prepare(
+    `UPDATE users SET ${updates.join(', ')} WHERE id = ? AND org_id = ?`
+  ).bind(...values).run();
+  return c.json({ success: true });
+});
+
+// ---------------------------------------------------------------------------
+// POST /auth/change-password — Change current user's password
+// ---------------------------------------------------------------------------
+auth.post('/change-password', async (c) => {
+  const userId = c.get('userId');
+  const orgId = c.get('orgId');
+  const body = await c.req.json<{ currentPassword: string; newPassword: string }>();
+
+  if (!body.currentPassword || !body.newPassword) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Current and new password required' } }, 400);
+  }
+  if (body.newPassword.length < 8) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'New password must be at least 8 characters' } }, 400);
+  }
+
+  const user = await c.env.DB
+    .prepare('SELECT password_hash FROM users WHERE id = ? AND org_id = ?')
+    .bind(userId, orgId)
+    .first<{ password_hash: string }>();
+
+  if (!user) {
+    return c.json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } }, 404);
+  }
+
+  const valid = await verifyPassword(body.currentPassword, user.password_hash);
+  if (!valid) {
+    return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Current password is incorrect' } }, 401);
+  }
+
+  const newHash = await hashPassword(body.newPassword);
+  await c.env.DB
+    .prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ? AND org_id = ?')
+    .bind(newHash, new Date().toISOString(), userId, orgId)
+    .run();
+
+  return c.json({ success: true });
 });
 
 export default auth;

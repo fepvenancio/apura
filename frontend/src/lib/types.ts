@@ -4,6 +4,7 @@ export interface AuthUser {
   name: string;
   orgId: string;
   role: string;
+  language: string;
 }
 
 export interface Organization {

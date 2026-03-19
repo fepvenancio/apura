@@ -38,6 +38,7 @@ interface RawAuthResponse {
     name?: string;
     orgId?: string;
     role?: string;
+    language?: string;
   };
   org?: {
     id?: string;
@@ -144,6 +145,7 @@ class ApiClient {
       name: raw.user?.name || raw.user?.email?.split("@")[0] || "",
       orgId: raw.user?.orgId || "",
       role: raw.user?.role || "viewer",
+      language: raw.user?.language || "pt",
     };
     const org: Organization = {
       id: raw.org?.id || "",
