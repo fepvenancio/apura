@@ -56,7 +56,7 @@ Requirements for production-ready v1 release. Each maps to roadmap phases.
 ### Query Sharing
 
 - [x] **SHARE-01**: User can share a report with other authenticated org members via `is_shared` flag
-- [ ] **SHARE-02**: Shared reports visible to all org members on reports page
+- [x] **SHARE-02**: Shared reports visible to all org members on reports page
 
 ### Scheduled Reports
 
@@ -178,7 +178,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXPORT-01 | Phase 7: Export | Complete |
 | EXPORT-02 | Phase 7: Export | Complete |
 | SHARE-01 | Phase 8: Sharing and Scheduled Reports | Complete |
-| SHARE-02 | Phase 8: Sharing and Scheduled Reports | Pending |
+| SHARE-02 | Phase 8: Sharing and Scheduled Reports | Complete |
 | SCHED-01 | Phase 8: Sharing and Scheduled Reports | Complete |
 | SCHED-02 | Phase 8: Sharing and Scheduled Reports | Complete |
 | SCHED-03 | Phase 8: Sharing and Scheduled Reports | Complete |
