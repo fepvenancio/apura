@@ -24,7 +24,7 @@ import type {
   MfaConfirmResponse,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.apura.xyz";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://apura-api.stela-app.workers.dev";
 
 /** Shape returned by the backend auth endpoints before normalization. */
 interface RawAuthResponse {
