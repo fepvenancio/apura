@@ -329,7 +329,7 @@ export default function TeamPage() {
                             )}
                           </td>
                           <td className="px-6 py-3 text-xs text-muted">
-                            {formatDate(member.joinedAt, fullLocale)}
+                            {formatDate(member.joinedAt || (member as unknown as Record<string, string>).created_at || "", fullLocale)}
                           </td>
                           <td className="px-6 py-3 text-right">
                             <div className="flex items-center justify-end gap-1">

@@ -449,13 +449,14 @@ class ApiClient {
     return this.request<{ url: string }>("POST", "/api/billing/portal");
   }
 
-  // Org settings
+  // Org settings (returned as part of the main org object)
   async getOrgSettings(): Promise<OrgSettings> {
-    return this.request<OrgSettings>("GET", "/api/org/settings");
+    const org = await this.request<OrgSettings>("GET", "/api/org");
+    return org;
   }
 
   async updateOrgSettings(data: Partial<OrgSettings>): Promise<OrgSettings> {
-    return this.request<OrgSettings>("PATCH", "/api/org/settings", data);
+    return this.request<OrgSettings>("PUT", "/api/org", data);
   }
 
   // Report update
