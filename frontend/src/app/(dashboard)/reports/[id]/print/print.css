@@ -1,0 +1,204 @@
+/* Print-optimized styles for report view */
+
+/* Screen styles for the print preview page */
+.print-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fff;
+  color: #111;
+  font-family: system-ui, -apple-system, sans-serif;
+  min-width: 375px;
+}
+
+.print-container h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #111;
+}
+
+.print-container .subtitle {
+  font-size: 0.875rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.print-container .generated-date {
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.print-container .section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  margin-bottom: 0.25rem;
+}
+
+.print-container .sql-block {
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+  font-size: 0.75rem;
+  background: #f5f5f5;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.print-container .explanation {
+  font-size: 0.875rem;
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.print-container .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.print-container .data-table th,
+.print-container .data-table td {
+  border: 1px solid #333;
+  padding: 4px 8px;
+  text-align: left;
+}
+
+.print-container .data-table th {
+  font-weight: 600;
+  background: #f0f0f0;
+}
+
+.print-container .data-table td.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.print-container .footer {
+  margin-top: 2rem;
+  font-size: 0.5rem;
+  color: #666;
+  border-top: 1px solid #ddd;
+  padding-top: 0.5rem;
+}
+
+.print-container .actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.print-container .actions button,
+.print-container .actions a {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.print-container .actions .btn-print {
+  background: #111;
+  color: #fff;
+  border: none;
+}
+
+.print-container .actions .btn-back {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+/* Responsive: mobile-friendly at 375px */
+@media (max-width: 640px) {
+  .print-container {
+    padding: 1rem;
+  }
+
+  .print-container .data-table {
+    font-size: 0.6875rem;
+  }
+
+  .print-container .data-table th,
+  .print-container .data-table td {
+    padding: 3px 4px;
+  }
+}
+
+/* Print styles */
+@media print {
+  @page {
+    margin: 1.5cm;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide everything not part of the print container */
+  nav,
+  aside,
+  header,
+  .sidebar,
+  .topbar,
+  .no-print {
+    display: none !important;
+  }
+
+  .print-container {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .print-container h1 {
+    font-size: 18pt;
+    margin-bottom: 8pt;
+  }
+
+  .print-container .sql-block {
+    font-size: 8pt;
+    background: #f5f5f5;
+    padding: 8px;
+    border: 1px solid #ddd;
+  }
+
+  .print-container .explanation {
+    font-size: 10pt;
+    color: #333;
+  }
+
+  .print-container .data-table th,
+  .print-container .data-table td {
+    border: 1px solid #333;
+    padding: 4px 8px;
+  }
+
+  .print-container .data-table th {
+    background: #f0f0f0 !important;
+  }
+
+  .print-container .data-table tr {
+    break-inside: avoid;
+  }
+
+  .print-container .footer {
+    font-size: 8pt;
+    color: #666;
+  }
+}
