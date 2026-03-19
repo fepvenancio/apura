@@ -19,7 +19,10 @@ import connector from './routes/connector';
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
 // Security headers
-app.use('*', secureHeaders());
+app.use('*', secureHeaders({
+  crossOriginResourcePolicy: false,
+  crossOriginOpenerPolicy: false,
+}));
 
 // CORS — strict, only our frontend
 app.use(
