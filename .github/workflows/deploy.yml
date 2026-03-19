@@ -102,4 +102,4 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         working-directory: frontend
-        run: npx wrangler pages deploy .next --project-name apura-web --branch main --commit-dirty=true
+        run: npx wrangler pages deploy out --project-name apura-web --branch main --commit-dirty=true
