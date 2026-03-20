@@ -217,17 +217,20 @@ queries.get('/', requireRole('owner', 'admin', 'analyst'), async (c) => {
   const { items, total } = await orgDb.listQueries(page, pageSize);
 
   // Transform snake_case D1 rows to camelCase for frontend
-  const mapped = items.map((q: Record<string, unknown>) => ({
-    id: q.id,
-    naturalLanguage: q.natural_language,
-    sql: q.generated_sql ?? '',
-    explanation: q.explanation ?? '',
-    rowCount: q.row_count ?? 0,
-    executionTimeMs: q.execution_time_ms ?? 0,
-    createdAt: q.created_at,
-    status: q.status === 'completed' ? 'success' : q.status === 'failed' ? 'error' : q.status,
-    errorMessage: q.error_message ?? null,
-  }));
+  const mapped = items.map((q) => {
+    const raw = q as unknown as Record<string, unknown>;
+    return {
+      id: raw.id,
+      naturalLanguage: raw.natural_language,
+      sql: raw.generated_sql ?? '',
+      explanation: raw.explanation ?? '',
+      rowCount: raw.row_count ?? 0,
+      executionTimeMs: raw.execution_time_ms ?? 0,
+      createdAt: raw.created_at,
+      status: raw.status === 'completed' ? 'success' : raw.status === 'failed' ? 'error' : raw.status,
+      errorMessage: raw.error_message ?? null,
+    };
+  });
 
   return c.json({
     success: true,
