@@ -122,22 +122,9 @@ try
 
     var host = builder.Build();
 
-    if (isConfigured)
-    {
-        // Test SQL connection on startup (non-fatal — the service will retry)
-        var sqlConn = host.Services.GetRequiredService<SqlServerConnection>();
-        var testResult = await sqlConn.TestConnectionAsync();
-        if (!testResult)
-        {
-            Log.Warning("Cannot connect to SQL Server at {Server}/{Database}. The connector will keep retrying.",
-                sqlConfig.ServerName, sqlConfig.DatabaseName);
-        }
-        else
-        {
-            Log.Information("SQL Server connection verified: {Server}/{Database}",
-                sqlConfig.ServerName, sqlConfig.DatabaseName);
-        }
-    }
+    // NOTE: Do NOT test SQL connection before host.RunAsync() — it blocks SCM registration
+    // and causes Error 1053. The ConnectorWorker and SqlHealthCheck handle connection
+    // testing after SCM registration is complete.
 
     await host.RunAsync();
     return 0;

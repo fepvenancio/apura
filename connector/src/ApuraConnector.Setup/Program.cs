@@ -214,7 +214,7 @@ try
         ["Connector"] = new JsonObject
         {
             ["ApiKey"] = apiKey,
-            ["TunnelEndpoint"] = "wss://ws.apura.xyz/agent/connect",
+            ["TunnelEndpoint"] = "wss://apura-ws.stela-app.workers.dev/agent/connect",
             ["ApiBaseUrl"] = apiBaseUrl,
             ["MaxConcurrentQueries"] = 5,
             ["MaxRowsPerQuery"] = 10000,
@@ -397,6 +397,26 @@ static void RestartService(string serviceName)
         Console.WriteLine("  Starting service...");
         sc.Start();
         sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
+
+        // Set service to start automatically on boot
+        try
+        {
+            var scProcess = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "sc.exe",
+                Arguments = $"config {serviceName} start= auto",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            });
+            scProcess?.WaitForExit(5000);
+            Console.WriteLine("  Service set to start automatically on boot.");
+        }
+        catch
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("  Warning: Could not set auto-start. Set it manually in Services.");
+            Console.ResetColor();
+        }
 
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("  Service started successfully!");

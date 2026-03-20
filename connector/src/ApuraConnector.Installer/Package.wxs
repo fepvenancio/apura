@@ -42,7 +42,7 @@
                             Name="ApuraConnector"
                             DisplayName="Apura Connector"
                             Description="Apura on-premise database connector for Primavera ERP"
-                            Start="auto"
+                            Start="demand"
                             Account="NT AUTHORITY\LocalService"
                             ErrorControl="normal" />
 
@@ -76,6 +76,18 @@
       <ComponentRef Id="ServiceExecutable" />
       <ComponentRef Id="SetupExecutable" />
     </Feature>
+
+    <!-- Launch Setup.exe after install so user can configure the connector -->
+    <CustomAction Id="LaunchSetup"
+                  FileRef="SetupExe"
+                  ExeCommand=""
+                  Impersonate="no"
+                  Return="asyncNoWait" />
+
+    <InstallExecuteSequence>
+      <Custom Action="LaunchSetup" After="InstallFinalize"
+              Condition="NOT Installed AND NOT REMOVE" />
+    </InstallExecuteSequence>
 
   </Package>
 
