@@ -90,7 +90,7 @@ export function DashboardDetailClient() {
                 <Badge variant="primary">{t("shared")}</Badge>
               )}
               <span className="text-xs text-muted">
-                {t("widgets", { count: dashboard.widgets.length })}
+                {t("widgets", { count: (dashboard.widgets?.length ?? 0) })}
               </span>
             </div>
           </div>
@@ -133,7 +133,7 @@ export function DashboardDetailClient() {
           </div>
         </div>
 
-        {dashboard.widgets.length === 0 ? (
+        {(dashboard.widgets?.length ?? 0) === 0 ? (
           <Card>
             <div className="flex flex-col items-center justify-center py-16 text-muted">
               <p className="text-sm">{t("emptyWidgets")}</p>

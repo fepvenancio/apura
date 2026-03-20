@@ -15,6 +15,11 @@ async function timingSafeCompare(a: string, b: string): Promise<boolean> {
   return crypto.subtle.timingSafeEqual(bufA, bufB);
 }
 
+/** DO instance name for an org */
+function doName(orgId: string): string {
+  return orgId;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     try {
@@ -30,7 +35,7 @@ export default {
     if (url.pathname === '/agent/connect') {
       let orgId: string | undefined;
 
-      // Try mTLS certificate authentication first (preferred)
+      // Dual-auth: try mTLS certificate first, fall back to API key
       const cf = (request as any).cf as { tlsClientAuth?: TlsClientAuth } | undefined;
       if (cf?.tlsClientAuth?.certPresented === '1') {
         // Certificate was presented — verify it was validated by Cloudflare
@@ -63,7 +68,7 @@ export default {
       }
 
       // Get DO stub and forward the WebSocket upgrade request
-      const id = env.CONNECTOR.idFromName(orgId);
+      const id = env.CONNECTOR.idFromName(doName(orgId));
       const stub = env.CONNECTOR.get(id);
 
       // Forward to DO with orgId header — use simple GET with Upgrade header
@@ -95,7 +100,7 @@ export default {
         return Response.json({ error: 'Missing required fields' }, { status: 400 });
       }
 
-      const id = env.CONNECTOR.idFromName(body.orgId);
+      const id = env.CONNECTOR.idFromName(doName(body.orgId));
       const stub = env.CONNECTOR.get(id);
 
       return stub.fetch(new Request('http://internal/query/execute', {
@@ -113,7 +118,7 @@ export default {
     const statusMatch = url.pathname.match(/^\/connector\/status\/(.+)$/);
     if (statusMatch && request.method === 'GET') {
       const orgId = statusMatch[1];
-      const id = env.CONNECTOR.idFromName(orgId);
+      const id = env.CONNECTOR.idFromName(doName(orgId));
       const stub = env.CONNECTOR.get(id);
       return stub.fetch(new Request('http://internal/status'));
     }
@@ -122,7 +127,7 @@ export default {
     const syncMatch = url.pathname.match(/^\/schema\/sync\/(.+)$/);
     if (syncMatch && request.method === 'POST') {
       const orgId = syncMatch[1];
-      const id = env.CONNECTOR.idFromName(orgId);
+      const id = env.CONNECTOR.idFromName(doName(orgId));
       const stub = env.CONNECTOR.get(id);
       return stub.fetch(new Request('http://internal/schema/sync', { method: 'POST' }));
     }

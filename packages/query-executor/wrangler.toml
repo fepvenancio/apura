@@ -5,7 +5,7 @@ compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-INTERNAL_SECRET = "apura-internal-2026-change-me"
+# INTERNAL_SECRET must be set via: npx wrangler secret put INTERNAL_SECRET
 
 [[services]]
 binding = "WS_GATEWAY"

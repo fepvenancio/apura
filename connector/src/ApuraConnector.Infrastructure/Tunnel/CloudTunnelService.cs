@@ -46,6 +46,10 @@ public class CloudTunnelService
             try
             {
                 await ConnectAndRunAsync(ct);
+                // Server closed connection cleanly — still use backoff to avoid tight loop
+                _isConnected = false;
+                _logger.Information("Server closed connection, will reconnect with backoff");
+                await ReconnectWithBackoffAsync(ct);
             }
             catch (Exception ex) when (!ct.IsCancellationRequested)
             {

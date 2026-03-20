@@ -129,43 +129,66 @@ queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, asy
       }, isOffline ? 503 : 500);
     }
 
-    const result = await connectorResponse.json<{
+    // Connector returns: { status, columns, row_count, execution_ms, data }
+    const rawResult = await connectorResponse.json<{
+      status: string;
       columns: { name: string; type: string }[];
-      rows: unknown[][];
-      rowCount: number;
-      executionMs: number;
+      data: unknown[][];
+      row_count: number;
+      execution_ms: number;
+      // Also accept camelCase for forward compatibility
+      rows?: unknown[][];
+      rowCount?: number;
+      executionMs?: number;
     }>();
+
+    const rows = rawResult.data ?? rawResult.rows ?? [];
+    const rowCount = rawResult.row_count ?? rawResult.rowCount ?? rows.length;
+    const executionMs = rawResult.execution_ms ?? rawResult.executionMs ?? 0;
 
     // 6. Update query record (status: completed)
     await orgDb.updateQuery(queryId, {
       status: 'completed',
-      row_count: result.rowCount,
-      execution_time_ms: result.executionMs,
+      row_count: rowCount,
+      execution_time_ms: executionMs,
     });
 
-    // 7. Increment org query counter
-    await orgDb.incrementQueryCount();
+    // 7. Query count already incremented atomically by quotaMiddleware
 
     // 8. Audit log
     await orgDb.logAudit(
       'query.execute',
       'query',
       queryId,
-      { rowCount: result.rowCount, executionMs: result.executionMs },
+      { rowCount, executionMs },
       c.req.header('CF-Connecting-IP'),
     );
 
-    // 9. Return results
+    // 9. Return results — transform array rows to object rows for the frontend
+    const columnNames = (rawResult.columns ?? []).map((col) => col.name);
+    const objectRows = (rows ?? []).map((row: unknown) => {
+      const obj: Record<string, unknown> = {};
+      if (Array.isArray(row)) {
+        for (let i = 0; i < columnNames.length; i++) {
+          obj[columnNames[i]] = row[i] ?? null;
+        }
+      }
+      return obj;
+    });
+
     return c.json({
       success: true,
       data: {
+        id: queryId,
         queryId,
+        naturalLanguage: sanitized,
         sql: aiResult.sql,
         explanation: aiResult.explanation,
-        columns: result.columns,
-        rows: result.rows,
-        rowCount: result.rowCount,
-        executionTimeMs: result.executionMs,
+        columns: rawResult.columns,
+        rows: objectRows,
+        rowCount,
+        executionTimeMs: executionMs,
+        createdAt: new Date().toISOString(),
         status: 'completed',
       },
     });
@@ -184,7 +207,7 @@ queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, asy
 // ---------------------------------------------------------------------------
 // GET /api/queries — List query history (paginated)
 // ---------------------------------------------------------------------------
-queries.get('/', async (c) => {
+queries.get('/', requireRole('owner', 'admin', 'analyst'), async (c) => {
   const orgId = c.get('orgId');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
@@ -193,16 +216,29 @@ queries.get('/', async (c) => {
 
   const { items, total } = await orgDb.listQueries(page, pageSize);
 
+  // Transform snake_case D1 rows to camelCase for frontend
+  const mapped = items.map((q: Record<string, unknown>) => ({
+    id: q.id,
+    naturalLanguage: q.natural_language,
+    sql: q.generated_sql ?? '',
+    explanation: q.explanation ?? '',
+    rowCount: q.row_count ?? 0,
+    executionTimeMs: q.execution_time_ms ?? 0,
+    createdAt: q.created_at,
+    status: q.status === 'completed' ? 'success' : q.status === 'failed' ? 'error' : q.status,
+    errorMessage: q.error_message ?? null,
+  }));
+
   return c.json({
     success: true,
-    data: { items, total, page, pageSize },
+    data: { items: mapped, total, page, pageSize },
   });
 });
 
 // ---------------------------------------------------------------------------
 // GET /api/queries/:id — Get query detail
 // ---------------------------------------------------------------------------
-queries.get('/:id', async (c) => {
+queries.get('/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
   const orgId = c.get('orgId');
   const queryId = c.req.param('id');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
@@ -218,7 +254,7 @@ queries.get('/:id', async (c) => {
 // ---------------------------------------------------------------------------
 // GET /api/queries/:id/export/:fmt — Export query results
 // ---------------------------------------------------------------------------
-queries.get('/:id/export/:fmt', async (c) => {
+queries.get('/:id/export/:fmt', requireRole('owner', 'admin', 'analyst'), async (c) => {
   const orgId = c.get('orgId');
   const queryId = c.req.param('id');
   const fmt = c.req.param('fmt');
@@ -332,7 +368,7 @@ queries.post('/:id/rerun', requireRole('owner', 'admin', 'analyst'), quotaMiddle
       execution_time_ms: result.executionMs,
     });
 
-    await orgDb.incrementQueryCount();
+    // Query count already incremented atomically by quotaMiddleware
 
     return c.json({
       success: true,

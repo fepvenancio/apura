@@ -79,7 +79,7 @@ app.use('/auth/*', async (c, next) => {
 app.use(
   '/connector/*',
   cors({
-    origin: '*',
+    origin: ['https://apura.xyz', 'https://app.apura.xyz', 'http://localhost:3000'],
     allowMethods: ['GET'],
     maxAge: 86400,
   }),

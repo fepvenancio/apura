@@ -27,4 +27,4 @@ binding = "WS_GATEWAY"
 service = "apura-ws"
 
 [vars]
-INTERNAL_SECRET = "apura-internal-2026-change-me"
+# INTERNAL_SECRET must be set via: npx wrangler secret put INTERNAL_SECRET

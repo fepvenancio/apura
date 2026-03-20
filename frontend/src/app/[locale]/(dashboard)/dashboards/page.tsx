@@ -151,7 +151,7 @@ export default function DashboardsPage() {
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex items-center gap-1.5 text-xs text-muted">
                       <LayoutGrid className="h-3.5 w-3.5" />
-                      {t("widgets", { count: dashboard.widgets.length })}
+                      {t("widgets", { count: dashboard.widgets?.length ?? 0 })}
                     </div>
                     {dashboard.shared && (
                       <Badge variant="primary">

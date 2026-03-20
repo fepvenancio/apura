@@ -2,15 +2,17 @@ import { Context, Next } from 'hono';
 import type { Organization, PlanType } from '@apura/shared';
 import { PLAN_LIMITS } from '@apura/shared';
 import type { Env, AppVariables } from '../types';
+import { OrgDatabase } from '../services/org-db';
 
 type AppContext = Context<{ Bindings: Env; Variables: AppVariables }>;
 
 /**
  * Query quota enforcement middleware.
  *
- * Reads the organization's current query count from D1 and compares
- * against the plan limit. Blocks requests if the quota is exceeded
- * and no overage billing is configured.
+ * Uses an atomic UPDATE to increment the query count only if under quota,
+ * eliminating the TOCTOU race condition between checking and incrementing.
+ * The quota is consumed here; callers should NOT call incrementQueryCount()
+ * separately after this middleware runs.
  */
 export async function quotaMiddleware(c: AppContext, next: Next): Promise<Response | void> {
   const orgId = c.get('orgId');
@@ -30,9 +32,13 @@ export async function quotaMiddleware(c: AppContext, next: Next): Promise<Respon
     }
 
     const planLimits = PLAN_LIMITS[org.plan as PlanType];
-    const isAtLimit = org.queries_this_month >= org.max_queries_per_month;
+    const orgDb = new OrgDatabase(c.env.DB, orgId);
 
-    if (isAtLimit) {
+    // Attempt atomic increment — only succeeds if under quota
+    const incremented = await orgDb.incrementQueryCountAtomic();
+
+    if (!incremented) {
+      // Quota is at or over limit
       const hasOverage = planLimits.overagePerQuery > 0;
 
       if (!hasOverage) {
@@ -54,15 +60,22 @@ export async function quotaMiddleware(c: AppContext, next: Next): Promise<Respon
         );
       }
 
-      // Has overage billing — allow but flag
+      // Has overage billing — force-increment and allow but flag
+      await orgDb.incrementQueryCount();
       c.header('X-Quota-Overage', 'true');
       c.header('X-Quota-Overage-Rate', String(planLimits.overagePerQuery));
     }
 
+    // Re-read updated count for headers (the count was just incremented)
+    const updatedUsage = org.queries_this_month + 1;
+
     // Add usage headers
-    c.header('X-Quota-Used', String(org.queries_this_month));
+    c.header('X-Quota-Used', String(updatedUsage));
     c.header('X-Quota-Limit', String(org.max_queries_per_month));
-    c.header('X-Quota-Remaining', String(Math.max(0, org.max_queries_per_month - org.queries_this_month)));
+    c.header('X-Quota-Remaining', String(Math.max(0, org.max_queries_per_month - updatedUsage)));
+
+    // Mark that quota was already consumed so route handlers don't double-count
+    c.set('quotaConsumed' as any, true);
 
     return next();
   } catch (err) {

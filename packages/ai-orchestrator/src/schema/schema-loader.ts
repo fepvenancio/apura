@@ -2,6 +2,16 @@ import type { SchemaContext, TableContext, FewShotExample } from '../types';
 import type { SchemaCategory } from '@apura/shared';
 import { CACHE_TTL_SCHEMA } from '@apura/shared';
 
+/** Map code categories (Portuguese) to D1 categories (English). */
+const CATEGORY_TO_DB: Record<string, string[]> = {
+  vendas: ['sales'],
+  compras: ['purchasing'],
+  financeiro: ['finance'],
+  rh: ['hr'],
+  stocks: ['inventory'],
+  tesouraria: ['finance'],
+};
+
 /**
  * SchemaLoader — loads and caches Primavera ERP schema context per org.
  *
@@ -59,8 +69,18 @@ export class SchemaLoader {
       return cached as TableContext[];
     }
 
-    // Load tables for the given category from D1
-    const tables = await this.loadTablesByCategoryFromD1(orgId, category);
+    // Map code category to DB category, then load
+    const dbCategories = CATEGORY_TO_DB[category] ?? [category];
+    let tables: TableContext[] = [];
+    for (const dbCat of dbCategories) {
+      const catTables = await this.loadTablesByCategoryFromD1(orgId, dbCat);
+      tables.push(...catTables);
+    }
+
+    // If category mapping found nothing, try loading ALL org tables
+    if (tables.length === 0) {
+      tables = await this.queryTablesWithColumns(orgId);
+    }
 
     await this.cache.put(cacheKey, JSON.stringify(tables), {
       expirationTtl: CACHE_TTL_SCHEMA,

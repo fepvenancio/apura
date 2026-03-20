@@ -28,12 +28,12 @@ export async function authMiddleware(c: AppContext, next: Next): Promise<Respons
   try {
     const payload = await verifyJWT(token, c.env.JWT_SECRET);
 
-    // Skip KV session check for very fresh tokens (< 60s old).
+    // Skip KV session check for very fresh tokens (< 10s old).
     // Cloudflare KV is eventually consistent — reads may miss writes
     // for a few seconds after login. The JWT signature is sufficient
     // proof of authenticity for fresh tokens.
     const tokenAge = Math.floor(Date.now() / 1000) - payload.iat;
-    if (tokenAge > 60) {
+    if (tokenAge > 10) {
       const sessionKey = `session:${payload.jti}`;
       const session = await c.env.CACHE.get(sessionKey);
       if (!session) {

@@ -93,10 +93,15 @@ export class ConnectorSession implements DurableObject {
       timeoutMs?: number;
     }>();
 
-    // Basic safety check — only SELECT/WITH allowed
+    // Safety check — only SELECT/WITH allowed
     const sqlUpper = sql.trim().toUpperCase();
     if (!sqlUpper.startsWith('SELECT') && !sqlUpper.startsWith('WITH')) {
       return Response.json({ error: 'Only SELECT queries allowed' }, { status: 400 });
+    }
+    // Block dangerous patterns
+    const blocked = /\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|EXEC|EXECUTE|DECLARE|SET\s+@|TRUNCATE|MERGE|GRANT|REVOKE|SHUTDOWN|KILL|WAITFOR|BACKUP|RESTORE|OPENROWSET|xp_|sp_execute)\b/i;
+    if (blocked.test(sql)) {
+      return Response.json({ error: 'Query contains blocked keywords' }, { status: 400 });
     }
     if (sql.includes(';')) {
       return Response.json({ error: 'Batch queries not allowed' }, { status: 400 });
@@ -155,8 +160,27 @@ export class ConnectorSession implements DurableObject {
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
     if (typeof message !== 'string') return;
 
+    // Reject oversized messages (256KB limit)
+    if (message.length > 256 * 1024) {
+      console.error('WebSocket message too large, dropping');
+      return;
+    }
+
     try {
       const msg = JSON.parse(message) as { id: string; type: string; payload: any };
+
+      // Validate message structure
+      if (!msg.id || typeof msg.id !== 'string' || !msg.type || typeof msg.type !== 'string') {
+        console.error('Invalid message structure');
+        return;
+      }
+
+      // Only allow known message types
+      const allowedTypes = new Set(['query.result', 'error', 'health.pong']);
+      if (!allowedTypes.has(msg.type)) {
+        console.error('Unknown message type:', msg.type);
+        return;
+      }
 
       switch (msg.type) {
         case 'query.result': {

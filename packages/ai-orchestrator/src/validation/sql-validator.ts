@@ -95,6 +95,8 @@ const BLOCKED_KEYWORD_PATTERNS: Array<[RegExp, string]> = [
   [/\bWRITETEXT\b/i, 'WRITETEXT'],
   [/\bUPDATETEXT\b/i, 'UPDATETEXT'],
   [/\bREADTEXT\b/i, 'READTEXT'],
+  // String construction (obfuscation)
+  [/\bCHAR\s*\(/i, 'CHAR()'],
 ];
 
 /** Functions that must never appear in the AST. */
@@ -102,6 +104,7 @@ const BLOCKED_FUNCTIONS = new Set([
   'openrowset',
   'openquery',
   'opendatasource',
+  'char',
 ]);
 
 const BLOCKED_FUNCTION_PREFIXES = ['xp_', 'sp_execute'];
@@ -271,8 +274,9 @@ function extractTables(node: any): TableRef[] {
     return results;
   }
 
-  // A `from` entry with a `table` field is a table reference
-  if (node.table && typeof node.table === 'string') {
+  // A `from` entry with a `table` field is a table reference.
+  // Exclude column_ref nodes (e.g. alias.column) — they have a `column` property.
+  if (node.table && typeof node.table === 'string' && node.type !== 'column_ref') {
     results.push({
       table: node.table,
       schema: node.schema || node.db,

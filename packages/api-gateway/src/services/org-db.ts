@@ -58,6 +58,25 @@ export class OrgDatabase {
       .run();
   }
 
+  /**
+   * Atomically increment query count only if under quota.
+   * Returns true if the increment succeeded (quota not exceeded),
+   * false if the org has reached or exceeded its limit.
+   */
+  async incrementQueryCountAtomic(): Promise<boolean> {
+    const result = await this.db
+      .prepare(
+        'UPDATE organizations SET queries_this_month = queries_this_month + 1, updated_at = ? WHERE id = ? AND queries_this_month < max_queries_per_month'
+      )
+      .bind(new Date().toISOString(), this.orgId)
+      .run();
+
+    return (result.meta?.changes ?? 0) > 0;
+  }
+
+  /**
+   * Force-increment query count (for overage-enabled plans where we allow going over quota).
+   */
   async incrementQueryCount(): Promise<void> {
     await this.db
       .prepare('UPDATE organizations SET queries_this_month = queries_this_month + 1, updated_at = ? WHERE id = ?')

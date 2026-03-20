@@ -14,6 +14,14 @@ interface Env {
   INTERNAL_SECRET: string;
 }
 
+async function timingSafeCompare(a: string, b: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const bufA = encoder.encode(a);
+  const bufB = encoder.encode(b);
+  if (bufA.byteLength !== bufB.byteLength) return false;
+  return crypto.subtle.timingSafeEqual(bufA, bufB);
+}
+
 const app = new Hono<{ Bindings: Env }>();
 
 // ---------------------------------------------------------------------------
@@ -29,7 +37,7 @@ app.get('/health', (c) =>
 app.use('*', async (c, next) => {
   if (c.req.path === '/health') return next();
   const secret = c.req.header('X-Internal-Secret');
-  if (secret !== c.env.INTERNAL_SECRET) {
+  if (!secret || !(await timingSafeCompare(secret, c.env.INTERNAL_SECRET))) {
     return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } }, 401);
   }
   return next();

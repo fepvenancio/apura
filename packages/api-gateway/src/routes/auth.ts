@@ -33,8 +33,12 @@ auth.post('/signup', async (c) => {
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid email address' } }, 400);
   }
 
-  if (body.password.length < 8) {
-    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Password must be at least 8 characters' } }, 400);
+  // Password validation
+  if (!body.password || body.password.length < 10) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Password must be at least 10 characters' } }, 400);
+  }
+  if (!/[a-z]/.test(body.password) || !/[A-Z]/.test(body.password) || !/[0-9]/.test(body.password)) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Password must contain uppercase, lowercase, and a number' } }, 400);
   }
 
   if (!validateSlug(body.slug)) {
@@ -364,7 +368,7 @@ auth.post('/refresh', async (c) => {
   // Check session validity (skip for fresh tokens — KV eventual consistency)
   const sessionKey = `session:${payload.jti}`;
   const tokenAge = Math.floor(Date.now() / 1000) - payload.iat;
-  if (tokenAge > 60) {
+  if (tokenAge > 10) {
     const session = await c.env.CACHE.get(sessionKey);
     if (!session) {
       return c.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Refresh token expired or revoked' } }, 401);
@@ -522,8 +526,12 @@ auth.post('/reset-password', async (c) => {
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Token and new password required' } }, 400);
   }
 
-  if (body.password.length < 8) {
-    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Password must be at least 8 characters' } }, 400);
+  // Password validation
+  if (!body.password || body.password.length < 10) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Password must be at least 10 characters' } }, 400);
+  }
+  if (!/[a-z]/.test(body.password) || !/[A-Z]/.test(body.password) || !/[0-9]/.test(body.password)) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Password must contain uppercase, lowercase, and a number' } }, 400);
   }
 
   // Look up reset token
@@ -698,20 +706,21 @@ auth.patch('/profile', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
   const body = await c.req.json<{ name?: string; language?: string }>();
-  const updates: string[] = [];
-  const values: unknown[] = [];
-  if (body.name) { updates.push('name = ?'); values.push(body.name); }
-  if (body.language && ['pt', 'en', 'es'].includes(body.language)) {
-    updates.push('language = ?'); values.push(body.language);
+
+  const profileUpdates: Record<string, unknown> = {};
+  if (body.name && typeof body.name === 'string' && body.name.length >= 1 && body.name.length <= 100) {
+    profileUpdates.name = body.name;
   }
-  if (updates.length === 0) {
+  if (body.language && ['pt', 'en', 'es'].includes(body.language)) {
+    profileUpdates.language = body.language;
+  }
+  if (Object.keys(profileUpdates).length === 0) {
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'No fields to update' } }, 400);
   }
-  updates.push('updated_at = ?'); values.push(new Date().toISOString());
-  values.push(userId, orgId);
-  await c.env.DB.prepare(
-    `UPDATE users SET ${updates.join(', ')} WHERE id = ? AND org_id = ?`
-  ).bind(...values).run();
+
+  const orgDb = new OrgDatabase(c.env.DB, orgId);
+  await orgDb.updateUser(userId, profileUpdates as any);
+
   return c.json({ success: true });
 });
 
@@ -726,8 +735,12 @@ auth.post('/change-password', authMiddleware, async (c) => {
   if (!body.currentPassword || !body.newPassword) {
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Current and new password required' } }, 400);
   }
-  if (body.newPassword.length < 8) {
-    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'New password must be at least 8 characters' } }, 400);
+  // Password validation
+  if (body.newPassword.length < 10) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'New password must be at least 10 characters' } }, 400);
+  }
+  if (!/[a-z]/.test(body.newPassword) || !/[A-Z]/.test(body.newPassword) || !/[0-9]/.test(body.newPassword)) {
+    return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Password must contain uppercase, lowercase, and a number' } }, 400);
   }
 
   const user = await c.env.DB
