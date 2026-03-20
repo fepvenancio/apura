@@ -133,7 +133,7 @@ export default function ConnectorPage() {
           <CardContent>
             <Button
               variant="primary"
-              onClick={() => window.open("https://api.apura.xyz/connector/download/ApuraConnector-1.0.0.msi", "_blank")}
+              onClick={() => window.open("https://apura-api.stela-app.workers.dev/connector/download/ApuraConnector-1.0.0.msi", "_blank")}
             >
               <Download className="h-4 w-4" />
               {t("downloadButton")}
