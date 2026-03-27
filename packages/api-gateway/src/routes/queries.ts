@@ -13,6 +13,7 @@ import { requireRole } from '../middleware/auth';
 import { rateLimitMiddleware } from '../middleware/rate-limit';
 import { quotaMiddleware } from '../middleware/quota';
 import { OrgDatabase } from '../services/org-db';
+import { QueryOrchestrator } from '../services/ai/orchestrator';
 
 const queries = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -54,31 +55,22 @@ queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, asy
   });
 
   try {
-    // 2. Call AI orchestrator via service binding
+    // 2. Call AI orchestrator directly (merged into this worker)
     await orgDb.updateQuery(queryId, { status: 'generating' });
 
-    const aiResponse = await c.env.AI_ORCHESTRATOR.fetch(
-      new Request('https://ai-orchestrator/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orgId,
-          queryId,
-          naturalLanguage: sanitized,
-          maxRows,
-          timeoutSeconds,
-        }),
-      }),
-    );
-
-    if (!aiResponse.ok) {
-      const errorBody = await aiResponse.text();
-      console.error('AI generation error for query', queryId, ':', errorBody);
+    const orchestrator = new QueryOrchestrator(c.env);
+    let aiResult: { sql: string; explanation: string };
+    try {
+      aiResult = await orchestrator.processQuery({
+        orgId,
+        naturalLanguage: sanitized,
+      });
+    } catch (aiErr) {
+      const aiMsg = aiErr instanceof Error ? aiErr.message : 'AI generation failed';
+      console.error('AI generation error for query', queryId, ':', aiMsg);
       await orgDb.updateQuery(queryId, { status: 'failed', error_message: 'AI generation failed' });
       return c.json({ success: false, error: { code: 'AI_ERROR', message: 'Failed to generate SQL query' } }, 502);
     }
-
-    const aiResult = await aiResponse.json<{ sql: string; explanation: string }>();
 
     // Validate that AI generated a SELECT query
     const sqlUpper = aiResult.sql.trim().toUpperCase();

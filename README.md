@@ -17,7 +17,7 @@ The AI understands the Primavera database schema and generates optimized SQL que
 ## Architecture
 
 - **Frontend:** Next.js on Cloudflare Pages
-- **Backend:** Cloudflare Workers + Durable Objects
+- **Backend:** 3 Cloudflare Workers — API gateway, queue consumer, WebSocket gateway
 - **AI:** Claude API (text-to-SQL)
 - **Connector:** .NET 8 Windows Service (on-premise)
 - **Database:** Cloudflare D1
@@ -27,17 +27,14 @@ The AI understands the Primavera database schema and generates optimized SQL que
 ```
 apura/
 ├── packages/
-│   ├── api-gateway/          # Main API worker
-│   ├── ai-orchestrator/      # AI/Claude worker
-│   ├── query-executor/       # Query routing worker
-│   ├── report-worker/        # PDF/CSV generation
-│   ├── email-worker/         # Email sending
-│   ├── cron-worker/          # Scheduled triggers
-│   └── shared/               # Shared types, utils
+│   ├── api-gateway/          # REST API worker (api.apura.xyz)
+│   ├── worker/               # Queue consumer — AI, reports, email, cron
+│   ├── ws-gateway/           # WebSocket + Durable Objects (ws.apura.xyz)
+│   └── shared/               # Shared types, validators, constants
 ├── frontend/                 # Next.js app
 ├── connector/                # .NET Windows Service
 ├── migrations/               # D1 migration files
-└── docs/                     # Documentation
+└── deploy/                   # Migration & deploy scripts
 ```
 
-See [PLAN.md](PLAN.md) for the complete project plan.
+See [CLAUDE.md](CLAUDE.md) for the complete development guide.

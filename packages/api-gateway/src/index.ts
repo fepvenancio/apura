@@ -15,6 +15,9 @@ import billing from './routes/billing';
 import gdpr from './routes/gdpr';
 import mfa from './routes/mfa';
 import connector from './routes/connector';
+import ai from './routes/ai';
+import queryExecutor from './routes/query-executor';
+import { cronHandler } from './cron/scheduler';
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -110,6 +113,10 @@ app.route('/api/billing', billing);
 app.route('/api/gdpr', gdpr);
 app.route('/api/mfa', mfa);
 
+// Internal routes (merged from ai-orchestrator and query-executor)
+app.route('/ai', ai);
+app.route('/internal/query', queryExecutor);
+
 // 404 handler
 app.notFound((c) =>
   c.json({ success: false, error: { code: 'NOT_FOUND', message: 'Not found' } }, 404),
@@ -124,4 +131,4 @@ app.onError((err, c) => {
   );
 });
 
-export default app;
+export default { fetch: app.fetch, scheduled: cronHandler };

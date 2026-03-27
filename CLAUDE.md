@@ -4,13 +4,13 @@
 
 AI-powered reporting platform for Primavera ERP. Users connect on-premise SQL Server databases via a Windows service connector and generate reports using natural language (Claude text-to-SQL).
 
-## Architecture
+## Architecture (3-worker model)
 
 - **Frontend:** Next.js 15 + Tailwind (Cloudflare Pages at `apura.xyz`)
-- **API Gateway:** Hono on Cloudflare Workers (`api.apura.xyz`)
-- **WebSocket Gateway:** Cloudflare Durable Objects (`ws.apura.xyz`)
-- **AI Orchestrator:** Claude API text-to-SQL worker
-- **Connector:** .NET 8 Windows Service + WiX MSI installer
+- **API Gateway (`apura-api`):** Hono on Cloudflare Workers (`api.apura.xyz`) — auth, REST API, queue producer
+- **Worker (`apura-worker`):** Queue consumer — AI orchestration (Claude text-to-SQL), report generation (CSV/HTML), email delivery (Resend), scheduled tasks
+- **WebSocket Gateway (`apura-ws`):** Cloudflare Durable Objects (`ws.apura.xyz`) — connector tunnel
+- **Connector:** .NET 8 Windows Service + WiX MSI installer (on-premise)
 - **Database:** Cloudflare D1 (SQLite)
 - **Storage:** Cloudflare R2 (`apura-reports` bucket)
 - **Monorepo:** npm workspaces + Turborepo
@@ -28,6 +28,8 @@ npm run deploy       # turbo deploy
 
 # Single worker deploy
 cd packages/api-gateway && npx wrangler deploy
+cd packages/worker && npx wrangler deploy
+cd packages/ws-gateway && npx wrangler deploy
 
 # Connector (.NET)
 cd connector
@@ -55,6 +57,28 @@ bash deploy/migrate.sh
 - **Zone:** `apura.xyz` (zone ID: `8ccabbd0c17b96192c2d02af33cd2d06`)
 - **Workers.dev subdomain:** `stela-app`
 
+## Worker Secrets
+
+```bash
+# api-gateway
+cd packages/api-gateway
+npx wrangler secret put INTERNAL_SECRET   # shared secret for worker-to-worker auth
+npx wrangler secret put JWT_SECRET        # JWT signing key for user auth
+
+# worker (queue consumer)
+cd packages/worker
+npx wrangler secret put RESEND_API_KEY    # email delivery
+npx wrangler secret put INTERNAL_SECRET   # worker-to-worker auth
+```
+
+## Queue Flow
+
+```
+api-gateway → REPORT_QUEUE → worker (report-generation consumer)
+api-gateway → EMAIL_QUEUE  → worker (email-outbound consumer)
+worker (report done) → EMAIL_QUEUE → worker (email-outbound consumer)
+```
+
 ---
 
 ## Build & Test Status (2026-03-19)
@@ -80,29 +104,15 @@ The custom domain `api.apura.xyz` returns `ERR_SSL_TLSV1_ALERT_ACCESS_DENIED`. T
 - [ ] **SSL/TLS → Overview** → Set encryption mode to "Full" or "Full (Strict)"
 - [ ] Verify: `curl https://api.apura.xyz/connector/version` returns JSON
 
-### 2. Set Cloudflare Worker Secrets
-
-The API gateway needs these secrets to function fully:
+### 2. Deploy All Workers
 
 ```bash
-cd packages/api-gateway
-npx wrangler secret put INTERNAL_SECRET   # shared secret for internal worker-to-worker auth
-npx wrangler secret put JWT_SECRET        # JWT signing key for user auth
+npm run deploy    # deploys api-gateway, worker, ws-gateway via turbo
 ```
 
-### 3. Deploy Remaining Workers
+The worker needs secrets set first (see Worker Secrets section above).
 
-```bash
-cd packages/ai-orchestrator && npx wrangler deploy
-cd packages/ws-gateway && npx wrangler deploy
-```
-
-The `ai-orchestrator` needs an `ANTHROPIC_API_KEY` secret:
-```bash
-cd packages/ai-orchestrator && npx wrangler secret put ANTHROPIC_API_KEY
-```
-
-### 4. Deploy Frontend
+### 3. Deploy Frontend
 
 ```bash
 cd frontend
@@ -110,7 +120,7 @@ npm run build
 npx wrangler pages deploy out --project-name apura-web
 ```
 
-### 5. MSI Code Signing (optional but recommended)
+### 4. MSI Code Signing (optional but recommended)
 
 The MSI currently isn't code-signed, so Windows SmartScreen will flag it. To fix:
 
@@ -118,7 +128,7 @@ The MSI currently isn't code-signed, so Windows SmartScreen will flag it. To fix
 - Sign with: `signtool sign /f cert.pfx /p password /tr http://timestamp.digicert.com /td sha256 ApuraConnector.Installer.msi`
 - Re-upload signed MSI to R2
 
-### 6. Set up `releases.apura.xyz` (optional)
+### 5. Set up `releases.apura.xyz` (optional)
 
 Currently MSI is served via the API download route. To set up a dedicated download domain:
 

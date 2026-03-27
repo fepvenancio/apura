@@ -9,6 +9,9 @@ routes = [
   { pattern = "api.apura.xyz", custom_domain = true }
 ]
 
+[triggers]
+crons = ["* * * * *"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "apura-main"
@@ -18,14 +21,12 @@ database_id = "48a7c67d-223e-4ee1-8c87-9a9b3231def0"
 binding = "CACHE"
 id = "290e5fb7d86847b6823b79be9b6d2cb4"
 
-# IMPORTANT: INTERNAL_SECRET and JWT_SECRET must be set as Cloudflare secrets, not vars.
-# Run: wrangler secret put INTERNAL_SECRET
-# Run: wrangler secret put JWT_SECRET
+# IMPORTANT: Secrets must be set via `wrangler secret put`:
+#   INTERNAL_SECRET, JWT_SECRET, CLAUDE_API_KEY,
+#   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 [vars]
-
-[[services]]
-binding = "AI_ORCHESTRATOR"
-service = "apura-ai"
+AI_MODEL_DEFAULT = "claude-sonnet-4-20250514"
+AI_MODEL_BUDGET = "claude-haiku-4-5-20251001"
 
 [[services]]
 binding = "WS_GATEWAY"

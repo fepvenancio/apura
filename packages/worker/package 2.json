@@ -1,5 +1,5 @@
 {
-  "name": "@apura/api-gateway",
+  "name": "@apura/worker",
   "version": "0.1.0",
   "private": true,
   "main": "src/index.ts",
@@ -7,22 +7,15 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "tail": "wrangler tail"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.79.0",
-    "@noble/hashes": "^1.7.1",
-    "hono": "^4.6.0",
-    "node-sql-parser": "^5.4.0",
-    "otpauth": "^9.5.0",
-    "qrcode": "^1.5.4",
-    "stripe": "^20.4.1"
+    "hono": "^4.6.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260316.1",
-    "@types/qrcode": "^1.5.6",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4",
     "wrangler": "^3.114.17"
