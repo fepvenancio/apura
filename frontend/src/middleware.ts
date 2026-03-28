@@ -16,18 +16,27 @@ const isPublicRoute = createRouteMatcher([
   "/:locale(pt|en|es)/accept-invite(.*)",
 ]);
 
+const isAuthPage = createRouteMatcher([
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+]);
+
 export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
+
+  // sign-in/sign-up are outside locale routing — don't run intl middleware
+  if (isAuthPage(req)) {
+    return;
+  }
+
   return intlMiddleware(req);
 });
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and static files
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
     "/(api|trpc)(.*)",
   ],
 };
