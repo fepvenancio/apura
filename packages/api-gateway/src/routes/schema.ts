@@ -49,7 +49,7 @@ schema.get('/tables', async (c) => {
 // ---------------------------------------------------------------------------
 schema.get('/tables/:name', async (c) => {
   const orgId = c.get('orgId');
-  const tableName = c.req.param('name');
+  const tableName = c.req.param('name')!;
 
   // Check cache
   const cacheKey = `schema:${orgId}:table:${tableName}`;
@@ -124,7 +124,7 @@ schema.get('/categories', async (c) => {
 // ---------------------------------------------------------------------------
 // POST /api/schema/sync — Trigger re-sync from connector
 // ---------------------------------------------------------------------------
-schema.post('/sync', requireRole('owner', 'admin'), async (c) => {
+schema.post('/sync', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
 
   try {

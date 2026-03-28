@@ -23,7 +23,7 @@ queries.use('*', rateLimitMiddleware);
 // ---------------------------------------------------------------------------
 // POST /api/queries — Execute natural language query
 // ---------------------------------------------------------------------------
-queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, async (c) => {
+queries.post('/', requireRole('analyst'), quotaMiddleware, async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
@@ -199,7 +199,7 @@ queries.post('/', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, asy
 // ---------------------------------------------------------------------------
 // GET /api/queries — List query history (paginated)
 // ---------------------------------------------------------------------------
-queries.get('/', requireRole('owner', 'admin', 'analyst'), async (c) => {
+queries.get('/', requireRole('analyst'), async (c) => {
   const orgId = c.get('orgId');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
@@ -233,9 +233,9 @@ queries.get('/', requireRole('owner', 'admin', 'analyst'), async (c) => {
 // ---------------------------------------------------------------------------
 // GET /api/queries/:id — Get query detail
 // ---------------------------------------------------------------------------
-queries.get('/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
+queries.get('/:id', requireRole('analyst'), async (c) => {
   const orgId = c.get('orgId');
-  const queryId = c.req.param('id');
+  const queryId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const query = await orgDb.getQuery(queryId);
@@ -249,10 +249,10 @@ queries.get('/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
 // ---------------------------------------------------------------------------
 // GET /api/queries/:id/export/:fmt — Export query results
 // ---------------------------------------------------------------------------
-queries.get('/:id/export/:fmt', requireRole('owner', 'admin', 'analyst'), async (c) => {
+queries.get('/:id/export/:fmt', requireRole('analyst'), async (c) => {
   const orgId = c.get('orgId');
-  const queryId = c.req.param('id');
-  const fmt = c.req.param('fmt');
+  const queryId = c.req.param('id')!;
+  const fmt = c.req.param('fmt')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   if (fmt !== 'csv') {
@@ -306,10 +306,10 @@ queries.get('/:id/export/:fmt', requireRole('owner', 'admin', 'analyst'), async 
 // ---------------------------------------------------------------------------
 // POST /api/queries/:id/rerun — Re-execute a previous query
 // ---------------------------------------------------------------------------
-queries.post('/:id/rerun', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, async (c) => {
+queries.post('/:id/rerun', requireRole('analyst'), quotaMiddleware, async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
-  const queryId = c.req.param('id');
+  const queryId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const originalQuery = await orgDb.getQuery(queryId);

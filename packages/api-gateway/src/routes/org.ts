@@ -36,7 +36,7 @@ org.get('/', async (c) => {
 // ---------------------------------------------------------------------------
 // PUT /api/org — Update organization
 // ---------------------------------------------------------------------------
-org.put('/', requireRole('owner', 'admin'), async (c) => {
+org.put('/', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
@@ -187,7 +187,7 @@ org.post('/regenerate-api-key', requireRole('owner'), async (c) => {
 // ---------------------------------------------------------------------------
 // GET /api/org/users — List team members
 // ---------------------------------------------------------------------------
-org.get('/users', requireRole('owner', 'admin'), async (c) => {
+org.get('/users', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
@@ -202,10 +202,10 @@ org.get('/users', requireRole('owner', 'admin'), async (c) => {
 // ---------------------------------------------------------------------------
 // PUT /api/org/users/:id — Update user role
 // ---------------------------------------------------------------------------
-org.put('/users/:id', requireRole('owner', 'admin'), async (c) => {
+org.put('/users/:id', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
   const currentUserId = c.get('userId');
-  const targetUserId = c.req.param('id');
+  const targetUserId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const body = await c.req.json<{ role: UserRole; name?: string }>();
@@ -250,7 +250,7 @@ org.put('/users/:id', requireRole('owner', 'admin'), async (c) => {
 org.delete('/users/:id', requireRole('owner'), async (c) => {
   const orgId = c.get('orgId');
   const currentUserId = c.get('userId');
-  const targetUserId = c.req.param('id');
+  const targetUserId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   if (targetUserId === currentUserId) {
@@ -271,7 +271,7 @@ org.delete('/users/:id', requireRole('owner'), async (c) => {
 // ---------------------------------------------------------------------------
 // POST /api/org/invitations — Create invitation
 // ---------------------------------------------------------------------------
-org.post('/invitations', requireRole('owner', 'admin'), async (c) => {
+org.post('/invitations', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
   const userId = c.get('userId');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
@@ -370,7 +370,7 @@ org.post('/invitations', requireRole('owner', 'admin'), async (c) => {
 // ---------------------------------------------------------------------------
 // GET /api/org/invitations — List pending invitations
 // ---------------------------------------------------------------------------
-org.get('/invitations', requireRole('owner', 'admin'), async (c) => {
+org.get('/invitations', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
 
   const { results } = await c.env.DB
@@ -385,7 +385,7 @@ org.get('/invitations', requireRole('owner', 'admin'), async (c) => {
 // POST /api/org/invitations/:token/accept — Accept invitation
 // ---------------------------------------------------------------------------
 org.post('/invitations/:token/accept', async (c) => {
-  const token = c.req.param('token');
+  const token = c.req.param('token')!;
 
   const body = await c.req.json<{ name: string; password: string }>();
 
@@ -449,9 +449,9 @@ org.post('/invitations/:token/accept', async (c) => {
 // ---------------------------------------------------------------------------
 // DELETE /api/org/invitations/:id — Revoke invitation
 // ---------------------------------------------------------------------------
-org.delete('/invitations/:id', requireRole('owner', 'admin'), async (c) => {
+org.delete('/invitations/:id', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
-  const invitationId = c.req.param('id');
+  const invitationId = c.req.param('id')!;
 
   const invitation = await c.env.DB
     .prepare('SELECT id FROM invitations WHERE id = ? AND org_id = ? AND accepted_at IS NULL')

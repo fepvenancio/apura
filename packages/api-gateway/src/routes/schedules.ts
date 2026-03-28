@@ -64,7 +64,7 @@ schedules.use('*', rateLimitMiddleware);
 // ---------------------------------------------------------------------------
 // POST /api/schedules — Create schedule
 // ---------------------------------------------------------------------------
-schedules.post('/', requireRole('owner', 'admin', 'analyst'), async (c) => {
+schedules.post('/', requireRole('analyst'), async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
@@ -140,7 +140,7 @@ schedules.get('/', async (c) => {
 // ---------------------------------------------------------------------------
 schedules.get('/:id', async (c) => {
   const orgId = c.get('orgId');
-  const scheduleId = c.req.param('id');
+  const scheduleId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const schedule = await orgDb.getSchedule(scheduleId);
@@ -154,9 +154,9 @@ schedules.get('/:id', async (c) => {
 // ---------------------------------------------------------------------------
 // PUT|PATCH /api/schedules/:id — Update schedule
 // ---------------------------------------------------------------------------
-schedules.on(['PUT', 'PATCH'], '/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
+schedules.on(['PUT', 'PATCH'], '/:id', requireRole('analyst'), async (c) => {
   const orgId = c.get('orgId');
-  const scheduleId = c.req.param('id');
+  const scheduleId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const existing = await orgDb.getSchedule(scheduleId);
@@ -193,9 +193,9 @@ schedules.on(['PUT', 'PATCH'], '/:id', requireRole('owner', 'admin', 'analyst'),
 // ---------------------------------------------------------------------------
 // DELETE /api/schedules/:id — Delete schedule
 // ---------------------------------------------------------------------------
-schedules.delete('/:id', requireRole('owner', 'admin'), async (c) => {
+schedules.delete('/:id', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
-  const scheduleId = c.req.param('id');
+  const scheduleId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const existing = await orgDb.getSchedule(scheduleId);
@@ -212,9 +212,9 @@ schedules.delete('/:id', requireRole('owner', 'admin'), async (c) => {
 // ---------------------------------------------------------------------------
 // POST /api/schedules/:id/trigger — Manual trigger
 // ---------------------------------------------------------------------------
-schedules.post('/:id/trigger', requireRole('owner', 'admin', 'analyst'), async (c) => {
+schedules.post('/:id/trigger', requireRole('analyst'), async (c) => {
   const orgId = c.get('orgId');
-  const scheduleId = c.req.param('id');
+  const scheduleId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const schedule = await orgDb.getSchedule(scheduleId);
@@ -269,7 +269,7 @@ schedules.post('/:id/trigger', requireRole('owner', 'admin', 'analyst'), async (
 // ---------------------------------------------------------------------------
 schedules.get('/:id/runs', async (c) => {
   const orgId = c.get('orgId');
-  const scheduleId = c.req.param('id');
+  const scheduleId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   // Verify schedule exists and belongs to org
@@ -294,8 +294,8 @@ schedules.get('/:id/runs', async (c) => {
 // ---------------------------------------------------------------------------
 schedules.get('/:scheduleId/runs/:runId/download', async (c) => {
   const orgId = c.get('orgId');
-  const scheduleId = c.req.param('scheduleId');
-  const runId = c.req.param('runId');
+  const scheduleId = c.req.param('scheduleId')!;
+  const runId = c.req.param('runId')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   // Verify schedule exists and belongs to org

@@ -13,7 +13,7 @@ reports.use('*', rateLimitMiddleware);
 // ---------------------------------------------------------------------------
 // POST /api/reports — Save query as report
 // ---------------------------------------------------------------------------
-reports.post('/', requireRole('owner', 'admin', 'analyst'), async (c) => {
+reports.post('/', requireRole('analyst'), async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
@@ -71,7 +71,7 @@ reports.get('/', async (c) => {
 // ---------------------------------------------------------------------------
 reports.get('/:id', async (c) => {
   const orgId = c.get('orgId');
-  const reportId = c.req.param('id');
+  const reportId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const report = await orgDb.getReport(reportId);
@@ -85,9 +85,9 @@ reports.get('/:id', async (c) => {
 // ---------------------------------------------------------------------------
 // PUT|PATCH /api/reports/:id — Update report
 // ---------------------------------------------------------------------------
-reports.on(['PUT', 'PATCH'], '/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
+reports.on(['PUT', 'PATCH'], '/:id', requireRole('analyst'), async (c) => {
   const orgId = c.get('orgId');
-  const reportId = c.req.param('id');
+  const reportId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const existing = await orgDb.getReport(reportId);
@@ -120,9 +120,9 @@ reports.on(['PUT', 'PATCH'], '/:id', requireRole('owner', 'admin', 'analyst'), a
 // ---------------------------------------------------------------------------
 // DELETE /api/reports/:id — Delete report
 // ---------------------------------------------------------------------------
-reports.delete('/:id', requireRole('owner', 'admin'), async (c) => {
+reports.delete('/:id', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
-  const reportId = c.req.param('id');
+  const reportId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const existing = await orgDb.getReport(reportId);
@@ -139,10 +139,10 @@ reports.delete('/:id', requireRole('owner', 'admin'), async (c) => {
 // ---------------------------------------------------------------------------
 // POST /api/reports/:id/run — Execute report query now
 // ---------------------------------------------------------------------------
-reports.post('/:id/run', requireRole('owner', 'admin', 'analyst'), quotaMiddleware, async (c) => {
+reports.post('/:id/run', requireRole('analyst'), quotaMiddleware, async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
-  const reportId = c.req.param('id');
+  const reportId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const report = await orgDb.getReport(reportId);

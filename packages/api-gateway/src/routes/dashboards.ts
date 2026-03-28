@@ -11,7 +11,7 @@ dashboards.use('*', rateLimitMiddleware);
 // ---------------------------------------------------------------------------
 // POST /api/dashboards — Create dashboard
 // ---------------------------------------------------------------------------
-dashboards.post('/', requireRole('owner', 'admin', 'analyst'), async (c) => {
+dashboards.post('/', requireRole('analyst'), async (c) => {
   const userId = c.get('userId');
   const orgId = c.get('orgId');
   const orgDb = new OrgDatabase(c.env.DB, orgId);
@@ -55,7 +55,7 @@ dashboards.get('/', async (c) => {
 // ---------------------------------------------------------------------------
 dashboards.get('/:id', async (c) => {
   const orgId = c.get('orgId');
-  const dashboardId = c.req.param('id');
+  const dashboardId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const dashboard = await orgDb.getDashboard(dashboardId);
@@ -71,9 +71,9 @@ dashboards.get('/:id', async (c) => {
 // ---------------------------------------------------------------------------
 // PUT /api/dashboards/:id — Update dashboard
 // ---------------------------------------------------------------------------
-dashboards.put('/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
+dashboards.put('/:id', requireRole('analyst'), async (c) => {
   const orgId = c.get('orgId');
-  const dashboardId = c.req.param('id');
+  const dashboardId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const existing = await orgDb.getDashboard(dashboardId);
@@ -102,9 +102,9 @@ dashboards.put('/:id', requireRole('owner', 'admin', 'analyst'), async (c) => {
 // ---------------------------------------------------------------------------
 // DELETE /api/dashboards/:id — Delete dashboard + widgets
 // ---------------------------------------------------------------------------
-dashboards.delete('/:id', requireRole('owner', 'admin'), async (c) => {
+dashboards.delete('/:id', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
-  const dashboardId = c.req.param('id');
+  const dashboardId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const existing = await orgDb.getDashboard(dashboardId);
@@ -121,9 +121,9 @@ dashboards.delete('/:id', requireRole('owner', 'admin'), async (c) => {
 // ---------------------------------------------------------------------------
 // POST /api/dashboards/:id/widgets — Add widget
 // ---------------------------------------------------------------------------
-dashboards.post('/:id/widgets', requireRole('owner', 'admin', 'analyst'), async (c) => {
+dashboards.post('/:id/widgets', requireRole('analyst'), async (c) => {
   const orgId = c.get('orgId');
-  const dashboardId = c.req.param('id');
+  const dashboardId = c.req.param('id')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const dashboard = await orgDb.getDashboard(dashboardId);
@@ -164,10 +164,10 @@ dashboards.post('/:id/widgets', requireRole('owner', 'admin', 'analyst'), async 
 // ---------------------------------------------------------------------------
 // PUT /api/dashboards/:id/widgets/:widgetId — Update widget
 // ---------------------------------------------------------------------------
-dashboards.put('/:id/widgets/:widgetId', requireRole('owner', 'admin', 'analyst'), async (c) => {
+dashboards.put('/:id/widgets/:widgetId', requireRole('analyst'), async (c) => {
   const orgId = c.get('orgId');
-  const dashboardId = c.req.param('id');
-  const widgetId = c.req.param('widgetId');
+  const dashboardId = c.req.param('id')!;
+  const widgetId = c.req.param('widgetId')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const dashboard = await orgDb.getDashboard(dashboardId);
@@ -202,10 +202,10 @@ dashboards.put('/:id/widgets/:widgetId', requireRole('owner', 'admin', 'analyst'
 // ---------------------------------------------------------------------------
 // DELETE /api/dashboards/:id/widgets/:widgetId — Remove widget
 // ---------------------------------------------------------------------------
-dashboards.delete('/:id/widgets/:widgetId', requireRole('owner', 'admin'), async (c) => {
+dashboards.delete('/:id/widgets/:widgetId', requireRole('admin'), async (c) => {
   const orgId = c.get('orgId');
-  const dashboardId = c.req.param('id');
-  const widgetId = c.req.param('widgetId');
+  const dashboardId = c.req.param('id')!;
+  const widgetId = c.req.param('widgetId')!;
   const orgDb = new OrgDatabase(c.env.DB, orgId);
 
   const dashboard = await orgDb.getDashboard(dashboardId);
