@@ -36,7 +36,8 @@ export default function TeamPage() {
   const [mfaRequired, setMfaRequired] = useState(false);
   const [togglingMfa, setTogglingMfa] = useState(false);
   const [resettingMfa, setResettingMfa] = useState<string | null>(null);
-  const userRole = useAuthStore((s) => s.user?.role);
+  const { user: authUser } = useAuthStore();
+  const userRole = authUser?.role;
   const isAdminOrOwner = userRole === "owner" || userRole === "admin";
 
   useEffect(() => {

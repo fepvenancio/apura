@@ -1,133 +1,61 @@
-import { create } from "zustand";
-import { api, MfaRequiredError } from "@/lib/api";
-import type { AuthUser, Organization, SignupData } from "@/lib/types";
+"use client";
 
-interface AuthStore {
+import { useAuth, useUser, useOrganization, useClerk } from "@clerk/nextjs";
+import type { AuthUser, Organization } from "@/lib/types";
+
+interface AuthStoreState {
   user: AuthUser | null;
   org: Organization | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  pendingMfaToken: string | null;
-  mfaRequired: boolean;
-  mfaSetupRequired: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (data: SignupData) => Promise<void>;
   logout: () => void;
-  loadFromStorage: () => void;
-  verifyMfa: (code: string) => Promise<void>;
-  clearMfaPending: () => void;
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
-  user: null,
-  org: null,
-  isAuthenticated: false,
-  isLoading: true,
-  pendingMfaToken: null,
-  mfaRequired: false,
-  mfaSetupRequired: false,
+export function useAuthStore(): AuthStoreState {
+  const { isSignedIn, isLoaded: authLoaded, orgId, orgRole } = useAuth();
+  const { user: clerkUser, isLoaded: userLoaded } = useUser();
+  const { organization, isLoaded: orgLoaded } = useOrganization();
+  const { signOut } = useClerk();
 
-  login: async (email: string, password: string) => {
-    try {
-      const result = await api.login(email, password);
-      if (result.mfaSetupRequired) {
-        set({
-          user: result.user,
-          org: result.org,
-          isAuthenticated: true,
-          mfaSetupRequired: true,
-          pendingMfaToken: null,
-          mfaRequired: false,
-        });
-        return;
-      }
-      set({
-        user: result.user,
-        org: result.org,
-        isAuthenticated: true,
-        pendingMfaToken: null,
-        mfaRequired: false,
-        mfaSetupRequired: false,
-      });
-    } catch (error) {
-      if (error instanceof MfaRequiredError) {
-        set({
-          pendingMfaToken: error.mfaToken,
-          mfaRequired: true,
-        });
-        throw error;
-      }
-      throw error;
-    }
-  },
+  const isLoading = !authLoaded || !userLoaded || !orgLoaded;
 
-  signup: async (data: SignupData) => {
-    const result = await api.signup(data);
-    set({
-      user: result.user,
-      org: result.org,
-      isAuthenticated: true,
-    });
-  },
+  const user: AuthUser | null =
+    isSignedIn && clerkUser
+      ? {
+          id: clerkUser.id,
+          email: clerkUser.emailAddresses[0]?.emailAddress ?? "",
+          name:
+            [clerkUser.firstName, clerkUser.lastName]
+              .filter(Boolean)
+              .join(" ") || clerkUser.emailAddresses[0]?.emailAddress?.split("@")[0] || "",
+          orgId: orgId ?? "",
+          role: orgRole?.replace("org:", "") ?? "member",
+          language:
+            (clerkUser.unsafeMetadata?.language as string) ?? "pt",
+        }
+      : null;
 
-  logout: () => {
-    api.clearToken();
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
-      localStorage.removeItem("org");
-    }
-    set({
-      user: null,
-      org: null,
-      isAuthenticated: false,
-    });
-  },
+  const org: Organization | null =
+    isSignedIn && organization
+      ? {
+          id: organization.id,
+          name: organization.name,
+          slug: organization.slug ?? "",
+          plan: (organization.publicMetadata?.plan as string) ?? "trial",
+          queriesLimit:
+            (organization.publicMetadata?.queriesLimit as number) ?? 0,
+        }
+      : null;
 
-  verifyMfa: async (code: string) => {
-    const { pendingMfaToken } = get();
-    if (!pendingMfaToken) throw new Error("No pending MFA token");
-    const result = await api.verifyMfa(pendingMfaToken, code);
-    set({
-      user: result.user,
-      org: result.org,
-      isAuthenticated: true,
-      pendingMfaToken: null,
-      mfaRequired: false,
-    });
-  },
+  const logout = () => {
+    signOut();
+  };
 
-  clearMfaPending: () => {
-    set({ pendingMfaToken: null, mfaRequired: false });
-  },
-
-  loadFromStorage: () => {
-    if (typeof window === "undefined") {
-      set({ isLoading: false });
-      return;
-    }
-
-    const token = localStorage.getItem("accessToken");
-    const userJson = localStorage.getItem("user");
-    const orgJson = localStorage.getItem("org");
-
-    if (token && userJson && orgJson) {
-      try {
-        const user = JSON.parse(userJson) as AuthUser;
-        const org = JSON.parse(orgJson) as Organization;
-        api.setToken(token);
-        set({
-          user,
-          org,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      } catch {
-        set({ isLoading: false });
-      }
-    } else {
-      set({ isLoading: false });
-    }
-  },
-}));
+  return {
+    user,
+    org,
+    isAuthenticated: !!isSignedIn,
+    isLoading,
+    logout,
+  };
+}

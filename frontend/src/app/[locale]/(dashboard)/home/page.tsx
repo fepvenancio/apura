@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/stores/auth-store";
 import { useConnectorStore } from "@/stores/connector-store";
 import { useQueryStore } from "@/stores/query-store";
 import { api } from "@/lib/api";
@@ -21,7 +20,6 @@ export default function DashboardPage() {
   const t = useTranslations("dashboard");
   const tc = useTranslations("common");
   const locale = useLocale();
-  const org = useAuthStore((s) => s.org);
   const connectorStatus = useConnectorStore((s) => s.status);
   const result = useQueryStore((s) => s.result);
   const history = useQueryStore((s) => s.history);

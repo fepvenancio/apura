@@ -15,21 +15,6 @@ export interface Organization {
   queriesLimit: number;
 }
 
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: AuthUser;
-  org: Organization;
-}
-
-export interface SignupData {
-  email: string;
-  password: string;
-  name: string;
-  orgName: string;
-  slug: string;
-}
-
 export interface QueryColumn {
   name: string;
   type: string;
@@ -185,10 +170,6 @@ export interface ProfileUpdate {
   language?: string;
 }
 
-export interface PasswordChange {
-  currentPassword: string;
-  newPassword: string;
-}
 
 // Billing
 export interface BillingInfo {
@@ -211,17 +192,3 @@ export interface OrgSettings {
   mfa_required?: boolean;
 }
 
-// MFA
-export interface MfaSetupResponse {
-  qrCodeDataUrl: string;
-  secret: string;
-}
-
-export interface MfaConfirmResponse {
-  backupCodes: string[];
-}
-
-export interface MfaLoginResponse {
-  mfaRequired: true;
-  mfaToken: string;
-}

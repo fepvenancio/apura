@@ -3,6 +3,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { notFound } from "next/navigation";
+import { ClerkTokenSync } from "@/components/clerk-token-sync";
 import type { Metadata } from "next";
 
 export function generateStaticParams() {
@@ -30,6 +31,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
+      <ClerkTokenSync />
       {children}
     </NextIntlClientProvider>
   );

@@ -24,7 +24,8 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("mine");
   const [togglingId, setTogglingId] = useState<string | null>(null);
-  const userId = useAuthStore((s) => s.user?.id);
+  const { user } = useAuthStore();
+  const userId = user?.id;
 
   useEffect(() => {
     api

@@ -1,10 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useTranslations, useLocale } from "next-intl";
-import { useAuthStore } from "@/stores/auth-store";
-import { useRouter } from "next/navigation";
-import { LogOut, Settings, User } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
 
 interface TopbarProps {
   title: string;
@@ -13,28 +9,6 @@ interface TopbarProps {
 }
 
 export function Topbar({ title, queriesUsed, queriesLimit }: TopbarProps) {
-  const t = useTranslations("auth");
-  const locale = useLocale();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
-  const router = useRouter();
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleLogout = () => {
-    logout();
-    router.push(`/${locale}/login`);
-  };
 
   const usagePercent =
     queriesUsed !== undefined && queriesLimit
@@ -61,51 +35,13 @@ export function Topbar({ title, queriesUsed, queriesLimit }: TopbarProps) {
           </div>
         )}
 
-        {/* User menu */}
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted hover:bg-[#1a1a1a] hover:text-foreground transition-colors cursor-pointer"
-          >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-semibold">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
-            </div>
-            <span className="hidden sm:inline">{user?.name || t("profileMenu")}</span>
-          </button>
-
-          {menuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-card-border bg-card shadow-lg shadow-black/30 py-1">
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  router.push(`/${locale}/settings/profile`);
-                }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted hover:bg-[#1a1a1a] hover:text-foreground transition-colors cursor-pointer"
-              >
-                <User className="h-4 w-4" />
-                {t("profileMenu")}
-              </button>
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  router.push(`/${locale}/settings/connector`);
-                }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted hover:bg-[#1a1a1a] hover:text-foreground transition-colors cursor-pointer"
-              >
-                <Settings className="h-4 w-4" />
-                {t("settingsMenu")}
-              </button>
-              <div className="my-1 border-t border-card-border" />
-              <button
-                onClick={handleLogout}
-                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/10 transition-colors cursor-pointer"
-              >
-                <LogOut className="h-4 w-4" />
-                {t("logout")}
-              </button>
-            </div>
-          )}
-        </div>
+        <UserButton
+          appearance={{
+            elements: {
+              avatarBox: "h-7 w-7",
+            },
+          }}
+        />
       </div>
     </header>
   );

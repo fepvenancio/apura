@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { api } from "@/lib/api";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
@@ -86,11 +87,7 @@ export default function PricingPage() {
   const locale = useLocale();
   const [annual, setAnnual] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-
-  function isLoggedIn() {
-    if (typeof window === "undefined") return false;
-    return !!localStorage.getItem("accessToken");
-  }
+  const { isSignedIn } = useAuth();
 
   async function handleCheckout(priceId: string, planName: string) {
     setLoadingPlan(planName);
@@ -142,7 +139,7 @@ export default function PricingPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {plans.map((plan) => {
           const priceId = getPriceId(plan);
-          const loggedIn = isLoggedIn();
+          const loggedIn = !!isSignedIn;
           const isEnterprise = plan.name === "Enterprise";
           const canCheckout = loggedIn && !isEnterprise && !!priceId;
           const isLoading = loadingPlan === plan.name;
