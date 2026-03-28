@@ -51,7 +51,7 @@ describe('webhooks - Stripe webhook handler', () => {
   });
 
   it('returns 400 when stripe-signature header is missing', async () => {
-    const { default: webhooks } = await import('../webhooks');
+    const { default: webhooks } = await import('../stripe-webhooks');
     const res = await webhooks.request('/stripe', {
       method: 'POST',
       body: '{}',
@@ -65,7 +65,7 @@ describe('webhooks - Stripe webhook handler', () => {
   it('returns 400 when signature is invalid', async () => {
     __mockConstructEvent.mockRejectedValueOnce(new Error('Invalid signature'));
 
-    const { default: webhooks } = await import('../webhooks');
+    const { default: webhooks } = await import('../stripe-webhooks');
     const res = await webhooks.request('/stripe', {
       method: 'POST',
       headers: { 'stripe-signature': 'sig_invalid' },
@@ -103,7 +103,7 @@ describe('webhooks - Stripe webhook handler', () => {
       },
     });
 
-    const { default: webhooks } = await import('../webhooks');
+    const { default: webhooks } = await import('../stripe-webhooks');
     const res = await webhooks.request('/stripe', {
       method: 'POST',
       headers: { 'stripe-signature': 'sig_valid' },
@@ -143,7 +143,7 @@ describe('webhooks - Stripe webhook handler', () => {
       },
     });
 
-    const { default: webhooks } = await import('../webhooks');
+    const { default: webhooks } = await import('../stripe-webhooks');
     const res = await webhooks.request('/stripe', {
       method: 'POST',
       headers: { 'stripe-signature': 'sig_valid' },
@@ -176,7 +176,7 @@ describe('webhooks - Stripe webhook handler', () => {
       },
     });
 
-    const { default: webhooks } = await import('../webhooks');
+    const { default: webhooks } = await import('../stripe-webhooks');
     const res = await webhooks.request('/stripe', {
       method: 'POST',
       headers: { 'stripe-signature': 'sig_valid' },
@@ -210,7 +210,7 @@ describe('webhooks - Stripe webhook handler', () => {
 
     // Create a Hono app wrapper that provides executionCtx.waitUntil
     const { Hono } = await import('hono');
-    const { default: webhooks } = await import('../webhooks');
+    const { default: webhooks } = await import('../stripe-webhooks');
     const app = new Hono();
     app.route('/webhooks', webhooks);
 
@@ -249,7 +249,7 @@ describe('webhooks - Stripe webhook handler', () => {
       },
     });
 
-    const { default: webhooks } = await import('../webhooks');
+    const { default: webhooks } = await import('../stripe-webhooks');
     const res = await webhooks.request('/stripe', {
       method: 'POST',
       headers: { 'stripe-signature': 'sig_valid' },

@@ -2,18 +2,17 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import type { Env, AppVariables } from './types';
-import { authMiddleware } from './middleware/auth';
-import auth from './routes/auth';
+import { requireAuth } from './middleware/auth';
+import { webhooks as clerkWebhooks } from './routes/clerk-webhooks';
 import queries from './routes/queries';
 import reports from './routes/reports';
 import org from './routes/org';
 import schema from './routes/schema';
 import dashboards from './routes/dashboards';
 import schedules from './routes/schedules';
-import webhooks from './routes/webhooks';
+import stripeWebhooks from './routes/stripe-webhooks';
 import billing from './routes/billing';
 import gdpr from './routes/gdpr';
-import mfa from './routes/mfa';
 import connector from './routes/connector';
 import ai from './routes/ai';
 import queryExecutor from './routes/query-executor';
@@ -96,13 +95,13 @@ app.use('/webhooks/*', cors({
 }));
 
 // Public routes
-app.route('/auth', auth);
-app.route('/webhooks', webhooks);
+app.route('/webhooks/stripe', stripeWebhooks);
+app.route('/webhooks', clerkWebhooks);
 // Connector version check (public -- connectors use API key auth, not user JWT)
 app.route('/connector', connector);
 
-// Protected routes (auth required)
-app.use('/api/*', authMiddleware);
+// Protected routes (Clerk auth required)
+app.use('/api/*', requireAuth());
 app.route('/api/queries', queries);
 app.route('/api/reports', reports);
 app.route('/api/org', org);
@@ -111,7 +110,6 @@ app.route('/api/dashboards', dashboards);
 app.route('/api/schedules', schedules);
 app.route('/api/billing', billing);
 app.route('/api/gdpr', gdpr);
-app.route('/api/mfa', mfa);
 
 // Internal routes (merged from ai-orchestrator and query-executor)
 app.route('/ai', ai);

@@ -5,9 +5,11 @@ import type { Env, AppVariables } from '../types';
 import { requireRole } from '../middleware/auth';
 import { rateLimitMiddleware } from '../middleware/rate-limit';
 import { OrgDatabase } from '../services/org-db';
-import { hashPassword } from '../utils/password';
-import { generateJti } from '../utils/jwt';
 import { generateApiKey } from '../utils/api-key';
+
+// TODO: Invitation acceptance now handled by Clerk org invitations.
+// hashPassword and generateJti removed — Clerk manages credentials.
+function generateJti(): string { return crypto.randomUUID(); }
 
 const org = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -415,8 +417,8 @@ org.post('/invitations/:token/accept', async (c) => {
     return c.json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Email already registered' } }, 409);
   }
 
-  // Create user and mark invitation as accepted
-  const passwordHash = await hashPassword(body.password);
+  // Create user record (Clerk handles credentials — password_hash is placeholder)
+  // The real user identity lives in Clerk; this D1 record links via clerk_id (set by webhook)
   const userId = crypto.randomUUID();
   const now = new Date().toISOString();
 
@@ -424,7 +426,7 @@ org.post('/invitations/:token/accept', async (c) => {
     c.env.DB.prepare(
       `INSERT INTO users (id, org_id, email, name, password_hash, role, email_verified, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(userId, invitation.org_id, invitation.email, body.name, passwordHash, invitation.role, 1, now, now),
+    ).bind(userId, invitation.org_id, invitation.email, body.name, 'clerk-managed', invitation.role, 1, now, now),
     c.env.DB.prepare(
       'UPDATE invitations SET accepted_at = ? WHERE id = ?',
     ).bind(now, invitation.id),

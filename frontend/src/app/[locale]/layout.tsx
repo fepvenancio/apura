@@ -1,3 +1,4 @@
+import { ClerkProvider } from '@clerk/nextjs'
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
