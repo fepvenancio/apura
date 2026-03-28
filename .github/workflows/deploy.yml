@@ -59,12 +59,12 @@ jobs:
       max-parallel: 1
       matrix:
         worker:
-          - name: apura-ai
-            path: packages/ai-orchestrator
           - name: apura-ws
             path: packages/ws-gateway
           - name: apura-api
             path: packages/api-gateway
+          - name: apura-worker
+            path: packages/worker
     steps:
       - uses: actions/checkout@v4
 
@@ -81,7 +81,7 @@ jobs:
         run: npx wrangler deploy
 
   deploy-frontend:
-    name: Deploy Frontend (Production)
+    name: Deploy Frontend (Workers via OpenNext)
     needs: migrate
     runs-on: ubuntu-latest
     steps:
@@ -95,12 +95,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build frontend
+      - name: Build and deploy frontend
         working-directory: frontend
         env:
-          NEXT_PUBLIC_API_URL: https://api.apura.xyz
-        run: npm run build
-
-      - name: Deploy to Cloudflare Pages
-        working-directory: frontend
-        run: npx wrangler pages deploy out --project-name apura-web --branch main --commit-dirty=true
+          NEXT_PUBLIC_API_URL: https://apura-api.stela-app.workers.dev
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+          NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: /pt/home
+          NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: /pt/home
+        run: |
+          npx opennextjs-cloudflare build
+          npx wrangler deploy --var CLERK_SECRET_KEY:$CLERK_SECRET_KEY
