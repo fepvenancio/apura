@@ -16,11 +16,11 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <Link href="/pricing" className="text-[13px] text-muted hover:text-foreground transition-colors">
               Preços
             </Link>
-            <Link href="/login" className="text-[13px] text-muted hover:text-foreground transition-colors">
+            <Link href="/sign-in" className="text-[13px] text-muted hover:text-foreground transition-colors">
               Entrar
             </Link>
             <Link
-              href="/signup"
+              href="/sign-up"
               className="rounded-md bg-primary px-3.5 py-1.5 text-[13px] font-medium text-white hover:bg-primary-hover transition-colors"
             >
               Começar grátis
@@ -48,7 +48,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
               <h4 className="text-[11px] uppercase tracking-wider text-muted mb-3">Produto</h4>
               <ul className="space-y-2">
                 <li><Link href="/pricing" className="text-[13px] text-muted hover:text-foreground transition-colors">Preços</Link></li>
-                <li><Link href="/signup" className="text-[13px] text-muted hover:text-foreground transition-colors">Criar conta</Link></li>
+                <li><Link href="/sign-up" className="text-[13px] text-muted hover:text-foreground transition-colors">Criar conta</Link></li>
               </ul>
             </div>
             <div>
